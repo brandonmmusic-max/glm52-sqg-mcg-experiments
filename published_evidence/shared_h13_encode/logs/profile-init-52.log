@@ -1,0 +1,26 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.2.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+{
+  "active_cells": 16,
+  "complete": true,
+  "elapsed_seconds": 0.8981475231703371,
+  "layer": 52,
+  "mode": "initialize_only",
+  "preregistration_id": "fce662b3cdd9e9299cd2125facbe6268696d12e8b06b4f103f3613d994221159",
+  "preregistration_sha256": "e4ee9cbe93477f5ff0335a88ad0303f9bbc69bfa5f76fb7e0a929132f44a83ef"
+}

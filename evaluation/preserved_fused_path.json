@@ -1,0 +1,23 @@
+{
+  "baseline_result_directory": "/home/brandonmusic/klc-linux/release-gg-sparkinfer-20260721/results/20260809T194958Z-kld-fp8-dcp4",
+  "evidence": {
+    "image-inspect.json": "af4d0ff0082e1aff48869504e75d552113ad6a979372cc2ac2d31104b2b9b8b9",
+    "run1.log": "9ad8256080ad5f96e64af3862782003dc6836ffc2b44ddba2f7dc557bea58724",
+    "run2.log": "c48298297cf1ede38daf21711734712f19361d85847365e39095fb8c22520b3d",
+    "run3.log": "871f6f962df796d8dec4018dbd204aad2aa5ef9decfa421be449b0a66e303704",
+    "run4.log": "3a8e97846398ef1fcb7b1412a2a4af14ef1d2399c223a951bd024d1cb89db9b0",
+    "run5.log": "4dd9deab21f2439a1be1f6729ba9d8b0cfacfa15fd23481b0a9b225efe0a9743",
+    "summary.json": "07096cd5f0a683bd00a1e169c547ef48eaaec8f6270dfce355fa7b0a06834ad4"
+  },
+  "extraction": "unique layer indices from every `R7 fused MoE model.layers.N.mlp.experts` log record",
+  "fused_layer_count": 48,
+  "fused_layers_all_five_runs": [
+    6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+    23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+    39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54
+  ],
+  "selected_sqg_layers_that_reserve_baseline_slots": [6, 28, 52],
+  "selected_sqg_layers_nonfused_in_baseline": [77],
+  "substitution_layers_forbidden": [55, 56, 57],
+  "schema": "glm52-fresh-sqg-preserved-fused-path-v1"
+}

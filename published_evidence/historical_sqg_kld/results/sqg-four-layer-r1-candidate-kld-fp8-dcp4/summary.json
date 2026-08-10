@@ -1,0 +1,89 @@
+{
+  "schema": "glm52-sqg-candidate-kld-result-v1",
+  "baseline_was_rerun": false,
+  "candidate": "/home/brandonmusic/KLC_SANDBOXES/glm52_sqg_no_bf16_test/artifacts/GLM-5.2-EXL3-3.5bpw-SQG-L006-L028-L052-L077-r1",
+  "reference_sha256": "87f992a689c054a0548a4b3863da6c809f9239beacd5786d0401e45904fec063",
+  "regime": {
+    "kv_cache_dtype": "fp8",
+    "rope": "bfloat16",
+    "tensor_parallel_size": 4,
+    "decode_context_parallel_size": 4,
+    "dcp_comm_backend": "a2a",
+    "dcp_kv_cache_interleave_size": 64,
+    "context_tokens": 2048,
+    "scored_positions": 2047
+  },
+  "runtime": {
+    "candidate_image": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "candidate_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "baseline_image": "voipmonitor/vllm:gilded-gnosis-v20-vllmfa13d33-b12x06db0f4-fi1ac6942-cu132-20260809-r33",
+    "baseline_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "base_image_matches_baseline": true,
+    "candidate_runtime_overlay_applied": true,
+    "runtime_overlay": {
+      "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_sqg_no_bf16_test/runtime_overlay",
+      "manifest_sha256": "b1908926d7cba6ee92b9e373b0d6c9deae9a7493c83a3e0e9ee720a5abce9a47"
+    },
+    "exact_r33_extension_directory_mount_applied": true,
+    "direct_exl3_shared_object_override_applied": false,
+    "extension_matches_baseline": true,
+    "exact_r33_extra_docker_args": {
+      "path": "/home/brandonmusic/KLC_SANDBOXES/sqg_candidate_kld_20260809/r33_exact_runtime.args",
+      "sha256": "ec2208c1958971bf14cfbdd526ec62f02f72ebb2964de55891d0884213490bdc"
+    },
+    "runtime_code_matches_baseline": false
+  },
+  "primary_same_base_image_baseline": {
+    "summary": "/home/brandonmusic/klc-linux/release-gg-sparkinfer-20260721/results/20260809T194958Z-kld-fp8-dcp4/summary.json",
+    "runs": 5,
+    "mean_kld": 0.0624498626218156,
+    "sample_sd_kld": 0.0015327574926078513
+  },
+  "secondary_legacy_baseline": {
+    "runs": 5,
+    "mean_kld": 0.061282244905043234,
+    "sample_sd_kld": 0.0013762397578544292,
+    "image": "glm52-r26-r7:v1",
+    "image_id": "sha256:e0121c436c50ab699b221fae7e1c04a655c97dd825c705f059a373928db89d56"
+  },
+  "candidate_result": {
+    "runs": 5,
+    "values": [
+      0.06494029413596611,
+      0.06845580140500897,
+      0.06664981401007228,
+      0.06408844960937171,
+      0.06395135181589742
+    ],
+    "mean_kld": 0.0656171421952633,
+    "sample_sd_kld": 0.0019166558827614939,
+    "min_kld": 0.06395135181589742,
+    "max_kld": 0.06845580140500897,
+    "elapsed_seconds": [
+      55.58752512931824,
+      53.9963276386261,
+      55.47585606575012,
+      52.686683654785156,
+      52.52784514427185
+    ]
+  },
+  "comparison": {
+    "baseline_kind": "existing-same-base-image-r33-runtime-confounded",
+    "scope": "SQG codebook plus required SQG loader/non-fused dispatch; not codebook-only",
+    "delta_candidate_minus_baseline": 0.003167279573447694,
+    "relative_delta": 0.050717158380765896,
+    "mean_direction": "higher",
+    "repeat_noise_delta_standard_error": 0.0010975349929792442,
+    "welch_t_repeat_noise": 2.8858119273720426,
+    "welch_degrees_freedom": 7.631109686176068,
+    "conservative_two_sided_critical_t": 2.776,
+    "conservative_95pct_repeat_noise_direction": "higher",
+    "inference_limit": "One fixed 2047-position prompt; repeat-run Welch values describe runtime variation only, not generalization across text"
+  },
+  "legacy_comparison": {
+    "baseline_kind": "published-r26",
+    "delta_candidate_minus_baseline": 0.0043348972902200605,
+    "relative_delta": 0.07073659421153677,
+    "mean_direction": "higher"
+  }
+}

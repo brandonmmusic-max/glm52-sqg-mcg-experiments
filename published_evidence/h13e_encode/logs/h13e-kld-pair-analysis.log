@@ -1,0 +1,134 @@
+{
+  "analysis_id": "23d4430d6d848ef856e1e3689f5c239e5c488eaa94259ff12a3dd7be8398542f",
+  "current_inputs": [
+    {
+      "bounded_negative_roundoff_count": 7,
+      "mean_kld": 0.061699081536031194,
+      "minimum_kld": -4.6551978272191263e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run1-container-output/run1-position-kld.safetensors",
+      "sha256": "26f1073e3ac1a28506a41d0fd05f2f540512ff6bbc66b288f9e2ac1573729be1"
+    },
+    {
+      "bounded_negative_roundoff_count": 7,
+      "mean_kld": 0.062051197381987486,
+      "minimum_kld": -2.6581744805298513e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run2-container-output/run2-position-kld.safetensors",
+      "sha256": "1d315c2d1d4edeb8f1269d43e6c896b52e9176e5ee395a17bcd7482c512618cf"
+    },
+    {
+      "bounded_negative_roundoff_count": 6,
+      "mean_kld": 0.062187488760141185,
+      "minimum_kld": -3.204685583568789e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+      "sha256": "8cf0a93d81a888ea15d35edcaea26b70d451fafab9cf29c789f7abb5e5b6799c"
+    },
+    {
+      "bounded_negative_roundoff_count": 4,
+      "mean_kld": 0.06401166817443164,
+      "minimum_kld": -6.225205595455918e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run4-container-output/run4-position-kld.safetensors",
+      "sha256": "acec8424cb5e43c7a3234841972f3222e1b7a93b651f6dbec3287e6b6bb60eac"
+    },
+    {
+      "bounded_negative_roundoff_count": 6,
+      "mean_kld": 0.06430004747163812,
+      "minimum_kld": -5.3013152978564904e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run5-container-output/run5-position-kld.safetensors",
+      "sha256": "13707a425e25a82e12ad138ce9e66c801328fb4fe03e6e6a95b358379c58e5aa"
+    }
+  ],
+  "current_summary": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/summary.json",
+  "current_summary_sha256": "85b41a89870702632c62d5f7edfd9df42a68a65250fcd78cf0ff89256410cacc",
+  "direction": "h13e_minus_current_sqg; lower_is_better",
+  "h13e_inputs": [
+    {
+      "bounded_negative_roundoff_count": 7,
+      "mean_kld": 0.0628486555390506,
+      "minimum_kld": -1.8876436413961528e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/run1-container-output/run1-position-kld.safetensors",
+      "sha256": "3fe148a308a6c5bbc5f044a868fdb5a2cd3960131fbac5a1820a3948014b016e"
+    },
+    {
+      "bounded_negative_roundoff_count": 5,
+      "mean_kld": 0.06407613468755563,
+      "minimum_kld": -3.707376805550666e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/run2-container-output/run2-position-kld.safetensors",
+      "sha256": "3a7ff249e3bb3d3ad538fede262b02d44c6a0abe9ff37e5977b633fac056541b"
+    },
+    {
+      "bounded_negative_roundoff_count": 4,
+      "mean_kld": 0.06323600862856801,
+      "minimum_kld": -1.0679404027769124e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+      "sha256": "bc4ab4cd24bca63d972be32fb6a8d17844c1e1c4c9555671eade4f80e0836a0b"
+    },
+    {
+      "bounded_negative_roundoff_count": 8,
+      "mean_kld": 0.06275519934061306,
+      "minimum_kld": -6.04663199510469e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/run4-container-output/run4-position-kld.safetensors",
+      "sha256": "0840b5788437b6f105f8f9617527fa0b7518eed2570002f33c06219f26b7a553"
+    },
+    {
+      "bounded_negative_roundoff_count": 7,
+      "mean_kld": 0.0626493310201475,
+      "minimum_kld": -1.3905852469520141e-08,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/run5-container-output/run5-position-kld.safetensors",
+      "sha256": "1c03b678df8002f3b108caa33f87b8cfc35a74f84b5824be1409d9ff785fa2a6"
+    }
+  ],
+  "h13e_summary": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/summary.json",
+  "h13e_summary_sha256": "eaffe0747086351a4841fcd5ae4fab7c297879edc843463317701612710949f0",
+  "inference_limit": "Both arms use five fresh boots of one fixed 2047-position prompt. Welch statistics describe repeat/runtime variation; the circular-block interval describes within-prompt position structure. Neither estimates generalization across texts or tasks.",
+  "paired_tensor": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/h13e_vs_current_sqg_kld.safetensors",
+    "sha256": "c18e1163213ec69b8102da57af95aa0e52c18e865c1dc4a074faf5a5a8178f5a"
+  },
+  "per_position": {
+    "circular_block_bootstrap": {
+      "block_size": 32,
+      "iterations": 10000,
+      "seed": 20260810,
+      "within_prompt_mean_delta_95pct_interval": [
+        -0.0032230156353773337,
+        0.0037325870506019943
+      ]
+    },
+    "delta_quantiles": {
+      "p05": -0.050926867832895364,
+      "p25": -0.00021754995141236582,
+      "p50": -8.94761804204336e-08,
+      "p75": 0.00012984917702851833,
+      "p95": 0.04817620730027547
+    },
+    "h13e_higher_fraction": 0.48168050806057644,
+    "h13e_lower_fraction": 0.5183194919394235
+  },
+  "positions": 2047,
+  "reference_sha256": "87f992a689c054a0548a4b3863da6c809f9239beacd5786d0401e45904fec063",
+  "reference_token_ids_u32le_sha256": "ad0d213eb533e956bc8e40a585f4fcff61a89a0da4a09cc5d750b46ba6d05c56",
+  "regime": {
+    "context_tokens": 2048,
+    "dcp_comm_backend": "a2a",
+    "dcp_kv_cache_interleave_size": 64,
+    "decode_context_parallel_size": 4,
+    "kv_cache_dtype": "fp8",
+    "rope": "bfloat16",
+    "scored_positions": 2047,
+    "tensor_parallel_size": 4
+  },
+  "runs_per_arm": 5,
+  "scalar": {
+    "current_mean_kld": 0.0628498962833298,
+    "current_sample_sd_kld": 0.001209723746733114,
+    "h13e_mean_kld": 0.06311306567220212,
+    "h13e_minus_current": 0.0002631693888723169,
+    "h13e_sample_sd_kld": 0.0005821610692488878,
+    "relative_delta": 0.00418726846717358,
+    "repeat_noise_direction": "inconclusive",
+    "repeat_noise_standard_error": 0.0006003903819947504,
+    "welch_degrees_freedom": 5.7583881473073175,
+    "welch_t": 0.43833045425870587
+  },
+  "schema": "glm52-h13e-current-sqg-paired-kld-analysis-v1"
+}

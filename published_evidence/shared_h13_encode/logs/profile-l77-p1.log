@@ -1,0 +1,60 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.2.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+{
+  "cell_ids": [
+    "draw-00__aggregate_rms",
+    "draw-01__aggregate_rms",
+    "draw-02__aggregate_rms",
+    "draw-03__aggregate_rms"
+  ],
+  "cells_completed": [
+    {
+      "aggregate_relative_error": 0.001957423612963956,
+      "cell_id": "draw-00__aggregate_rms",
+      "expert_count": 16,
+      "score_id": "e37152997a53ec85324dc75285c448e9ae9c93b8edbd00daa73aba27ad402b9e",
+      "score_sha256": "4db02459a9d44a87bee80bbffbf822399db2f585a859354bfa146efc4175e4b0"
+    },
+    {
+      "aggregate_relative_error": 0.001915621148325,
+      "cell_id": "draw-01__aggregate_rms",
+      "expert_count": 16,
+      "score_id": "9f3dd59ee373eb9e82e93b892a89aeed98d12a1ee8a301c8dbe2ef1ead345267",
+      "score_sha256": "577b72428e44d3278de1f435e6da30c4fa8df816b41211418aa9e12507f87aea"
+    },
+    {
+      "aggregate_relative_error": 0.0019968997212304407,
+      "cell_id": "draw-02__aggregate_rms",
+      "expert_count": 16,
+      "score_id": "219be8cf816898b9f4fbbd1cf3f284fed18e9b522aa2274430407b7c7852de38",
+      "score_sha256": "6e795edf3dd522c969db4bb35b2675645cb9add82fa8404dfce5f779bf2fab23"
+    },
+    {
+      "aggregate_relative_error": 0.0019848478191836095,
+      "cell_id": "draw-03__aggregate_rms",
+      "expert_count": 16,
+      "score_id": "a0bdb33c32c6c3773ab08c7fd590884a6bb5e9f51ab9f72be4ef03aa739018a7",
+      "score_sha256": "7c356f7504d9a2480fc081bc6a494f205bb775efc3c259bc72ccdb66cbe9d353"
+    }
+  ],
+  "complete": true,
+  "elapsed_seconds": 1796.0720516990405,
+  "layer": 77,
+  "mode": "profile_worker",
+  "worker_index": 1
+}

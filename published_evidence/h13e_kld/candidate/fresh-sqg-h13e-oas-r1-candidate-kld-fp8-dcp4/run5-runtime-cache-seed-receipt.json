@@ -1,0 +1,16 @@
+{
+  "schema": "glm52-runtime-cache-seed-receipt-v1",
+  "source": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-candidate-runtime-cache",
+  "destination": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/run5-candidate-runtime-cache",
+  "copy_request": "cp -a --reflink=auto",
+  "source_file_count": 13684,
+  "destination_file_count_before_boot": 13684,
+  "byte_hashing_skipped": true,
+  "cache_semantics": "compiled executable code only; no model, logits, KV, RNG, or process state",
+  "independently_mutable_destination": true,
+  "source_arm": "rejected_sqg_candidate_compiled_code_cache",
+  "source_receipt": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-runtime-cache-receipt.json",
+  "source_receipt_sha256": "e71af3a67335996bcdc41aedfdfeb7c21f6e36b09dd95260fbe86a2b3f93612d",
+  "source_accepted_record": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-record.accepted.json",
+  "source_accepted_record_sha256": "77bcdb94502abbc43b6258ebe586bff8e38ef75c5cff6d238cd055570871f600"
+}

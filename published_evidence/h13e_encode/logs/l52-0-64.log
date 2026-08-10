@@ -1,0 +1,84 @@
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+layer 52 experts 0:64: 1/64 alpha=0.750000
+layer 52 experts 0:64: 2/64 alpha=0.750000
+layer 52 experts 0:64: 3/64 alpha=0.750000
+layer 52 experts 0:64: 4/64 alpha=0.750000
+layer 52 experts 0:64: 5/64 alpha=0.750000
+layer 52 experts 0:64: 6/64 alpha=0.750000
+layer 52 experts 0:64: 7/64 alpha=0.750000
+layer 52 experts 0:64: 8/64 alpha=0.750000
+layer 52 experts 0:64: 9/64 alpha=0.750000
+layer 52 experts 0:64: 10/64 alpha=0.750000
+layer 52 experts 0:64: 11/64 alpha=0.750000
+layer 52 experts 0:64: 12/64 alpha=0.750000
+layer 52 experts 0:64: 13/64 alpha=0.750000
+layer 52 experts 0:64: 14/64 alpha=0.750000
+layer 52 experts 0:64: 15/64 alpha=0.750000
+layer 52 experts 0:64: 16/64 alpha=0.750000
+layer 52 experts 0:64: 17/64 alpha=0.750000
+layer 52 experts 0:64: 18/64 alpha=0.750000
+layer 52 experts 0:64: 19/64 alpha=0.750000
+layer 52 experts 0:64: 20/64 alpha=0.750000
+layer 52 experts 0:64: 21/64 alpha=0.750000
+layer 52 experts 0:64: 22/64 alpha=0.750000
+layer 52 experts 0:64: 23/64 alpha=0.750000
+layer 52 experts 0:64: 24/64 alpha=0.750000
+layer 52 experts 0:64: 25/64 alpha=0.750000
+layer 52 experts 0:64: 26/64 alpha=0.750000
+layer 52 experts 0:64: 27/64 alpha=0.750000
+layer 52 experts 0:64: 28/64 alpha=0.750000
+layer 52 experts 0:64: 29/64 alpha=0.750000
+layer 52 experts 0:64: 30/64 alpha=0.750000
+layer 52 experts 0:64: 31/64 alpha=0.750000
+layer 52 experts 0:64: 32/64 alpha=0.750000
+layer 52 experts 0:64: 33/64 alpha=0.750000
+layer 52 experts 0:64: 34/64 alpha=0.750000
+layer 52 experts 0:64: 35/64 alpha=0.750000
+layer 52 experts 0:64: 36/64 alpha=0.750000
+layer 52 experts 0:64: 37/64 alpha=0.750000
+layer 52 experts 0:64: 38/64 alpha=0.750000
+layer 52 experts 0:64: 39/64 alpha=0.750000
+layer 52 experts 0:64: 40/64 alpha=0.750000
+layer 52 experts 0:64: 41/64 alpha=0.750000
+layer 52 experts 0:64: 42/64 alpha=0.750000
+layer 52 experts 0:64: 43/64 alpha=0.750000
+layer 52 experts 0:64: 44/64 alpha=0.750000
+layer 52 experts 0:64: 45/64 alpha=0.750000
+layer 52 experts 0:64: 46/64 alpha=0.750000
+layer 52 experts 0:64: 47/64 alpha=0.750000
+layer 52 experts 0:64: 48/64 alpha=0.750000
+layer 52 experts 0:64: 49/64 alpha=0.750000
+layer 52 experts 0:64: 50/64 alpha=0.750000
+layer 52 experts 0:64: 51/64 alpha=0.750000
+layer 52 experts 0:64: 52/64 alpha=0.750000
+layer 52 experts 0:64: 53/64 alpha=0.750000
+layer 52 experts 0:64: 54/64 alpha=0.750000
+layer 52 experts 0:64: 55/64 alpha=0.750000
+layer 52 experts 0:64: 56/64 alpha=0.750000
+layer 52 experts 0:64: 57/64 alpha=0.750000
+layer 52 experts 0:64: 58/64 alpha=0.750000
+layer 52 experts 0:64: 59/64 alpha=0.750000
+layer 52 experts 0:64: 60/64 alpha=0.750000
+layer 52 experts 0:64: 61/64 alpha=0.750000
+layer 52 experts 0:64: 62/64 alpha=0.750000
+layer 52 experts 0:64: 63/64 alpha=0.750000
+layer 52 experts 0:64: 64/64 alpha=0.750000
+{
+  "complete": true,
+  "elapsed_seconds": 913.6384370739106,
+  "end": 64,
+  "experts": 64,
+  "h13_construction": "fit_gate_square_expert_local_weighted_oas_reliability_layer_global_prior_cap_0p75_v1",
+  "layer": 52,
+  "local_alpha_cap": 0.75,
+  "local_alpha_max": 0.75,
+  "local_alpha_mean": 0.75,
+  "local_alpha_min": 0.75,
+  "newly_encoded": 64,
+  "output_dir": "/candidate/layer_052/experts",
+  "resumed": 0,
+  "schema": "glm52-expert-local-h13-shard-result-v1",
+  "selection_sha256": "3e8c425f87ef324683a89c8f750f4a44aaad5e36541fab2499518be07c4247bd",
+  "start": 0
+}

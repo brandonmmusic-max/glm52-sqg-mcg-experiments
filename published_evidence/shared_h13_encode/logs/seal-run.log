@@ -1,0 +1,136 @@
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+{
+  "census": {
+    "K3": 1536,
+    "K4": 1536,
+    "exact_factorial_cells_total": 64,
+    "experts": 1024,
+    "factorial_cells_per_layer": 16,
+    "layers": 4,
+    "mcg_tensors": 0,
+    "other_rates": 0,
+    "sqg_tensors": 3072
+  },
+  "complete": true,
+  "layers": {
+    "28": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "layer_artifact_sha256": "581b27541e65ff767678c8e8fe86cabd23c4ea759c96ee4ca108d0485a695136",
+        "reason": "operator_time_priority",
+        "report_present": false,
+        "routed_score_present": false,
+        "selection_sha256": "9cb57d9bce6537d74eefc9a253e6b7d864751a51cb593286279196f1d006e6eb",
+        "status": "skipped",
+        "used_for_calibration": false,
+        "used_for_profile_choice": false
+      },
+      "layer_artifact": "/output/layer_028/final/fresh-sqg-layer-028.json",
+      "layer_artifact_sha256": "581b27541e65ff767678c8e8fe86cabd23c4ea759c96ee4ca108d0485a695136",
+      "layer_shard_sha256": "1900cb68cdc1970d84e41a154895927ec694a29153eb4148e58e2c597fcbf17d",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-02__identity",
+      "selection_id": "ec33c264acbcdbff26713efcd05ec3db641cbd0655dc090c0be860b41dda8e16",
+      "selection_sha256": "9cb57d9bce6537d74eefc9a253e6b7d864751a51cb593286279196f1d006e6eb",
+      "sqg_tensors": 768
+    },
+    "52": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "layer_artifact_sha256": "ed6788b968d52e85cc21114beb31f87faaae69f687434975353866e16df8b69e",
+        "reason": "operator_time_priority",
+        "report_present": false,
+        "routed_score_present": false,
+        "selection_sha256": "3e8c425f87ef324683a89c8f750f4a44aaad5e36541fab2499518be07c4247bd",
+        "status": "skipped",
+        "used_for_calibration": false,
+        "used_for_profile_choice": false
+      },
+      "layer_artifact": "/output/layer_052/final/fresh-sqg-layer-052.json",
+      "layer_artifact_sha256": "ed6788b968d52e85cc21114beb31f87faaae69f687434975353866e16df8b69e",
+      "layer_shard_sha256": "d99b4724e1a1abee234f21a13a1f33b5eb87e35a247f87755aec1de347b8f4ac",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-03__identity",
+      "selection_id": "585f40db7c69b554ff6e915490d6dcd633c996a7121dc2e3d701293484ad4108",
+      "selection_sha256": "3e8c425f87ef324683a89c8f750f4a44aaad5e36541fab2499518be07c4247bd",
+      "sqg_tensors": 768
+    },
+    "6": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "layer_artifact_sha256": "676b56e613593392c992a1a7fcd06a29aac212df6ef51189cdfca2db7bdb1bb7",
+        "reason": "operator_time_priority",
+        "report_present": false,
+        "routed_score_present": false,
+        "selection_sha256": "b7ca81f5f378f0705307ef1689c8ec738dce29b1ec46e6cc5162ff19e1914334",
+        "status": "skipped",
+        "used_for_calibration": false,
+        "used_for_profile_choice": false
+      },
+      "layer_artifact": "/output/layer_006/final/fresh-sqg-layer-006.json",
+      "layer_artifact_sha256": "676b56e613593392c992a1a7fcd06a29aac212df6ef51189cdfca2db7bdb1bb7",
+      "layer_shard_sha256": "e4a3a6403426d98170b21294880decd8ac47536cca2c0c7ae86c4ed16bf501bf",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-00__identity",
+      "selection_id": "1ed0c8b4919d067377bbe5f64ac34390b96bf3f2988e6fcce5cd9c8349f202f6",
+      "selection_sha256": "b7ca81f5f378f0705307ef1689c8ec738dce29b1ec46e6cc5162ff19e1914334",
+      "sqg_tensors": 768
+    },
+    "77": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "layer_artifact_sha256": "d7ef35374ac305c76c529b77f381aad61c5d5ff970c6060b35e8d0f8277e7534",
+        "reason": "operator_time_priority",
+        "report_present": false,
+        "routed_score_present": false,
+        "selection_sha256": "644f36ff1caa318dc07be01fcbdc8029f14154845ce22922ab52430ef5312779",
+        "status": "skipped",
+        "used_for_calibration": false,
+        "used_for_profile_choice": false
+      },
+      "layer_artifact": "/output/layer_077/final/fresh-sqg-layer-077.json",
+      "layer_artifact_sha256": "d7ef35374ac305c76c529b77f381aad61c5d5ff970c6060b35e8d0f8277e7534",
+      "layer_shard_sha256": "5018a1478cb9a280b84acda36145f6943fb501a63cec8b4d6686e1a99433cc8f",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-00__identity",
+      "selection_id": "5e6afc7549e779cac37edeccd34a7a2d7c6683e64006520a29b61a034300c3be",
+      "selection_sha256": "644f36ff1caa318dc07be01fcbdc8029f14154845ce22922ab52430ef5312779",
+      "sqg_tensors": 768
+    }
+  },
+  "lineage": {
+    "fallback_count": 0,
+    "fresh_capture": true,
+    "fresh_sqg_encoding": true,
+    "frozen_bit_map_only": true,
+    "legacy_mcg_artifact_reads": 0,
+    "official_bf16": true
+  },
+  "preflight_sha256": "c7dbe0aa40e79ee2c5a18cbc67d828bf43369c29b05e87ead08a2d181bffd18f",
+  "run_id": "glm52-fresh-sqg-r1",
+  "run_seal_id": "85f100113d154a9bf610eea6d0a961bc544de9ae7fc00445d46b6de84d61e218",
+  "schema": "glm52-fresh-sqg-four-layer-run-seal-v1",
+  "scope": {
+    "existing_model_mutated": false,
+    "four_layer_replacement_artifacts": true,
+    "production_container_touched": false,
+    "routed_holdout": {
+      "layers": [
+        6,
+        28,
+        52,
+        77
+      ],
+      "reason": "operator_time_priority",
+      "report_count": 0,
+      "routed_score_count": 0,
+      "status": "skipped"
+    },
+    "runnable_model_materialized": false
+  }
+}

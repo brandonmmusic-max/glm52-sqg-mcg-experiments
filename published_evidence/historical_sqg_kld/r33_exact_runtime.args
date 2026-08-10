@@ -1,0 +1,13 @@
+# Exact non-EXL3 production boot overlays used by glm-r33-fixed and the
+# already-preserved r33 KLD control.  The patched EXL3 module and isolated
+# b12x_sqg package are supplied by RUNTIME_OVERLAY instead.
+--volume=/tmp/claude-1000/-home-brandonmusic-KLC-SANDBOXES/50980f6d-56ae-4115-a6bf-0d17377be8eb/scratchpad/prwork/boot/envs.py:/opt/venv/lib/python3.12/site-packages/vllm/envs.py:ro
+--volume=/tmp/claude-1000/-home-brandonmusic-KLC-SANDBOXES/50980f6d-56ae-4115-a6bf-0d17377be8eb/scratchpad/prwork/boot/deepseek_v2.py:/opt/venv/lib/python3.12/site-packages/vllm/model_executor/models/deepseek_v2.py:ro
+--volume=/tmp/claude-1000/-home-brandonmusic-KLC-SANDBOXES/50980f6d-56ae-4115-a6bf-0d17377be8eb/scratchpad/prwork/boot/mixed_trellis.py:/opt/venv/lib/python3.12/site-packages/b12x/moe/_shared/kernels/w4a16/mixed_trellis.py:ro
+--volume=/tmp/claude-1000/-home-brandonmusic-KLC-SANDBOXES/50980f6d-56ae-4115-a6bf-0d17377be8eb/scratchpad/prwork/boot/utils.py:/opt/venv/lib/python3.12/site-packages/vllm/model_executor/model_loader/utils.py:ro
+--volume=/tmp/claude-1000/-home-brandonmusic-KLC-SANDBOXES/50980f6d-56ae-4115-a6bf-0d17377be8eb/scratchpad/prwork/v39_ext/exllamav3:/opt/exllamav3-r7ext:ro
+--env=VLLM_EXL3_EXT_PATH=/opt/exllamav3-r7ext
+--env=VLLM_EXL3_R7_FUSED=1
+--env=VLLM_EXL3_R7_FUSED_LAYERS=48
+--env=VLLM_EXL3_R7_A1_MIN_ROWS=0
+--env=VLLM_EXL3_PREFILL_CAPACITY=2048

@@ -1,0 +1,98 @@
+{
+  "census": {
+    "K3": 1536,
+    "K4": 1536,
+    "experts": 1024,
+    "layers": 4,
+    "mcg_tensors": 0,
+    "other_rates": 0,
+    "sqg_tensors": 3072
+  },
+  "complete": true,
+  "layers": {
+    "28": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "status": "reserved_for_post_encode_directional_scoring",
+        "used_by_encoder": false
+      },
+      "layer_artifact": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/layer_028/final/fresh-sqg-layer-028.json",
+      "layer_artifact_sha256": "cf63b4e1905e1d276487931601b346cfbbd527075494c740cc2bf33edd467981",
+      "layer_shard_sha256": "39094ed8d52dd3f22943ebd87a8fc6812a8e8e933a3f20c7363d015c0e0f55e7",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-02__identity",
+      "selection_id": "ec33c264acbcdbff26713efcd05ec3db641cbd0655dc090c0be860b41dda8e16",
+      "selection_sha256": "9cb57d9bce6537d74eefc9a253e6b7d864751a51cb593286279196f1d006e6eb",
+      "sqg_tensors": 768
+    },
+    "52": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "status": "reserved_for_post_encode_directional_scoring",
+        "used_by_encoder": false
+      },
+      "layer_artifact": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/layer_052/final/fresh-sqg-layer-052.json",
+      "layer_artifact_sha256": "bdc79a151b208c32c6a42bf6b0d92c3653f8fba7ead8183a2983a3154273eb49",
+      "layer_shard_sha256": "a2965963bc9bc32e1b2c33b8a84a67c49a42515873ea55305cb06c1252f61b28",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-03__identity",
+      "selection_id": "585f40db7c69b554ff6e915490d6dcd633c996a7121dc2e3d701293484ad4108",
+      "selection_sha256": "3e8c425f87ef324683a89c8f750f4a44aaad5e36541fab2499518be07c4247bd",
+      "sqg_tensors": 768
+    },
+    "6": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "status": "reserved_for_post_encode_directional_scoring",
+        "used_by_encoder": false
+      },
+      "layer_artifact": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/layer_006/final/fresh-sqg-layer-006.json",
+      "layer_artifact_sha256": "cd5c59bb9e9e7819d1436cd1d67b19b7e160c44450bccbfe7ffec379fa1a858f",
+      "layer_shard_sha256": "74037be2d76677ada4500d2b6691be24d08e2a2312ea1b597f6677e398ce329d",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-00__identity",
+      "selection_id": "1ed0c8b4919d067377bbe5f64ac34390b96bf3f2988e6fcce5cd9c8349f202f6",
+      "selection_sha256": "b7ca81f5f378f0705307ef1689c8ec738dce29b1ec46e6cc5162ff19e1914334",
+      "sqg_tensors": 768
+    },
+    "77": {
+      "K3": 384,
+      "K4": 384,
+      "holdout": {
+        "status": "reserved_for_post_encode_directional_scoring",
+        "used_by_encoder": false
+      },
+      "layer_artifact": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/layer_077/final/fresh-sqg-layer-077.json",
+      "layer_artifact_sha256": "9cb1dc23a51ead0984f1dc3b1331cfa52b67043a7aa06ca3d842b526abb88085",
+      "layer_shard_sha256": "73b99eeb6a6c9b2517a4a6547a34509bd14cf5a4d61acc3919e2bbec7eaf59ff",
+      "mcg_tensors": 0,
+      "selected_cell_id": "draw-00__identity",
+      "selection_id": "5e6afc7549e779cac37edeccd34a7a2d7c6683e64006520a29b61a034300c3be",
+      "selection_sha256": "644f36ff1caa318dc07be01fcbdc8029f14154845ce22922ab52430ef5312779",
+      "sqg_tensors": 768
+    }
+  },
+  "lineage": {
+    "candidate_conditioned_h2_rebuilt": true,
+    "expert_local_h13_oas_global_prior": true,
+    "fallback_count": 0,
+    "fresh_capture": true,
+    "fresh_sqg_encoding": true,
+    "frozen_bit_map_only": true,
+    "legacy_mcg_artifact_reads": 0,
+    "official_bf16": true
+  },
+  "preflight_sha256": "c7dbe0aa40e79ee2c5a18cbc67d828bf43369c29b05e87ead08a2d181bffd18f",
+  "run_id": "glm52-fresh-sqg-r1",
+  "run_seal_id": "66e4c66ac173a1a62502f43c7a800c7684b261afc3c0b7710eb3f938810684a3",
+  "schema": "glm52-fresh-sqg-four-layer-run-seal-v1",
+  "scope": {
+    "existing_model_mutated": false,
+    "four_layer_replacement_artifacts": true,
+    "runnable_model_materialized": false,
+    "selection_and_holdout_used_by_encoder": false
+  }
+}

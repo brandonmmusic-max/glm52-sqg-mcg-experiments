@@ -1,0 +1,5 @@
+8d3ec849764d4738a330b6ecee120415263f984cf08d09ea61f336b321762b89  /home/brandonmusic/KLC_SANDBOXES/sqg_candidate_kld_20260809/run_candidate_kld.sh
+216bdc3bc226b19ac9c312d5669d2885839a3a5e01b8799cc5747c569d30f9df  /home/brandonmusic/KLC_SANDBOXES/sqg_candidate_kld_20260809/validate_pure_sqg_candidate.py
+4fc1d276bb895e09fb1a8ab57c97e851e20abb1c3fe5a9bee598231e23fb0c27  /home/brandonmusic/klc-linux/glm52_hybrid_opt/kld_eval_current/prefill_kld_fallback_hybrid.py
+47f867c3ff81cc1778bae3f1a3189dd2ec90d6e469cf60f7d1e43a1c76989d6c  /home/brandonmusic/klc-linux/release-gg-sparkinfer-20260721/eval-overlay/vllm/v1/worker/gpu/sample/prompt_logprob.py
+21d98eea20b8c92e0a65a5badffc3782dfc5a77427470ecd5d9edcedc681a041  /home/brandonmusic/klc-linux/release-gg-sparkinfer-20260721/eval-overlay/vllm/v1/worker/gpu/sample/logprob.py

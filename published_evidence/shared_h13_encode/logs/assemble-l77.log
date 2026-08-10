@@ -1,0 +1,30 @@
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+{
+  "canonical_expert_dir": "/output/layer_077/experts",
+  "complete": true,
+  "device": "cuda:0",
+  "expert_count": 256,
+  "layer": 77,
+  "layer_artifact": {
+    "manifest": "/output/layer_077/final/fresh-sqg-layer-077.json",
+    "manifest_sha256": "d7ef35374ac305c76c529b77f381aad61c5d5ff970c6060b35e8d0f8277e7534",
+    "mcg_tensor_count": 0,
+    "shard": "/output/layer_077/final/fresh-sqg-layer-077.safetensors",
+    "shard_sha256": "5018a1478cb9a280b84acda36145f6943fb501a63cec8b4d6686e1a99433cc8f",
+    "sqg_tensor_count": 768
+  },
+  "publication": {
+    "copied": 0,
+    "existing_equal": 0,
+    "existing_hardlink": 0,
+    "hardlinked": 768
+  },
+  "published_files": 768,
+  "source_shard_directories": [
+    "experts_000_064",
+    "experts_064_128",
+    "experts_128_192",
+    "experts_192_256"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "candidate": "/home/brandonmusic/KLC_SANDBOXES/glm52_sqg_no_bf16_test/artifacts/GLM-5.2-EXL3-3.5bpw-SQG-L006-L028-L052-L077-r1",
+  "global_unselected_layer_codebook": "mcg",
+  "layers": [
+    {
+      "bit_histogram": {
+        "3": 384,
+        "4": 384,
+        "5": 0
+      },
+      "bit_map_matches_source": true,
+      "layer": 6,
+      "mcg_markers": 0,
+      "sqg_markers": 768,
+      "trellis_tensors": 768
+    },
+    {
+      "bit_histogram": {
+        "3": 384,
+        "4": 384,
+        "5": 0
+      },
+      "bit_map_matches_source": true,
+      "layer": 28,
+      "mcg_markers": 0,
+      "sqg_markers": 768,
+      "trellis_tensors": 768
+    },
+    {
+      "bit_histogram": {
+        "3": 384,
+        "4": 384,
+        "5": 0
+      },
+      "bit_map_matches_source": true,
+      "layer": 52,
+      "mcg_markers": 0,
+      "sqg_markers": 768,
+      "trellis_tensors": 768
+    },
+    {
+      "bit_histogram": {
+        "3": 384,
+        "4": 384,
+        "5": 0
+      },
+      "bit_map_matches_source": true,
+      "layer": 77,
+      "mcg_markers": 0,
+      "sqg_markers": 768,
+      "trellis_tensors": 768
+    }
+  ],
+  "marker_payloads_verified": true,
+  "marker_shards": {
+    "r7-experts-layer-006.safetensors": 768,
+    "r7-experts-layer-028.safetensors": 768,
+    "r7-experts-layer-052.safetensors": 768,
+    "r7-experts-layer-077.safetensors": 768
+  },
+  "protected_source": "/home/brandonmusic/models/GLM-5.2-EXL3-TR3v4-3.5bpw-CORRECTED",
+  "schema": "glm52-pure-sqg-four-layer-preflight-v1",
+  "selected_layer_codebook": "sqg_xor_cheb_t12",
+  "selected_layers": [
+    6,
+    28,
+    52,
+    77
+  ],
+  "selected_mcg_markers": 0,
+  "selected_sqg_markers": 3072,
+  "selected_trellis_tensors": 3072,
+  "sqg_marker": {
+    "int32": 1397835569,
+    "suffix": ".sqg"
+  },
+  "sqg_markers_outside_selected_layers": 0,
+  "tensor_overrides": {}
+}

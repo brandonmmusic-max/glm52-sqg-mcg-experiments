@@ -1,0 +1,21 @@
+# Model-scale inputs and generated artifacts
+/bf16_layers/
+/calibration_capture/
+*.tmp
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Runtime-generated caches are reproducible and can exceed several GB per boot
+**/run*-candidate-runtime-cache/
+**/run*-candidate-hf-cache/
+
+# Local editor and OS state
+.DS_Store
+.idea/
+.vscode/

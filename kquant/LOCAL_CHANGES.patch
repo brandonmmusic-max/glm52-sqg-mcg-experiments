@@ -1,0 +1,490 @@
+diff --git a/kquant/exl3_encoder_backend.py b/kquant/exl3_encoder_backend.py
+index f810bf3..d5dba29 100644
+--- a/kquant/exl3_encoder_backend.py
++++ b/kquant/exl3_encoder_backend.py
+@@ -1585,6 +1585,43 @@ def ldlq_batched(
+ 
+ finalize_capture_H_mutex = threading.Lock()
+ 
++
++def _explicit_vector(
++    value: torch.Tensor,
++    *,
++    length: int,
++    name: str,
++    device: torch.device,
++    orientation: str,
++    signs: bool = False,
++) -> torch.Tensor:
++    """Validate a caller-owned regularization vector without retaining it.
++
++    QSRT's original shared-input-scale hook stores the first tensor's profile
++    in module-global state.  Model ports that require a topology-neutral
++    layer-wide vector need a deterministic, caller-owned contract instead.
++    These optional vectors are cloned for each encode and never enter the
++    process-global cache.
++    """
++
++    if not isinstance(value, torch.Tensor):
++        raise TypeError(f"{name} must be a torch.Tensor")
++    if value.ndim != 1 or value.numel() != length:
++        raise ValueError(f"{name} must have shape ({length},)")
++    vector = value.detach().to(device=device, dtype=torch.float32, copy=True)
++    if not bool(torch.isfinite(vector).all()):
++        raise ValueError(f"{name} must contain only finite values")
++    if signs:
++        if not bool((vector.abs() == 1).all()):
++            raise ValueError(f"{name} must contain only -1 and +1")
++    elif not bool((vector > 0).all()):
++        raise ValueError(f"{name} must contain only positive values")
++    if orientation == "column":
++        return vector.unsqueeze(1).contiguous()
++    if orientation == "row":
++        return vector.unsqueeze(0).contiguous()
++    raise ValueError(f"unsupported explicit-vector orientation: {orientation}")
++
+ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+     with finalize_capture_H_mutex:
+ 
+@@ -1596,7 +1633,23 @@ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+ 
+             H = H_data["H"]
+             k = H.shape[0]
+-            su = (torch.randn(k, device = H_data["device"]).sign() + 1e-5).sign().to(torch.float).unsqueeze(1)
++            explicit_input_signs = quant_args.get("input_signs")
++            if explicit_input_signs is None:
++                su = (
++                    (torch.randn(k, device=H_data["device"]).sign() + 1e-5)
++                    .sign()
++                    .to(torch.float)
++                    .unsqueeze(1)
++                )
++            else:
++                su = _explicit_vector(
++                    explicit_input_signs,
++                    length=k,
++                    name="input_signs",
++                    device=H_data["device"],
++                    orientation="column",
++                    signs=True,
++                )
+             H_data["su"] = su
+ 
+             return True, None, None, su, None
+@@ -1608,7 +1661,28 @@ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+ 
+         H = H_data["H"]
+         if H_data["finalized"]:
+-            return H_data["q_fallback"], H, H_data["L"], H_data["su"], H_data["diag"]
++            explicit_input_signs = quant_args.get("input_signs")
++            if explicit_input_signs is not None:
++                expected = _explicit_vector(
++                    explicit_input_signs,
++                    length=H.shape[0],
++                    name="input_signs",
++                    device=H_data["su"].device,
++                    orientation="column",
++                    signs=True,
++                )
++                if not torch.equal(H_data["su"], expected):
++                    raise ValueError(
++                        "finalized Hessian input signs do not match the "
++                        "caller-supplied profile"
++                    )
++            return (
++                H_data["q_fallback"],
++                H,
++                H_data["L"],
++                H_data["su"],
++                H_data["diag"],
++            )
+ 
+         # Mean of samples summed up during forward pass
+         # Switch to uncalibrated fallback if no input activations or diagonal is too small (few activations)
+@@ -1634,7 +1708,23 @@ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+ 
+         # Random sign flips for input channel, fixed for the first linear layer to quantize with this H
+         k = H.shape[0]
+-        su = (torch.randn(k, device = H.device).sign() + 1e-5).sign().to(torch.float).unsqueeze(1)
++        explicit_input_signs = quant_args.get("input_signs")
++        if explicit_input_signs is None:
++            su = (
++                (torch.randn(k, device=H.device).sign() + 1e-5)
++                .sign()
++                .to(torch.float)
++                .unsqueeze(1)
++            )
++        else:
++            su = _explicit_vector(
++                explicit_input_signs,
++                length=k,
++                name="input_signs",
++                device=H.device,
++                orientation="column",
++                signs=True,
++            )
+         H_data["su"] = su
+ 
+         # Input had
+@@ -1867,6 +1957,16 @@ _SHARED_INPUT_SCALES: dict = {}
+ def output_signs(n: int, device: torch.device, quant_args: dict) -> torch.Tensor:
+     """Draw output signs from an optional transform-specific RNG stream."""
+ 
++    explicit_output_signs = quant_args.get("output_signs")
++    if explicit_output_signs is not None:
++        return _explicit_vector(
++            explicit_output_signs,
++            length=n,
++            name="output_signs",
++            device=device,
++            orientation="row",
++            signs=True,
++        )
+     if "sv_seed" in quant_args:
+         torch.manual_seed(quant_args["sv_seed"])
+     return (
+@@ -1930,17 +2030,39 @@ def regularize(
+     if q_fallback:
+         apply_out_scales = force_out_scales
+ 
+-    # Apply output scales
+-    out_channel_scales = block_rms(weight, dim = 0, keepdim = True)
++    # Apply output scales.  An explicit profile is caller-owned and bypasses
++    # first-tensor derivation, which is required for topology-neutral ports.
++    explicit_output_scales = quant_args.get("output_channel_scale_profile")
++    observed_out_channel_scales = block_rms(weight, dim = 0, keepdim = True)
++    if explicit_output_scales is not None:
++        if force_out_scales is False:
++            raise ValueError(
++                "output_channel_scale_profile requires apply_out_scales=True"
++            )
++        apply_out_scales = True
++        out_channel_scales = _explicit_vector(
++            explicit_output_scales,
++            length=weight.shape[1],
++            name="output_channel_scale_profile",
++            device=weight.device,
++            orientation="row",
++        )
++    else:
++        out_channel_scales = observed_out_channel_scales
+     mean = out_channel_scales.mean().item()
+     if mean > 1e-30:
+-        out_channel_scales /= mean
++        if explicit_output_scales is None:
++            out_channel_scales /= mean
+         quant_args["zeros"] = False
+     else:
+         quant_args["zeros"] = True
+         if force_out_scales is not None:
+             apply_out_scales = True
+-    zero_out_scales = out_channel_scales.abs() < 1e-30
++    zero_out_scales = observed_out_channel_scales.abs() < 1e-30
++    if explicit_output_scales is not None and bool(zero_out_scales.any()):
++        raise ValueError(
++            "an explicit output scale profile cannot encode a zero output channel"
++        )
+ 
+     if apply_out_scales:
+         out_channel_scales[zero_out_scales] = 0.1
+@@ -1960,13 +2082,28 @@ def regularize(
+     blockwise_preapply_had_r_(weight, had_n)
+ 
+     # Input sign flips and scales
+-    in_channel_scales = block_rms(weight, dim = 1, keepdim = True)
+-    in_channel_scales[in_channel_scales.abs() < 1e-30] = 0.1
++    explicit_input_scales = quant_args.get("input_channel_scale_profile")
++    if explicit_input_scales is None:
++        in_channel_scales = block_rms(weight, dim = 1, keepdim = True)
++        in_channel_scales[in_channel_scales.abs() < 1e-30] = 0.1
++    else:
++        in_channel_scales = _explicit_vector(
++            explicit_input_scales,
++            length=weight.shape[0],
++            name="input_channel_scale_profile",
++            device=weight.device,
++            orientation="column",
++        )
+     # kquant shared-su mode: reuse the first tensor's channel-scale profile for
+     # every tensor with the same key (e.g. all experts of a MoE layer/matrix),
+     # so the stored su vector is identical across them and TP replicas can
+     # broadcast one copy. Trellis codes re-fit against the shared profile.
+     shared_key = quant_args.get("shared_input_scales_key")
++    if explicit_input_scales is not None and shared_key is not None:
++        raise ValueError(
++            "input_channel_scale_profile cannot be combined with the "
++            "module-global shared_input_scales_key"
++        )
+     if shared_key is not None:
+         in_channel_scales = _SHARED_INPUT_SCALES.setdefault(
+             shared_key, in_channel_scales)
+diff --git a/kquant/sqg_quantizer.py b/kquant/sqg_quantizer.py
+index cc29e00..f7a24c7 100644
+--- a/kquant/sqg_quantizer.py
++++ b/kquant/sqg_quantizer.py
+@@ -2,9 +2,15 @@
+ 
+ from __future__ import annotations
+ 
++import hashlib
++import importlib.machinery
++import importlib.util
++import os
++import re
++import sys
++from collections.abc import Mapping
+ from functools import lru_cache
+ from pathlib import Path
+-from collections.abc import Mapping
+ 
+ import torch
+ from torch.utils.cpp_extension import load
+@@ -12,11 +18,107 @@ from torch.utils.cpp_extension import load
+ from kquant.sqg_e4m3 import sqg_e4m3_bytes
+ 
+ 
++_EXTENSION_NAME = "kquant_sqg_quantize_ext_v22"
++_EXTENSION_PATH_ENV = "KQUANT_SQG_EXTENSION_PATH"
++_EXTENSION_SHA256_ENV = "KQUANT_SQG_EXTENSION_SHA256"
++_REQUIRE_PREBUILT_ENV = "KQUANT_SQG_REQUIRE_PREBUILT"
++_SHA256_RE = re.compile(r"[0-9a-f]{64}")
++
++
++def _sha256_file(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as handle:
++        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def _import_prebuilt_extension(path: Path):
++    """Import one exact pybind extension without invoking the JIT builder."""
++
++    spec = importlib.util.spec_from_file_location(_EXTENSION_NAME, path)
++    if spec is None or spec.loader is None:
++        raise ImportError(f"cannot construct an import spec for SQG extension: {path}")
++    previous = sys.modules.get(_EXTENSION_NAME)
++    module = importlib.util.module_from_spec(spec)
++    sys.modules[_EXTENSION_NAME] = module
++    try:
++        spec.loader.exec_module(module)
++    except BaseException:
++        if previous is None:
++            sys.modules.pop(_EXTENSION_NAME, None)
++        else:
++            sys.modules[_EXTENSION_NAME] = previous
++        raise
++    return module
++
++
++def _load_prebuilt_extension(raw_path: str, expected_sha256: str):
++    candidate = Path(raw_path)
++    if not candidate.is_absolute():
++        raise ValueError(f"{_EXTENSION_PATH_ENV} must be an absolute path")
++    if candidate.is_symlink():
++        raise ValueError(f"{_EXTENSION_PATH_ENV} may not name a symlink")
++    try:
++        path = candidate.resolve(strict=True)
++    except FileNotFoundError as exc:
++        raise FileNotFoundError(
++            f"sealed SQG extension does not exist: {candidate}"
++        ) from exc
++    if not path.is_file():
++        raise ValueError(f"sealed SQG extension is not a regular file: {path}")
++    allowed_names = {
++        f"{_EXTENSION_NAME}{suffix}"
++        for suffix in importlib.machinery.EXTENSION_SUFFIXES
++    }
++    if path.name not in allowed_names:
++        raise ValueError(
++            "sealed SQG extension filename must identify "
++            f"{_EXTENSION_NAME}: {path.name}"
++        )
++    if _SHA256_RE.fullmatch(expected_sha256) is None:
++        raise ValueError(f"{_EXTENSION_SHA256_ENV} must be 64 lowercase hex digits")
++    observed_sha256 = _sha256_file(path)
++    if observed_sha256 != expected_sha256:
++        raise RuntimeError(
++            "sealed SQG extension SHA256 mismatch: "
++            f"{observed_sha256} != {expected_sha256}"
++        )
++    module = _import_prebuilt_extension(path)
++    module_path = Path(str(getattr(module, "__file__", ""))).resolve()
++    if module_path != path:
++        raise RuntimeError(
++            f"loaded SQG extension origin differs: {module_path} != {path}"
++        )
++    if not callable(getattr(module, "quantize_tiles_procedural", None)) or not callable(
++        getattr(module, "quantize_tiles_sqg", None)
++    ):
++        raise RuntimeError(
++            "sealed SQG extension lacks required quantization entry points"
++        )
++    if _sha256_file(path) != expected_sha256:
++        raise RuntimeError("sealed SQG extension changed while it was being imported")
++    return module
++
++
+ @lru_cache(maxsize=1)
+ def _extension():
++    require_value = os.environ.get(_REQUIRE_PREBUILT_ENV, "")
++    if require_value not in ("", "0", "1"):
++        raise ValueError(f"{_REQUIRE_PREBUILT_ENV} must be unset, 0, or 1")
++    raw_path = os.environ.get(_EXTENSION_PATH_ENV, "")
++    expected_sha256 = os.environ.get(_EXTENSION_SHA256_ENV, "")
++    if require_value == "1" or raw_path or expected_sha256:
++        if not raw_path or not expected_sha256:
++            raise RuntimeError(
++                f"{_EXTENSION_PATH_ENV} and {_EXTENSION_SHA256_ENV} are both required "
++                "for sealed prebuilt SQG loading"
++            )
++        return _load_prebuilt_extension(raw_path, expected_sha256)
++
+     project = Path(__file__).resolve().parents[1]
+     return load(
+-        name="kquant_sqg_quantize_ext_v22",
++        name=_EXTENSION_NAME,
+         sources=[
+             str(project / "kquant/csrc/sqg_quantize.cpp"),
+             str(project / "kquant/csrc/sqg_quantize.cu"),
+diff --git a/tests/test_sqg_quantizer.py b/tests/test_sqg_quantizer.py
+index 8d99e86..283f031 100644
+--- a/tests/test_sqg_quantizer.py
++++ b/tests/test_sqg_quantizer.py
+@@ -1,13 +1,135 @@
+ from __future__ import annotations
+ 
++import hashlib
++from pathlib import Path
+ from types import SimpleNamespace
+ 
++import pytest
+ import torch
+ 
+ import kquant.sqg_quantizer as sqg_quantizer
+ from kquant.sqg_quantizer import install_sqg_quantizer
+ 
+ 
++def _sealed_extension(
++    tmp_path: Path,
++    monkeypatch: pytest.MonkeyPatch,
++    *,
++    filename: str = "kquant_sqg_quantize_ext_v22.so",
++) -> tuple[Path, SimpleNamespace]:
++    path = tmp_path / filename
++    payload = b"sealed-sqg-extension-test-double"
++    path.write_bytes(payload)
++    module = SimpleNamespace(
++        __file__=str(path),
++        quantize_tiles_procedural=lambda *_args: None,
++        quantize_tiles_sqg=lambda *_args: None,
++    )
++    monkeypatch.setenv("KQUANT_SQG_REQUIRE_PREBUILT", "1")
++    monkeypatch.setenv("KQUANT_SQG_EXTENSION_PATH", str(path))
++    monkeypatch.setenv(
++        "KQUANT_SQG_EXTENSION_SHA256", hashlib.sha256(payload).hexdigest()
++    )
++    return path, module
++
++
++def test_required_prebuilt_extension_uses_exact_path_and_never_jit_builds(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    path, module = _sealed_extension(tmp_path, monkeypatch)
++    imported: list[Path] = []
++
++    def fake_import(actual: Path):
++        imported.append(actual)
++        return module
++
++    monkeypatch.setattr(sqg_quantizer, "_import_prebuilt_extension", fake_import)
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        assert sqg_quantizer._extension() is module
++        assert imported == [path.resolve()]
++    finally:
++        sqg_quantizer._extension.cache_clear()
++
++
++def test_required_prebuilt_extension_rejects_wrong_filename_before_import_or_jit(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    _sealed_extension(tmp_path, monkeypatch, filename="foreign_extension.so")
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "_import_prebuilt_extension",
++        lambda _path: pytest.fail("foreign extension must not be imported"),
++    )
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        with pytest.raises(ValueError, match="filename must identify"):
++            sqg_quantizer._extension()
++    finally:
++        sqg_quantizer._extension.cache_clear()
++
++
++def test_required_prebuilt_extension_rejects_hash_mismatch_before_import_or_jit(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    _sealed_extension(tmp_path, monkeypatch)
++    monkeypatch.setenv("KQUANT_SQG_EXTENSION_SHA256", "0" * 64)
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "_import_prebuilt_extension",
++        lambda _path: pytest.fail("mismatched extension must not be imported"),
++    )
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        with pytest.raises(RuntimeError, match="SHA256 mismatch"):
++            sqg_quantizer._extension()
++    finally:
++        sqg_quantizer._extension.cache_clear()
++
++
++@pytest.mark.parametrize(
++    ("missing", "message"),
++    (
++        ("KQUANT_SQG_EXTENSION_PATH", "are both required"),
++        ("KQUANT_SQG_EXTENSION_SHA256", "are both required"),
++    ),
++)
++def test_required_prebuilt_extension_rejects_partial_binding_without_jit(
++    tmp_path: Path,
++    monkeypatch: pytest.MonkeyPatch,
++    missing: str,
++    message: str,
++) -> None:
++    _sealed_extension(tmp_path, monkeypatch)
++    monkeypatch.delenv(missing)
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        with pytest.raises(RuntimeError, match=message):
++            sqg_quantizer._extension()
++    finally:
++        sqg_quantizer._extension.cache_clear()
++
++
+ def test_rate_specific_none_dispatches_to_kquant_mcg(monkeypatch) -> None:
+     calls: list[tuple[torch.Tensor, dict]] = []
+     procedural_calls: list[tuple] = []

@@ -1,0 +1,115 @@
+{
+  "schema": "glm52-fresh-sqg-candidate-kld-run-v2",
+  "directional_test_fast_mode": true,
+  "baseline_was_rerun": false,
+  "candidate": "/home/brandonmusic/models/GLM-5.2-EXL3-TR3v4-3.5bpw-SQG-H13E-OAS-r1",
+  "runtime_image": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+  "runtime_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+  "baselines_were_rerun": false,
+  "primary_same_base_image_baseline": {
+    "summary": "/home/brandonmusic/klc-linux/release-gg-sparkinfer-20260721/results/20260809T194958Z-kld-fp8-dcp4/summary.json",
+    "image": "voipmonitor/vllm:gilded-gnosis-v20-vllmfa13d33-b12x06db0f4-fi1ac6942-cu132-20260809-r33",
+    "image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "runs": 5,
+    "mean_kld": 0.0624498626218156,
+    "sample_sd_kld": 0.0015327574926078513
+  },
+  "secondary_legacy_baseline": {
+    "image": "glm52-r26-r7:v1",
+    "image_id": "sha256:e0121c436c50ab699b221fae7e1c04a655c97dd825c705f059a373928db89d56",
+    "runs": 5,
+    "mean_kld": 0.061282244905043234,
+    "sample_sd_kld": 0.0013762397578544292
+  },
+  "runtime_base_image_matches_primary_baseline": true,
+  "candidate_runtime_overlay_applied": true,
+  "runtime_overlay": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evaluation/runtime_overlay",
+    "manifest_sha256": "1dc1b8439821ceecb459b42bf13a1efc3e44e376e8a2c5423e7b0a12ad5239d9"
+  },
+  "exact_r33_extension_directory_mount_applied": true,
+  "direct_exl3_shared_object_override_applied": false,
+  "extension_matches_baseline": true,
+  "exact_r33_extra_docker_args": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evaluation/r33_exact_runtime.args",
+    "sha256": "8ffce18aa541c5af26d20512aacaadf00898cd32d4d4a957454630a9d94d918a"
+  },
+  "exact_r33_mount_sources": {
+    "manifest": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evaluation/r33_exact_mounts.sha256",
+    "manifest_sha256": "ac0728029aff006cb0a5cce9053a5aabbac49567b86461071557a68d5ed8f3d7",
+    "all_bytes_validated": true,
+    "extension_directory_exact_single_file": true
+  },
+  "paired_kld_dependencies": {
+    "path": "/home/brandonmusic/klc-linux/glm52_hybrid_opt/kld_eval_current/pydeps",
+    "file_count": 7165,
+    "tree_sha256": "479cf6e600312ed06be923d644c52a5517fffed7b061bf202c1c96b256d92ca2",
+    "all_bytes_validated": true,
+    "symlinks_or_special_files": 0,
+    "network_fetch_disabled": true
+  },
+  "baseline_evidence": {
+    "manifest": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evaluation/r33_baseline_evidence.sha256",
+    "sha256": "9c4669fea9a3affa9b3fa6a164f69614f1d1336840b8638aaec2d4695d06c34c"
+  },
+  "runtime_cache_seed": {
+    "enabled": true,
+    "source": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-candidate-runtime-cache",
+    "source_receipt": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-runtime-cache-receipt.json",
+    "source_receipt_sha256": "e71af3a67335996bcdc41aedfdfeb7c21f6e36b09dd95260fbe86a2b3f93612d",
+    "source_accepted_record": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-record.accepted.json",
+    "source_accepted_record_sha256": "77bcdb94502abbc43b6258ebe586bff8e38ef75c5cff6d238cd055570871f600",
+    "expected_file_count": 13684,
+    "destination_policy": "independent snapshot per boot; never mount source writable",
+    "cache_semantics": "compiled executable code only; no model, logits, KV, RNG, or process state",
+    "cache_payload_byte_hashing_skipped": true,
+    "fresh_container_python_engine_workers_model_load_every_boot": true
+  },
+  "runtime_code_matches_baseline": false,
+  "comparison_scope": "Fresh SQG calibration and encoding plus required SQG loader/non-fused dispatch; selected-layer MCG lineage is forbidden",
+  "candidate_construction": {
+    "manifest_sha256": "50afcdbfd9c23f17a78fa8a268107b95f809a959ca05a5e87dbc6830e97714e7",
+    "manifest_id": "f2b0428603a0569eef9287d2a55c544ae892c86df797ab4d12d3cab94e3ac01f",
+    "preflight_report": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/candidate-pure-sqg-preflight.json",
+    "preflight_report_sha256": "e4457673e7898b9c58d644c5d32d51817c42ce0d2e802631762eed066aff37fa",
+    "selected_treatment_evidence": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/selected-treatment-files.sha256",
+    "selected_treatment_evidence_sha256": "b2eade81ae9b2b4df95a186011057ec542ac2bc8c162b2e0570b951ac576fa54",
+    "selected_treatment_files_rehashed_before_every_launch": false,
+    "external_run_seal": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/run_seal.json",
+    "run_seal_sha256": "4f491e023e05b276fe1f1ff28be59c475e802c320389e6b3336c5240b18fa85a",
+    "run_seal_id": "66e4c66ac173a1a62502f43c7a800c7684b261afc3c0b7710eb3f938810684a3",
+    "sanitized_bit_contract": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/contracts/frozen_bit_allocations.json",
+    "sanitized_bit_contract_sha256": "1fe5a065ef31c2e4c27589415b87bb77a91f095c55eaf4594807ca22645dab33",
+    "teacher_receipt": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evidence/teacher_model_identity.json",
+    "teacher_receipt_sha256": "eb88fcd2bf66b0cfef195a232d9b81efcb107c400381b22c913a2c738413479e",
+    "only_inherited_selected_layer_quantization_control": "per-tensor K3/K4 assignment",
+    "legacy_mcg_payloads_transforms_scales_permutations_seeds": 0
+  },
+  "selected_sqg_layers": [
+    6,
+    28,
+    52,
+    77
+  ],
+  "selected_layer_payloads": {
+    "sqg": 3072,
+    "mcg": 0,
+    "tensor_overrides": 0
+  },
+  "reference_sha256": "87f992a689c054a0548a4b3863da6c809f9239beacd5786d0401e45904fec063",
+  "reference_token_ids_u32le_sha256": "ad0d213eb533e956bc8e40a585f4fcff61a89a0da4a09cc5d750b46ba6d05c56",
+  "regime": {
+    "kv_cache_dtype": "fp8",
+    "rope": "bfloat16",
+    "tensor_parallel_size": 4,
+    "decode_context_parallel_size": 4,
+    "dcp_comm_backend": "a2a",
+    "dcp_kv_cache_interleave_size": 64,
+    "context_tokens": 2048,
+    "scored_positions": 2047,
+    "gpu_memory_utilization": 0.90
+  },
+  "paired_per_position_kld_required": true,
+  "requested_candidate_runs": 5,
+  "inference_limit": "One fixed 2047-position prompt; repeat runs estimate runtime variation, not text/model generalization"
+}

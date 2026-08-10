@@ -1,0 +1,60 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.2.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+{
+  "cell_ids": [
+    "draw-00__identity",
+    "draw-01__identity",
+    "draw-02__identity",
+    "draw-03__identity"
+  ],
+  "cells_completed": [
+    {
+      "aggregate_relative_error": 0.0018040517071045267,
+      "cell_id": "draw-00__identity",
+      "expert_count": 16,
+      "score_id": "3a96c26150ba1a703fd3c9ce46983aee03e784fdd84d1ee1044b98ce1a201b15",
+      "score_sha256": "98f1138d09256bebbbd13ce9cc3972f6c2e13e14f56ac5b09646e5e917240dbf"
+    },
+    {
+      "aggregate_relative_error": 0.0018469695869594322,
+      "cell_id": "draw-01__identity",
+      "expert_count": 16,
+      "score_id": "4b9671f8e9c5278f2f867a5cbc71241e5523258a581ee9d1a5c59b8de518ee6c",
+      "score_sha256": "55fc6f7eb70aa9e4c9a3655323ed485243c959fd8b8c7c32664bac209be1b192"
+    },
+    {
+      "aggregate_relative_error": 0.0018781413103387138,
+      "cell_id": "draw-02__identity",
+      "expert_count": 16,
+      "score_id": "d61eda34dda7b99800c63e4933b48ebb2201c7654b24af5435a1de0af312b975",
+      "score_sha256": "c1c47fa3f9644f831c4b1d323965a7f8d5bdb133fdfa96a67aeee61d4ffff148"
+    },
+    {
+      "aggregate_relative_error": 0.0018769438585573702,
+      "cell_id": "draw-03__identity",
+      "expert_count": 16,
+      "score_id": "c055b0f0c9fe14f008b2724ce532f0c2a112c7d6d363f27e3bb2895e3bc832bf",
+      "score_sha256": "2079a375e0acf6991d0da97da4cd447c07e01041ec50eb73a39d7b473edce9ba"
+    }
+  ],
+  "complete": true,
+  "elapsed_seconds": 1875.6686770720407,
+  "layer": 77,
+  "mode": "profile_worker",
+  "worker_index": 0
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "glm52-candidate-kld-cached-continuation-v1",
+  "output": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4",
+  "resume_from_run": 2,
+  "final_expected_runs": 5,
+  "preserved_completed_runs": 1,
+  "cache_seed": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-candidate-runtime-cache",
+  "byte_neutral_runtime_cache_hashing_skipped": true,
+  "fresh_container_python_engine_workers_model_load_every_boot": true,
+  "runner": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evaluation/run_fresh_kld.sh",
+  "resume_code": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/resume-eval-code.sha256"
+}

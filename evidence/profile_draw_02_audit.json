@@ -1,0 +1,81 @@
+{
+  "schema": "glm52-fresh-sqg-completed-factorial-draw-audit-v1",
+  "audited_at": "2026-08-10T05:43:19-04:00",
+  "artifact_root": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-encode.LFlh2R",
+  "runtime_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+  "scope": {
+    "layers": [6, 28, 52, 77],
+    "draw": 2,
+    "families": [
+      "identity",
+      "aggregate_rms",
+      "quarter_rms",
+      "inverse_quarter_rms"
+    ]
+  },
+  "validation": {
+    "expert_validator": "src.fresh_pipeline_artifacts.validate_expert_artifact",
+    "json_seals_and_shard_hashes_verified": true,
+    "canonical_score_ids_verified": true,
+    "score_to_artifact_manifest_hashes_verified": true,
+    "factorial_cell_bindings_verified": true,
+    "official_bf16_lineage_required": true,
+    "fresh_capture_lineage_required": true,
+    "codebook_required": "sqg_xor_cheb_t12",
+    "backend_expression_unchanged_required_for_realizations": true,
+    "backend_output_overwritten_false_required_for_realizations": true
+  },
+  "census": {
+    "complete_cells": 16,
+    "expert_artifacts": 256,
+    "sqg_tensors": 768,
+    "mcg_tensors": 0,
+    "K3": 336,
+    "K4": 432,
+    "realized_profile_references": 48
+  },
+  "layers": {
+    "6": {
+      "complete_cells": 4,
+      "expert_artifacts": 64,
+      "sqg_tensors": 192,
+      "mcg_tensors": 0,
+      "K3": 80,
+      "K4": 112,
+      "realized_profile_references": 32
+    },
+    "28": {
+      "complete_cells": 4,
+      "expert_artifacts": 64,
+      "sqg_tensors": 192,
+      "mcg_tensors": 0,
+      "K3": 96,
+      "K4": 96,
+      "realized_profile_references": 0
+    },
+    "52": {
+      "complete_cells": 4,
+      "expert_artifacts": 64,
+      "sqg_tensors": 192,
+      "mcg_tensors": 0,
+      "K3": 68,
+      "K4": 124,
+      "realized_profile_references": 0
+    },
+    "77": {
+      "complete_cells": 4,
+      "expert_artifacts": 64,
+      "sqg_tensors": 192,
+      "mcg_tensors": 0,
+      "K3": 92,
+      "K4": 100,
+      "realized_profile_references": 16
+    }
+  },
+  "unique_realized_profiles": {
+    "L006/draw-02/aggregate_rms/gate-up-input": 1,
+    "L006/draw-02/inverse_quarter_rms/gate-up-input": 1,
+    "L077/draw-02/inverse_quarter_rms/gate-up-input": 2
+  },
+  "complete": true
+}

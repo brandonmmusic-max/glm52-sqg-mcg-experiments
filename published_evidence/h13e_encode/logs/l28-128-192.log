@@ -1,0 +1,84 @@
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+layer 28 experts 128:192: 1/64 alpha=0.750000
+layer 28 experts 128:192: 2/64 alpha=0.750000
+layer 28 experts 128:192: 3/64 alpha=0.750000
+layer 28 experts 128:192: 4/64 alpha=0.750000
+layer 28 experts 128:192: 5/64 alpha=0.750000
+layer 28 experts 128:192: 6/64 alpha=0.750000
+layer 28 experts 128:192: 7/64 alpha=0.750000
+layer 28 experts 128:192: 8/64 alpha=0.750000
+layer 28 experts 128:192: 9/64 alpha=0.750000
+layer 28 experts 128:192: 10/64 alpha=0.750000
+layer 28 experts 128:192: 11/64 alpha=0.750000
+layer 28 experts 128:192: 12/64 alpha=0.750000
+layer 28 experts 128:192: 13/64 alpha=0.750000
+layer 28 experts 128:192: 14/64 alpha=0.750000
+layer 28 experts 128:192: 15/64 alpha=0.750000
+layer 28 experts 128:192: 16/64 alpha=0.750000
+layer 28 experts 128:192: 17/64 alpha=0.750000
+layer 28 experts 128:192: 18/64 alpha=0.750000
+layer 28 experts 128:192: 19/64 alpha=0.750000
+layer 28 experts 128:192: 20/64 alpha=0.750000
+layer 28 experts 128:192: 21/64 alpha=0.750000
+layer 28 experts 128:192: 22/64 alpha=0.750000
+layer 28 experts 128:192: 23/64 alpha=0.750000
+layer 28 experts 128:192: 24/64 alpha=0.750000
+layer 28 experts 128:192: 25/64 alpha=0.750000
+layer 28 experts 128:192: 26/64 alpha=0.750000
+layer 28 experts 128:192: 27/64 alpha=0.750000
+layer 28 experts 128:192: 28/64 alpha=0.750000
+layer 28 experts 128:192: 29/64 alpha=0.750000
+layer 28 experts 128:192: 30/64 alpha=0.750000
+layer 28 experts 128:192: 31/64 alpha=0.750000
+layer 28 experts 128:192: 32/64 alpha=0.750000
+layer 28 experts 128:192: 33/64 alpha=0.750000
+layer 28 experts 128:192: 34/64 alpha=0.750000
+layer 28 experts 128:192: 35/64 alpha=0.750000
+layer 28 experts 128:192: 36/64 alpha=0.750000
+layer 28 experts 128:192: 37/64 alpha=0.750000
+layer 28 experts 128:192: 38/64 alpha=0.750000
+layer 28 experts 128:192: 39/64 alpha=0.750000
+layer 28 experts 128:192: 40/64 alpha=0.750000
+layer 28 experts 128:192: 41/64 alpha=0.750000
+layer 28 experts 128:192: 42/64 alpha=0.750000
+layer 28 experts 128:192: 43/64 alpha=0.750000
+layer 28 experts 128:192: 44/64 alpha=0.750000
+layer 28 experts 128:192: 45/64 alpha=0.750000
+layer 28 experts 128:192: 46/64 alpha=0.750000
+layer 28 experts 128:192: 47/64 alpha=0.750000
+layer 28 experts 128:192: 48/64 alpha=0.750000
+layer 28 experts 128:192: 49/64 alpha=0.750000
+layer 28 experts 128:192: 50/64 alpha=0.750000
+layer 28 experts 128:192: 51/64 alpha=0.750000
+layer 28 experts 128:192: 52/64 alpha=0.750000
+layer 28 experts 128:192: 53/64 alpha=0.750000
+layer 28 experts 128:192: 54/64 alpha=0.750000
+layer 28 experts 128:192: 55/64 alpha=0.750000
+layer 28 experts 128:192: 56/64 alpha=0.750000
+layer 28 experts 128:192: 57/64 alpha=0.750000
+layer 28 experts 128:192: 58/64 alpha=0.750000
+layer 28 experts 128:192: 59/64 alpha=0.750000
+layer 28 experts 128:192: 60/64 alpha=0.750000
+layer 28 experts 128:192: 61/64 alpha=0.750000
+layer 28 experts 128:192: 62/64 alpha=0.750000
+layer 28 experts 128:192: 63/64 alpha=0.750000
+layer 28 experts 128:192: 64/64 alpha=0.750000
+{
+  "complete": true,
+  "elapsed_seconds": 940.3118417488877,
+  "end": 192,
+  "experts": 64,
+  "h13_construction": "fit_gate_square_expert_local_weighted_oas_reliability_layer_global_prior_cap_0p75_v1",
+  "layer": 28,
+  "local_alpha_cap": 0.75,
+  "local_alpha_max": 0.75,
+  "local_alpha_mean": 0.75,
+  "local_alpha_min": 0.75,
+  "newly_encoded": 64,
+  "output_dir": "/candidate/layer_028/experts",
+  "resumed": 0,
+  "schema": "glm52-expert-local-h13-shard-result-v1",
+  "selection_sha256": "9cb57d9bce6537d74eefc9a253e6b7d864751a51cb593286279196f1d006e6eb",
+  "start": 128
+}

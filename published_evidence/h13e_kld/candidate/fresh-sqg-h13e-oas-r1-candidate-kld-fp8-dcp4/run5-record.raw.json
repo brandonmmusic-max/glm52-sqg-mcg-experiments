@@ -1,0 +1,1 @@
+{"elapsed_sec": 55.74850559234619, "mean_kld": 0.0626493312400717, "per_position": {"path": "/results/run5-position-kld.safetensors", "positions": 2047, "sha256": "1c03b678df8002f3b108caa33f87b8cfc35a74f84b5824be1409d9ff785fa2a6", "tensor": "kld_ref_to_model"}, "token_ids_u32le_sha256": "ad0d213eb533e956bc8e40a585f4fcff61a89a0da4a09cc5d750b46ba6d05c56", "total_positions": 2047}

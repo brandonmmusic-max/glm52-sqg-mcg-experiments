@@ -1,0 +1,60 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.2.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+{
+  "cell_ids": [
+    "draw-00__inverse_quarter_rms",
+    "draw-01__inverse_quarter_rms",
+    "draw-02__inverse_quarter_rms",
+    "draw-03__inverse_quarter_rms"
+  ],
+  "cells_completed": [
+    {
+      "aggregate_relative_error": 0.005211826083522774,
+      "cell_id": "draw-00__inverse_quarter_rms",
+      "expert_count": 16,
+      "score_id": "66da22eed2143ea446e20b50f1ec3c3f5b4726f9dd9e95cdd3698bc526fa0cfd",
+      "score_sha256": "f72411d6398917ad6a4eca4c56aa82e99f3be4e2dac3cf9e9a518bc8ea3fc874"
+    },
+    {
+      "aggregate_relative_error": 0.005204179704044568,
+      "cell_id": "draw-01__inverse_quarter_rms",
+      "expert_count": 16,
+      "score_id": "8d831018d89c5ca5a1d96c0f647cf5df2abb6e9dacf22f0adcc592e51de3f5fe",
+      "score_sha256": "2a7c560f9385958c99210e64b8741f707d276ef55ee2ac519899d370f7e9ca02"
+    },
+    {
+      "aggregate_relative_error": 0.005209531309779343,
+      "cell_id": "draw-02__inverse_quarter_rms",
+      "expert_count": 16,
+      "score_id": "24299a59ec886a37f9be2b9951d3a97a27eecda95a15e6adb85ed9300034127c",
+      "score_sha256": "da2f14301221f476b6ab24fdd3aae660bfda345fc6d530c92c85997520c2e4d2"
+    },
+    {
+      "aggregate_relative_error": 0.0052083669211561,
+      "cell_id": "draw-03__inverse_quarter_rms",
+      "expert_count": 16,
+      "score_id": "f459ed67f60c96f122742ccde2a6328b895e5fd5071f25a7d3723511592d6a76",
+      "score_sha256": "be233d039842b5fe648d52c06ba6ed797b73d1509e99b4a67861832d6d1c23d8"
+    }
+  ],
+  "complete": true,
+  "elapsed_seconds": 1607.1907860729843,
+  "layer": 52,
+  "mode": "profile_worker",
+  "worker_index": 3
+}

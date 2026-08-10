@@ -1,0 +1,19 @@
+{
+  "expected_mean_kld": 0.0626493312400717,
+  "mean_absolute_error": 2.1992420384808753e-10,
+  "mean_tolerance": 5e-07,
+  "metadata": {
+    "direction": "KL(ref||model)",
+    "positions": "2047",
+    "schema": "glm52-paired-position-kld-v1"
+  },
+  "minimum_kld": -1.3905852469520141e-08,
+  "negative_roundoff_count": 7,
+  "negative_roundoff_tolerance": 1e-07,
+  "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/run5-container-output/run5-position-kld.safetensors",
+  "positions": 2047,
+  "sha256": "1c03b678df8002f3b108caa33f87b8cfc35a74f84b5824be1409d9ff785fa2a6",
+  "tensor": "kld_ref_to_model",
+  "tensor_mean_kld": 0.0626493310201475,
+  "valid": true
+}
