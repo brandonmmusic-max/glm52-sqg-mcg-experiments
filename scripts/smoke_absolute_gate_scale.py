@@ -14,8 +14,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-SMOKE_LAYER = 28
-SMOKE_EXPERT = 0
 SMOKE_DRAW = 0
 SMOKE_FAMILY = "identity"
 
@@ -23,6 +21,7 @@ SMOKE_FAMILY = "identity"
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--preflight", required=True)
+    parser.add_argument("--layer", type=int)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--threads", type=int, default=3)
     args = parser.parse_args()
@@ -44,6 +43,7 @@ def main() -> int:
     from scripts.encode_final_shard import _open_fast_sealed_runtime
     from src.fresh_pipeline_artifacts import expert_stem, validate_expert_artifact
     from src.fresh_pipeline_common import (
+        SELECTED_LAYERS,
         atomic_json,
         canonical_sha256,
         load_json_object,
@@ -62,9 +62,27 @@ def main() -> int:
         validate_gate_up_encode_smoke,
     )
 
+    smoke_layer = SELECTED_LAYERS[0] if args.layer is None else int(args.layer)
     runtime = _open_fast_sealed_runtime(
-        args.preflight, layer=SMOKE_LAYER, device=args.device
+        args.preflight, layer=smoke_layer, device=args.device
     )
+    smoke_expert = next(
+        (
+            expert
+            for expert in range(256)
+            if runtime.bit_map[
+                f"model.layers.{smoke_layer}.mlp.experts.{expert}.gate_proj"
+            ]
+            == 4
+            and runtime.bit_map[
+                f"model.layers.{smoke_layer}.mlp.experts.{expert}.up_proj"
+            ]
+            == 3
+        ),
+        None,
+    )
+    if smoke_expert is None:
+        raise ValueError(f"layer {smoke_layer} has no gate-K4/up-K3 smoke expert")
     receipt_path = runtime.paths.output_root / "successor_preflight_receipt.json"
     receipt = load_json_object(receipt_path)
     if (
@@ -98,7 +116,7 @@ def main() -> int:
         runtime,
         _load_bound_kquant_runtime(runtime),
         h13,
-        order=(SMOKE_EXPERT,),
+        order=(smoke_expert,),
         output_dir=output_dir,
         purpose="absolute_gate_scale_smoke",
         selection_evidence_sha256=sha256_file(receipt_path),
@@ -113,12 +131,12 @@ def main() -> int:
             "not_eligible_for_final_materialization": True,
         },
     )
-    manifest_path = output_dir / f"{expert_stem(SMOKE_LAYER, SMOKE_EXPERT)}.json"
+    manifest_path = output_dir / f"{expert_stem(smoke_layer, smoke_expert)}.json"
     artifact = validate_expert_artifact(manifest_path)
     records: dict[str, object] = {}
     expected_bits = {"gate_proj": 4, "up_proj": 3}
     for projection, expected_bit in expected_bits.items():
-        tensor_id = tensor_prefix(SMOKE_LAYER, SMOKE_EXPERT, projection)
+        tensor_id = tensor_prefix(smoke_layer, smoke_expert, projection)
         tensor = artifact["tensor_manifests"][tensor_id]
         if tensor["bits"] != expected_bit:
             raise RuntimeError(f"smoke {projection} is not expected K{expected_bit}")
@@ -135,7 +153,7 @@ def main() -> int:
             "decoded_exl_sha256": tensor["decoded_closure"]["decoded_exl_sha256"],
             "independent_stored_fp16_decode_passed": tensor["decoded_closure"]["passed"],
         }
-    down_id = tensor_prefix(SMOKE_LAYER, SMOKE_EXPERT, "down_proj")
+    down_id = tensor_prefix(smoke_layer, smoke_expert, "down_proj")
     down = artifact["tensor_manifests"][down_id]
     if artifact["h2"]["upstream_candidate"]["gate_decoded_exl_sha256"] != records[
         "gate_proj"
@@ -149,8 +167,8 @@ def main() -> int:
         "complete": True,
         "preflight_id": runtime.preflight["preflight_id"],
         "successor_receipt_sha256": sha256_file(receipt_path),
-        "layer": SMOKE_LAYER,
-        "expert": SMOKE_EXPERT,
+        "layer": smoke_layer,
+        "expert": smoke_expert,
         "mixed_gate_up_bits": [4, 3],
         "profile": gate_profile.manifest(),
         "raw_gate_input_base_mean": raw_gate_mean,

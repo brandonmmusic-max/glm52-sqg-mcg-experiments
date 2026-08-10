@@ -9,6 +9,9 @@ supplied hash list.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
+import os
+from pathlib import Path
 from types import MappingProxyType
 from typing import Final, Mapping
 
@@ -156,7 +159,35 @@ EXPECTED_SHARDS: Final[Mapping[str, ShardIdentity]] = MappingProxyType(
 )
 
 
-if len(EXPECTED_SHARDS) != 18:  # pragma: no cover - import-time invariant
-    raise AssertionError("the BF16 pilot manifest must contain exactly 18 shards")
+_BF16_MANIFEST_PATH = os.environ.get("FRESH_SQG_BF16_MANIFEST")
+if _BF16_MANIFEST_PATH:
+    _manifest = json.loads(Path(_BF16_MANIFEST_PATH).read_text(encoding="utf-8"))
+    if (
+        not isinstance(_manifest, dict)
+        or _manifest.get("schema") != "glm52-fresh-sqg-bf16-shard-manifest-v1"
+        or _manifest.get("repo") != SOURCE_REPO
+        or _manifest.get("revision") != SOURCE_REVISION
+        or _manifest.get("index_sha256") != EXPECTED_INDEX_SHA256
+        or not isinstance(_manifest.get("shards"), dict)
+    ):
+        raise ValueError("follow-up BF16 shard manifest identity differs")
+    EXPECTED_SHARDS = MappingProxyType(
+        {
+            str(name): ShardIdentity(
+                bytes=int(record["bytes"]),
+                sha256=str(record["sha256"]),
+                header_sha256=str(record["header_sha256"]),
+                tensor_count=int(record["tensor_count"]),
+            )
+            for name, record in _manifest["shards"].items()
+        }
+    )
+    EXPECTED_TOTAL_SHARD_BYTES = sum(
+        identity.bytes for identity in EXPECTED_SHARDS.values()
+    )
+
+
+if not EXPECTED_SHARDS:  # pragma: no cover - import-time invariant
+    raise AssertionError("the BF16 pilot manifest must contain source shards")
 if sum(item.bytes for item in EXPECTED_SHARDS.values()) != EXPECTED_TOTAL_SHARD_BYTES:
     raise AssertionError("the BF16 pilot manifest has an invalid byte total")

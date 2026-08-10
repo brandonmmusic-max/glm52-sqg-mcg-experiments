@@ -18,6 +18,9 @@ model-scale tensors or regenerated runtime caches:
 | `fresh-sqg-full2.GPlzPL/fresh-sqg-calibration-r1` | 51,832,356,623 | raw calibration tensors | `capture_manifest.json` and the project calibration contracts |
 | `fresh-sqg-evaluation-h13e-oas-r1` | 4,155,166,200 | per-boot runtime and Hugging Face caches | all non-cache KLD records, per-position tensors, summaries, receipts, and logs |
 | `fresh-sqg-evaluation-absrms-r2` | 4,150,156,922 | per-boot runtime and Hugging Face caches | all non-cache KLD records, per-position tensors, summaries, receipts, and logs |
+| `KLC_CAPTURE_RUNS/contig-late-capture-r1` | about 12.5 GB | raw Test 10 hidden states and routing arrays | capture/layer manifests, frozen document plan, hashes, and compact status record |
+| `glm52_fresh_sqg_test/bf16_contiguous_late` | model shards for layers 74--77 | official BF16 payload shards | 15-shard manifest and BF16 source seal |
+| `fresh-sqg-contig-late-a025-r1` | prepared Hessians, per-expert permutations, and smoke tensor payload | Test 10 preparation payload | four preparation logs, smoke record, and preflight receipt |
 
 The omitted tensors cannot be reconstructed from this Git repository alone.
 Their identities and the measurements derived from them remain auditable through
@@ -33,5 +36,12 @@ logs are preserved as historical provenance and refer to the original machine.
 - `published_evidence/historical_sqg_kld/`: the earlier four-layer candidate record.
 - `published_evidence/calibration/`: recovered capture manifest.
 - `published_evidence/model_manifest/`: final candidate model manifest and verification receipt.
+- `published_evidence/contiguous_late/`: Test 10 late-block capture and
+  preparation manifests at the current pre-encoding boundary.
+
+Test 9 includes compact summary JSON/Markdown and the small final-KLD and trace
+NPZ arrays. Per-layer selection/holdout arrays are omitted because the summary
+JSON preserves the registered aggregate measurements and the analysis code is
+published.
 
 `SHA256SUMS` binds every published file except itself and Git metadata.

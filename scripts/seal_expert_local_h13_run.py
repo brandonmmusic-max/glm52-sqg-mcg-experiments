@@ -18,7 +18,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--preflight", type=Path, required=True)
+    parser.add_argument(
+        "--local-alpha",
+        type=float,
+        default=None,
+        help="Exact fixed alpha for the blend ablation; omit for the original OAS run.",
+    )
     args = parser.parse_args()
+    if args.local_alpha is not None and not 0.0 <= args.local_alpha <= 1.0:
+        raise ValueError("--local-alpha must be in [0,1]")
 
     from src.fresh_pipeline_artifacts import validate_layer_artifact
     from src.fresh_pipeline_common import (
@@ -27,6 +35,10 @@ def main() -> int:
         canonical_sha256,
         sha256_file,
     )
+    from scripts.encode_expert_local_h13_shard import _fixed_alpha_construction
+    import src.glm52_fresh_sqg.codec as codec
+
+    codec.PRODUCTION_H13_CONSTRUCTION = _fixed_alpha_construction(args.local_alpha)
 
     root = args.root.resolve()
     layers: dict[str, object] = {}
@@ -86,7 +98,9 @@ def main() -> int:
             "fresh_capture": True,
             "frozen_bit_map_only": True,
             "fresh_sqg_encoding": True,
-            "expert_local_h13_oas_global_prior": True,
+            "expert_local_h13_oas_global_prior": args.local_alpha is None,
+            "expert_local_h13_fixed_alpha_ablation": args.local_alpha is not None,
+            "requested_local_alpha": args.local_alpha,
             "candidate_conditioned_h2_rebuilt": True,
             "legacy_mcg_artifact_reads": 0,
             "fallback_count": 0,

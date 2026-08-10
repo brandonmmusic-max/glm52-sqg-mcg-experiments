@@ -55,6 +55,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="development-only; workers still recheck all capture hashes",
     )
+    preflight.add_argument(
+        "--skip-source-payload-hashes",
+        action="store_true",
+        help="reuse a freshly sealed BF16 manifest; bind headers and file identities",
+    )
     plan = sub.add_parser("plan-jobs", help="write inert four-GPU argv records")
     plan.add_argument("--preflight", required=True)
     plan.add_argument("--python-executable", default="python3")
@@ -127,6 +132,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             paths,
             settings,
             verify_capture_hashes=not args.skip_capture_payload_hashes,
+            verify_source_hashes=not args.skip_source_payload_hashes,
         )
         _dump({"preflight": str(path), "model_workload_launched": False})
         return 0

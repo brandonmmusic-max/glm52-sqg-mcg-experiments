@@ -95,7 +95,10 @@ def test_importer_validation_is_cpu_binding_only_and_orchestrator_stops_at_selec
     assert "_open_fast_sealed_runtime" not in importer
     assert 'device="cpu"' in importer
     assert "full_bf16_payload_hashing_performed\": False" in importer
-    assert "SMOKE_LAYER = 28" in smoke and "SMOKE_EXPERT = 0" in smoke
+    assert 'parser.add_argument("--layer", type=int)' in smoke
+    assert "SELECTED_LAYERS[0] if args.layer is None" in smoke
+    assert "for expert in range(256)" in smoke
+    assert "has no gate-K4/up-K3 smoke expert" in smoke
     assert 'expected_bits = {"gate_proj": 4, "up_proj": 3}' in smoke
     assert "for worker in 0 1 2 3" in orchestration
     assert "Corrected profile search complete. Full final encoding was not launched." in orchestration
@@ -112,4 +115,3 @@ def test_shell_orchestrators_parse() -> None:
         ],
         check=True,
     )
-

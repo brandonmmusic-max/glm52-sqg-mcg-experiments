@@ -41,6 +41,49 @@ SPLIT_POLICY = (
 )
 PLAN_SCHEMA = "glm52-fresh-sqg-document-plan-v1"
 
+# Follow-up pilots may use a smaller, whole-document subset of the already
+# sealed owner plan.  The override is the plan itself, not a loose collection
+# of row-count environment variables, so every process imports one closed
+# document/split contract.  Defaults above preserve the original experiment.
+_PLAN_CONTRACT_PATH = os.environ.get("FRESH_SQG_PLAN_CONTRACT")
+if _PLAN_CONTRACT_PATH:
+    with Path(_PLAN_CONTRACT_PATH).open("r", encoding="utf-8") as _handle:
+        _plan_contract = json.load(_handle)
+    if not isinstance(_plan_contract, dict):
+        raise ValueError("FRESH_SQG_PLAN_CONTRACT must contain a JSON object")
+    if (
+        _plan_contract.get("owner_manifest_sha256") != OWNER_MANIFEST_SHA256
+        or _plan_contract.get("owner_capture_fingerprint")
+        != OWNER_CAPTURE_FINGERPRINT
+        or _plan_contract.get("corpus_sha256") != CORPUS_SHA256
+        or _plan_contract.get("schema")
+        != "glm52-fresh-sqg-contiguous-document-plan-v1"
+    ):
+        raise ValueError("contiguous pilot plan is not derived from the sealed owner plan")
+    _split = _plan_contract.get("split")
+    _documents = _plan_contract.get("documents")
+    if (
+        not isinstance(_split, dict)
+        or set(_split) != set(ROLES)
+        or not isinstance(_documents, list)
+        or not _documents
+    ):
+        raise ValueError("contiguous pilot plan split/documents are invalid")
+    PLAN_SCHEMA = str(_plan_contract["schema"])
+    OWNER_DOCUMENTS = int(_plan_contract["documents_total"])
+    OWNER_TOKENS = int(_plan_contract["tokens_total"])
+    EXPECTED_SPLIT = {
+        role: {
+            "documents": int(_split[role]["documents"]),
+            "tokens": int(_split[role]["tokens"]),
+        }
+        for role in ROLES
+    }
+    if OWNER_DOCUMENTS != len(_documents) or OWNER_TOKENS != sum(
+        int(document["tokens"]) for document in _documents
+    ):
+        raise ValueError("contiguous pilot plan totals do not close")
+
 
 def sha256_file(path: str | Path, chunk_bytes: int = 64 << 20) -> str:
     digest = hashlib.sha256()

@@ -7,8 +7,8 @@ die() { printf '%s\n' "$*" >&2; exit 1; }
 
 PROJECT_ROOT="/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test"
 OUTPUT_ROOT="$1"
-BF16_ROOT="$PROJECT_ROOT/bf16_layers"
-CAPTURE_ROOT="/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-full2.GPlzPL/fresh-sqg-calibration-r1"
+BF16_ROOT="${FRESH_SQG_BF16_ROOT:-$PROJECT_ROOT/bf16_layers}"
+CAPTURE_ROOT="${FRESH_SQG_CAPTURE_ROOT:-/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-full2.GPlzPL/fresh-sqg-calibration-r1}"
 SQG_EXTENSION_ROOT="/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-extension-r33.p7n1IJ/sealed"
 EXLLAMA_R7EXT_ROOT="${FRESH_SQG_EXLLAMA_R7EXT_ROOT:-/tmp/claude-1000/-home-brandonmusic-KLC-SANDBOXES/50980f6d-56ae-4115-a6bf-0d17377be8eb/scratchpad/prwork/v39_ext/exllamav3}"
 IMAGE="sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82"
@@ -18,6 +18,11 @@ EXTENSION_SHA256="c987778677653388f7766e66150850c4dda44bc6b055929ece34eaee87f3cd
 [[ "$OUTPUT_ROOT" = /* && -f "$OUTPUT_ROOT/preflight.json" ]] || die "successor preflight missing"
 [[ -f "$OUTPUT_ROOT/successor_preflight_receipt.json" ]] || die "successor receipt missing"
 mkdir -p "$OUTPUT_ROOT/logs"
+
+pilot_env=()
+if [[ -n "${FRESH_SQG_BF16_MANIFEST:-}" ]]; then
+  pilot_env+=( -e "FRESH_SQG_BF16_MANIFEST=$FRESH_SQG_BF16_MANIFEST" )
+fi
 
 run_container() {
   local name="$1"
@@ -43,15 +48,23 @@ run_container() {
     -e KQUANT_SQG_REQUIRE_PREBUILT=1 \
     -e TORCH_CUDA_ARCH_LIST=12.0 \
     -e "FRESH_SQG_RUNTIME_IMAGE_ID=$IMAGE" \
+    -e "FRESH_SQG_SELECTED_LAYERS=${FRESH_SQG_SELECTED_LAYERS:-6,28,52,77}" \
+    -e "FRESH_SQG_PLAN_CONTRACT=${FRESH_SQG_PLAN_CONTRACT:-/work/evidence/document_plan.json}" \
+    -e "FRESH_SQG_BIT_CONTRACT_SHA256=${FRESH_SQG_BIT_CONTRACT_SHA256:-1fe5a065ef31c2e4c27589415b87bb77a91f095c55eaf4594807ca22645dab33}" \
+    "${pilot_env[@]}" \
     -w /work "$IMAGE" "$@"
 }
 
-# One real expert: layer 28 expert 0 has gate K4 and up K3.  The helper also
-# rebuilds its candidate-conditional H2 and encodes down before it can pass.
-run_container glm52-sqg-absfix-smoke 1 \
-  scripts/smoke_absolute_gate_scale.py \
-    --preflight /output/preflight.json --device cuda:0 --threads 3 \
-  >"$OUTPUT_ROOT/logs/absolute-scale-smoke.log" 2>&1
+IFS=, read -r -a layers <<<"${FRESH_SQG_SELECTED_LAYERS:-6,28,52,77}"
+[[ ${#layers[@]} -eq 4 ]] || die "exactly four selected layers are required"
+
+if [[ ! -f "$OUTPUT_ROOT/absolute_gate_scale_smoke.json" ]]; then
+  run_container glm52-sqg-absfix-smoke 0 \
+    scripts/smoke_absolute_gate_scale.py \
+      --preflight /output/preflight.json --layer "${layers[0]}" \
+      --device cuda:0 --threads 3 \
+    >"$OUTPUT_ROOT/logs/absolute-scale-smoke.log" 2>&1
+fi
 
 if [[ "${SMOKE_ONLY:-0}" == "1" ]]; then
   cat "$OUTPUT_ROOT/logs/absolute-scale-smoke.log"
@@ -59,7 +72,6 @@ if [[ "${SMOKE_ONLY:-0}" == "1" ]]; then
   exit 0
 fi
 
-layers=(6 28 52 77)
 gpus=(0 1 2 3)
 
 # Publish preregistration before concurrent workers touch cell directories.

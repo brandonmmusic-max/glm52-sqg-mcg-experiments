@@ -1,0 +1,225 @@
+{
+  "baseline_label": "alpha0",
+  "calibration_winner": "alpha025",
+  "confirmation": {
+    "passed": false,
+    "status": "calibration_winner_failed_one_or_more_final_kld_constraints"
+  },
+  "identity": {
+    "reference_sha256": "87f992a689c054a0548a4b3863da6c809f9239beacd5786d0401e45904fec063",
+    "reference_token_ids_u32le_sha256": "ad0d213eb533e956bc8e40a585f4fcff61a89a0da4a09cc5d750b46ba6d05c56",
+    "regime": {
+      "context_tokens": 2048,
+      "dcp_comm_backend": "a2a",
+      "dcp_kv_cache_interleave_size": 64,
+      "decode_context_parallel_size": 4,
+      "kv_cache_dtype": "fp8",
+      "rope": "bfloat16",
+      "scored_positions": 2047,
+      "tensor_parallel_size": 4
+    },
+    "runtime_image": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "runtime_overlay_manifest": "1dc1b8439821ceecb459b42bf13a1efc3e44e376e8a2c5423e7b0a12ad5239d9"
+  },
+  "metrics": {
+    "alpha0": {
+      "delta_distribution": {
+        "max": 0.0,
+        "min": 0.0,
+        "negative_sum": 0.0,
+        "p05": 0.0,
+        "p25": 0.0,
+        "p50": 0.0,
+        "p75": 0.0,
+        "p90": 0.0,
+        "p95": 0.0,
+        "p99": 0.0,
+        "p99_5": 0.0,
+        "p99_9": 0.0,
+        "positive_sum": 0.0,
+        "upper_cvar_1pct": 0.0
+      },
+      "improved_fraction": 0.0,
+      "improved_positions": 0,
+      "kld_distribution": {
+        "max": 3.7251468658447267,
+        "mean": 0.06284989666484593,
+        "min": -2.5375635726021527e-08,
+        "p05": 7.750212029122851e-07,
+        "p25": 2.2356450918437078e-05,
+        "p50": 0.000601170257141348,
+        "p75": 0.026273688115179536,
+        "p90": 0.14384755492210397,
+        "p95": 0.3212975984811776,
+        "p99": 1.0796680741310103,
+        "p99_5": 1.5697847980260842,
+        "p99_9": 2.6830450181484164,
+        "upper_cvar_1pct": 1.8383789170356026
+      },
+      "mean_delta_vs_baseline": 0.0,
+      "mean_kld": 0.06284989666484593,
+      "median_delta_vs_baseline": 0.0,
+      "passes_tail_and_mean_constraints": true,
+      "worsened_positions": 0
+    },
+    "alpha025": {
+      "delta_distribution": {
+        "max": 1.4364249685155983,
+        "min": -1.31705162525177,
+        "negative_sum": -23.252043597841958,
+        "p05": -0.05619077190756796,
+        "p25": -0.0002427214552881196,
+        "p50": -1.1120026783828511e-07,
+        "p75": 0.0001440633917809464,
+        "p90": 0.010196602754294874,
+        "p95": 0.03998334802687164,
+        "p99": 0.2741675005555149,
+        "p99_5": 0.4928120394479478,
+        "p99_9": 0.8297269152402809,
+        "positive_sum": 22.45738757691961,
+        "upper_cvar_1pct": 0.536144449239556
+      },
+      "improved_fraction": 0.5202735710796287,
+      "improved_positions": 1065,
+      "kld_distribution": {
+        "max": 3.700727415084839,
+        "mean": 0.06246169147631522,
+        "min": -3.4831907314014646e-08,
+        "p05": 7.40610048524104e-07,
+        "p25": 2.161544007321936e-05,
+        "p50": 0.0005880893673747778,
+        "p75": 0.024557498097419736,
+        "p90": 0.12785517036914834,
+        "p95": 0.2980502095818514,
+        "p99": 1.2066575007438622,
+        "p99_5": 1.6536926515102368,
+        "p99_9": 2.872569253253932,
+        "upper_cvar_1pct": 1.9040474078122358
+      },
+      "mean_delta_vs_baseline": -0.0003882051885307022,
+      "mean_kld": 0.06246169147631522,
+      "median_delta_vs_baseline": -1.1120026783828511e-07,
+      "passes_tail_and_mean_constraints": false,
+      "worsened_positions": 982
+    }
+  },
+  "per_position_inputs": {
+    "alpha0": [
+      {
+        "bounded_negative_roundoff_count": 7,
+        "mean_kld": 0.061699081536031194,
+        "minimum_kld": -4.6551978272191263e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run1-container-output/run1-position-kld.safetensors",
+        "sha256": "26f1073e3ac1a28506a41d0fd05f2f540512ff6bbc66b288f9e2ac1573729be1"
+      },
+      {
+        "bounded_negative_roundoff_count": 7,
+        "mean_kld": 0.062051197381987486,
+        "minimum_kld": -2.6581744805298513e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run2-container-output/run2-position-kld.safetensors",
+        "sha256": "1d315c2d1d4edeb8f1269d43e6c896b52e9176e5ee395a17bcd7482c512618cf"
+      },
+      {
+        "bounded_negative_roundoff_count": 6,
+        "mean_kld": 0.062187488760141185,
+        "minimum_kld": -3.204685583568789e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+        "sha256": "8cf0a93d81a888ea15d35edcaea26b70d451fafab9cf29c789f7abb5e5b6799c"
+      },
+      {
+        "bounded_negative_roundoff_count": 4,
+        "mean_kld": 0.06401166817443164,
+        "minimum_kld": -6.225205595455918e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run4-container-output/run4-position-kld.safetensors",
+        "sha256": "acec8424cb5e43c7a3234841972f3222e1b7a93b651f6dbec3287e6b6bb60eac"
+      },
+      {
+        "bounded_negative_roundoff_count": 6,
+        "mean_kld": 0.06430004747163812,
+        "minimum_kld": -5.3013152978564904e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/run5-container-output/run5-position-kld.safetensors",
+        "sha256": "13707a425e25a82e12ad138ce9e66c801328fb4fe03e6e6a95b358379c58e5aa"
+      }
+    ],
+    "alpha025": [
+      {
+        "bounded_negative_roundoff_count": 7,
+        "mean_kld": 0.06389408597465566,
+        "minimum_kld": -9.09269175508598e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13a025-r1/candidate/fresh-sqg-h13a025-r1-candidate-kld-fp8-dcp4/run1-container-output/run1-position-kld.safetensors",
+        "sha256": "1b8901123878978c10111cea7f231f09d4c7b55f7a1047709b34368c396892ba"
+      },
+      {
+        "bounded_negative_roundoff_count": 5,
+        "mean_kld": 0.06075296159873595,
+        "minimum_kld": -3.7353355963887225e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13a025-r1/candidate/fresh-sqg-h13a025-r1-candidate-kld-fp8-dcp4/run2-container-output/run2-position-kld.safetensors",
+        "sha256": "9d0f12c40655f4fa0b4d4534e9d7beebd1efec6be74e96e58bcc904437f6f369"
+      },
+      {
+        "bounded_negative_roundoff_count": 5,
+        "mean_kld": 0.06354295002442871,
+        "minimum_kld": -7.341178331898845e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13a025-r1/candidate/fresh-sqg-h13a025-r1-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+        "sha256": "e732112ebf046d52d5a56b18e733bd5881de65012dc7115239aa2e495ea861af"
+      },
+      {
+        "bounded_negative_roundoff_count": 6,
+        "mean_kld": 0.061701170257819904,
+        "minimum_kld": -6.181615930245243e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13a025-r1/candidate/fresh-sqg-h13a025-r1-candidate-kld-fp8-dcp4/run4-container-output/run4-position-kld.safetensors",
+        "sha256": "adaa033083de87f59841edf7bc04a1654d01f105ba6ff5386d322f1e63d5b1e4"
+      },
+      {
+        "bounded_negative_roundoff_count": 5,
+        "mean_kld": 0.06241728952593588,
+        "minimum_kld": -7.620194253377122e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13a025-r1/candidate/fresh-sqg-h13a025-r1-candidate-kld-fp8-dcp4/run5-container-output/run5-position-kld.safetensors",
+        "sha256": "1b3590ddf955dbd16dfefac4e6ead1c0780478717b020ee2a2e48a644fea7ec1"
+      }
+    ]
+  },
+  "per_position_means": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/h13_blend_final_kld_r1.npz",
+    "sha256": "43d1977a4e68a9604ba83a1eeabac7943589e550e029ca08038c1b7f802c6fc9"
+  },
+  "schema": "glm52-h13-blend-final-kld-tail-analysis-v1",
+  "selection_policy": {
+    "exploratory_best": "alpha025",
+    "exploratory_eligible": [],
+    "hard_constraints": [
+      "mean KLD <= alpha0 baseline",
+      "upper-CVaR 1% per-position KLD <= alpha0 baseline",
+      "p99 per-position KLD <= alpha0 baseline"
+    ],
+    "position_win_rate_only_after_hard_constraints": true
+  },
+  "summary_sha256": {
+    "alpha0": "85b41a89870702632c62d5f7edfd9df42a68a65250fcd78cf0ff89256410cacc",
+    "alpha025": "bfcc55f5579710075b39deb741b91d88146ff826e865f2ac0b9b87476892d934"
+  },
+  "uncertainty": {
+    "comparisons": {
+      "alpha025": {
+        "baseline_runs": 5,
+        "baseline_sample_sd_kld": 0.001209723746733114,
+        "candidate_minus_baseline_mean_kld": -0.00038820462961988017,
+        "candidate_runs": 5,
+        "candidate_sample_sd_kld": 0.0012962439197409315,
+        "circular_block_bootstrap_position_delta_mean_95pct": {
+          "block_size": 32,
+          "interpretation": "inconclusive",
+          "iterations": 10000,
+          "lower": -0.0035726435238575723,
+          "seed": 20260810,
+          "upper": 0.0027703460771868285
+        },
+        "repeat_noise_direction": "inconclusive",
+        "repeat_noise_standard_error": 0.0007929287285595518,
+        "welch_degrees_freedom": 7.962126266023986,
+        "welch_t": -0.48958325715490153
+      }
+    },
+    "note": "Welch statistics describe independent fresh-boot variation. The circular block bootstrap describes correlated positions within the one fixed prompt and is not a document-generalization interval."
+  }
+}

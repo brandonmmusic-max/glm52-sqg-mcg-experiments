@@ -32,11 +32,12 @@ from .capture_runtime import (
     RUNTIME_IMAGE_REFERENCE,
     RUNTIME_PYTHON,
 )
+from .pilot_config import selected_layers
 
 
 CAPTURE_SCHEMA = "glm52-fresh-sqg-calibration-capture-v1"
 LAYER_SCHEMA = "glm52-fresh-sqg-layer-capture-v1"
-SELECTED_LAYERS = (6, 28, 52, 77)
+SELECTED_LAYERS = selected_layers()
 ROUTED_LAYERS = tuple(range(3, 78))
 # Exact all-MCG teacher load order under the hash-sealed r33 EXL3 source and
 # its historical 48-layer fused budget.  Layer 9 has a non-two-tier payload;
@@ -102,6 +103,7 @@ CAPTURE_CODE_FILES = (
     "src/__init__.py",
     "src/calibration_plan.py",
     "src/calibration_capture.py",
+    "src/pilot_config.py",
     "src/capture_runtime.py",
     "src/glm52_capture_worker.py",
     "src/teacher_identity.py",
@@ -165,10 +167,14 @@ def effective_kv_cache_interleave_size(
 
 
 def validate_teacher_identity_evidence(value: object) -> dict:
-    """Require the exact full-byte validation record for the frozen teacher."""
+    """Require the declared full or explicit metadata-only teacher record."""
 
-    if value != TEACHER_IDENTITY_VALIDATION:
-        raise ValueError("full teacher-model identity validation evidence differs")
+    expected = dict(TEACHER_IDENTITY_VALIDATION)
+    if os.environ.get("FRESH_SQG_FAST_TEACHER_IDENTITY") == "1":
+        expected["verification_mode"] = "metadata"
+        expected["all_file_bytes_sha256_validated"] = False
+    if value != expected:
+        raise ValueError("teacher-model identity validation evidence differs")
     return dict(value)
 
 
@@ -247,10 +253,10 @@ def validate_fused_layer_audit(value: object) -> dict:
         "observed_budget_counters": [48],
         "reserved_layers": [],
         "selected_layer_modes": {
-            "6": "fused",
-            "28": "fused",
-            "52": "fused",
-            "77": "nonfused",
+            str(layer): (
+                "fused" if layer in EXPECTED_FUSED_LAYERS else "nonfused"
+            )
+            for layer in SELECTED_LAYERS
         },
         "teacher_codebook": "mcg",
     }

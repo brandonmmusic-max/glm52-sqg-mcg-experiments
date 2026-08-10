@@ -19,6 +19,8 @@ from types import MappingProxyType
 from typing import Any, Iterator, Mapping
 
 import torch
+
+from .pilot_config import selected_layers
 from safetensors import safe_open
 
 from .glm52_bf16_manifest import (
@@ -36,7 +38,7 @@ from .glm52_bf16_manifest import (
 )
 
 
-SELECTED_LAYERS = (6, 28, 52, 77)
+SELECTED_LAYERS = selected_layers()
 NUM_EXPERTS = 256
 HIDDEN_SIZE = 6144
 INTERMEDIATE_SIZE = 2048
