@@ -23,7 +23,10 @@ model-scale tensors or regenerated runtime caches:
 | `fresh-sqg-contig-late-a025-r1` | prepared Hessians, per-expert permutations, profile tensor payloads, and smoke tensor payload | Test 10 preparation/profile payload | preparation logs, profile preregistrations/selections, smoke record, and preflight receipt |
 | `fresh-sqg-contig-late-final-a025-r1` | 33,933,482,221 | 1,024 expert and four assembled SQG tensor payloads | run seal, materialization receipt, four layer assembly results, and compact logs |
 | `GLM-5.2-EXL3-TR3v4-3.5bpw-SQG-CONTIG-L74-77-A025-r1` | 343,053,788,830 | materialized candidate tensors and unchanged hard-linked model payload | candidate manifest, copied run seal, and verification marker |
-| `fresh-sqg-evaluation-contig-late-a025-r1/...candidate-kld-fp8-dcp4` | 830,711,425 | runtime/cache payload from rejected pre-inference attempt | run/preflight metadata, hash lists, failure log, zero-byte `runs.jsonl`, and explicit excluded-attempt status |
+| `fresh-sqg-evaluation-contig-late-a025-r1/...candidate-kld-fp8-dcp4` | about 830 MB | runtime/cache payload and raw inference logs | rejected-attempt metadata plus compact accepted summaries, records, validations, and five 2,047-position vectors |
+| `fresh-sqg-evaluation-contig-late-null-r1/...candidate-kld-fp8-dcp4` | about 830 MB | second same-candidate-path runtime/cache payload and raw logs | compact summaries, identity limitations, records, validations, and five 2,047-position vectors |
+| late routed trace roots | about 4.6 GiB per traced arm | raw DCP4 hidden/router/MoE/residual buffers | compact JSON/Markdown analyses and SHA-256 bindings; analysis NPZ files remain local |
+| `fresh-sqg-contig-late-alpha{000,050,075,100}-r1` | active multi-arm encode payloads | incomplete alpha-panel expert/model tensors and working state | resumable launcher only; no selection or holdout result is published before completion |
 
 The omitted tensors cannot be reconstructed from this Git repository alone.
 Their identities and the measurements derived from them remain auditable through
@@ -40,12 +43,14 @@ logs are preserved as historical provenance and refer to the original machine.
 - `published_evidence/calibration/`: recovered capture manifest.
 - `published_evidence/model_manifest/`: final candidate model manifest and verification receipt.
 - `published_evidence/contiguous_late/`: Test 10 late-block capture,
-  preparation, profile selection, encoding seal, candidate manifest, and the
-  rejected first KLD-attempt record. It contains no accepted late-block KLD.
+  preparation, profile selection, encoding seal, candidate manifest, rejected
+  first KLD-attempt record, accepted five-boot KLD evidence, and an independent
+  five-boot same-checkpoint null.
 
-Test 9 includes compact summary JSON/Markdown and the small final-KLD and trace
-NPZ arrays. Per-layer selection/holdout arrays are omitted because the summary
-JSON preserves the registered aggregate measurements and the analysis code is
-published.
+Test 9 retains its already-published compact summary JSON/Markdown and small
+final-KLD/trace NPZ arrays. Newly added Test 10 analyses publish JSON/Markdown
+and compact KLD position vectors, while raw routed-trace buffers, analysis NPZ
+payloads, and per-layer NPZ arrays remain omitted. Per-layer JSON measurements
+and the analysis code are published.
 
 `SHA256SUMS` binds every published file except itself and Git metadata.

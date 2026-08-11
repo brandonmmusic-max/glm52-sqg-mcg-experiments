@@ -1,6 +1,6 @@
 # Publication validation
 
-Validation was rerun for the 2026-08-10 interim status update with
+Validation was rerun for the 2026-08-11 late-block results update with
 `CUDA_VISIBLE_DEVICES` empty. No inference container or GPU workload was
 started by the publication work.
 
@@ -8,14 +8,14 @@ started by the publication work.
 
 | Suite | Result |
 |---|---:|
-| Late-block runner/blend/construction contracts, current update | 26 passed |
-| Main project, prior interim publication validation | 267 passed, 1 skipped |
+| Main project, current update | 289 passed, 1 skipped |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
 
-The latter four rows were not rerun during this publication step. The current
-CPU-only run targeted the code and contracts changed by the late-block update.
+The latter three rows were not rerun during this publication step. The current
+main-project run covered all collected tests; its one skip is the production
+CUDA FP16 boundary regression that requires SM120.
 The QSRT count belongs to the pinned upstream audit described in
 [`docs/qsrt_kimi_k3_k1_feasibility.md`](docs/qsrt_kimi_k3_k1_feasibility.md),
 not to the vendored KQuant tree.
@@ -31,8 +31,14 @@ The first main-project run exposed eight failing capture-launcher safety tests.
 The launcher had bound `project` to the original absolute workspace path, so a
 copy at a different path was not recognized as a protected root. The published
 copy now derives `project` from the launcher's own canonical directory. After
-that correction, all 259 collected main-project tests passed or skipped as
-shown above.
+that correction, all 259 tests collected at that publication stage passed or
+skipped.
+
+The first full run for this update found two native-control contract drifts:
+the per-position validator hash still named the pre-roundoff validator, and the
+native arm lacked the candidate runner's three trace-environment keys. The
+published native runner now pins the current validator and supplies trace-off
+values for those keys. The complete suite then passed.
 
 ## Evidence and repository checks
 
@@ -43,8 +49,9 @@ shown above.
 - Every local Markdown link in the audited experiment ledger resolves.
 - The README, experiment ledger, and Test 10 evidence index have no broken
   repository-relative links.
-- All 5,446 published JSON files parsed successfully; the compact contiguous-
-  late evidence subtree contains 26 JSON files and 40 total files.
+- All 5,543 published JSON files parsed successfully; the compact contiguous-
+  late evidence subtree contains 63 JSON files and 97 total files (about 1.2
+  MB).
 - The Test 10 capture manifest reports `complete: true` and 253,863 rows for
   each of layers 74--77; the four published preparation logs each report 256
   permutations, fit-only construction, zero MCG inputs, and zero fallback.
@@ -60,9 +67,18 @@ shown above.
   `07d398cf6cf3abe623db1876692aab0ee0dd8961776b80aa583ced0400485593`.
   It failed during engine initialization, before inference, and produced an
   empty `runs.jsonl`, no accepted record, no summary, and no KLD result.
+- The accepted late alpha-0.25 summary hashes to
+  `50648c13e4b52bfb873e45aee0bba87e8956d53e57bf725dc23b438fccfb279b`.
+  Ten compact 2,047-position vectors across the original and second five-boot
+  sets match their validation-record SHA-256 values.
+- The new E4M3 endpoint, signed top-8 holdout, empirical-null, cross-arm trace,
+  and r33-r33 trace-control JSON hashes match the values recorded in the
+  experiment ledger.
 - Shell syntax checks, Python byte compilation, and the sealed pure-SQG source
   manifest check passed. The corrected runner hashes to
-  `b66bf7e38e01fc9f48113684cf6ef0ad3af4c4f4366c603223564d0d233ae9dc`.
+  `aa7f5d556d2b5700b7fe49a441778822853bd75eeb0db70090eb71bf93dda636`;
+  the resumable active-panel launcher hashes to
+  `b5d23574cf4497843018eb3c77e5a9b82e42e08524b6e9e7af31d6ed9464ebe9`.
 - No nested Git repository is present.
 - No file exceeds GitHub's 100 MB per-file limit.
 - A high-confidence token/private-key scan found no secret.

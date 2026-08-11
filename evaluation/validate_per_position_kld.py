@@ -8,8 +8,11 @@ the small reduction-order discrepancy expected from that representation:
 ``max(1e-8, 5e-7 * max(1, abs(expected_mean)))``.
 
 Per-position KL is also persisted as float32 after a large-vocabulary
-reduction. Values down to ``-1e-7`` are accepted as cancellation roundoff and
-reported without modifying the tensor; any value below that remains fatal.
+reduction. Values down to two float32 machine epsilons are accepted as
+cancellation roundoff and reported without modifying the tensor; any value
+below that remains fatal.  The previous decimal ``1e-7`` threshold was
+slightly smaller than one float32 epsilon and could therefore reject a
+one-ulp-scale cancellation artifact.
 """
 
 from __future__ import annotations
@@ -34,7 +37,7 @@ EXPECTED_DIRECTION = "KL(ref||model)"
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 MEAN_ABSOLUTE_TOLERANCE = 1e-8
 MEAN_RELATIVE_TOLERANCE = 5e-7
-NEGATIVE_ROUNDOFF_TOLERANCE = 1e-7
+NEGATIVE_ROUNDOFF_TOLERANCE = 2.0 * float(torch.finfo(torch.float32).eps)
 
 
 def _sha256_file(path: Path) -> str:

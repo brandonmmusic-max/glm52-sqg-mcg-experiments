@@ -1,0 +1,1450 @@
+{
+  "alignment": "KLD index i joins trace token position i; position i predicts token i+1",
+  "baseline_kld_evidence": {
+    "mean": 0.06429775202010701,
+    "metadata": {
+      "direction": "KL(ref||model)",
+      "positions": "2047",
+      "schema": "glm52-paired-position-kld-v1"
+    },
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/r33-position-kld.safetensors",
+    "positions": 2047,
+    "sha256": "0db987277803efb745decf05ae56fb90855785b6231a4438cda30580c6666788"
+  },
+  "baseline_trace_evidence": [
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "68e5d9e8e44d715dcf364739dd105aea69c457fc49158be569ed977b6f6b470f",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "10ff8f396879f5c202989d23c8e9c2f9265f14dd64fdc5f2f53e28a7250168c7",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "6432d0d6214ceee2269a6791950844195efed49aa0f6abf84add90da47bbcb00",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "7d03a36cbf444057bbfad1b4dce5c96644b31c8da4939eae60389292107d2436",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "b107bcc3349a4967b757dc289ae0de54bbd4166dcefd806ed6a3764ecbc7511a",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "1cdcde877b309524e3234b59fc939fae30b013deabd6137f7722e569befa20d4",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "d24101a2d1deaee3d363c6cf8330b25e088860fa998020e072065b711853578f",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "d48c86d9c1e597e10885c971e8f1a70a8a36f98f7395e4d4f26bf817828d4641",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "b6f57f7e9dabfa3588de37530c94392d8586bcca53d2648db1403f170f4151ad",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "c7f079c89c613627620e075a1a1ded8d2b3bf67936da45a1b6fb52c8c85f504e",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "43c2683516b69695c4c8b1c87f6f87d6d847b798405b47925c6442c8dc65faf2",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-074-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "4e5e5cc9950fdde69187bf7cfc4b56ccf6cd2b9c24a55cfe50b9ebcc6e870c72",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "f5646d709d8130310f5e39015d3b95f963f20a6af74d262cb984901d2fe28e8f",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "9bde49c6145f8158f861e07e2876302f076321614e9db6deea475989fdf08c4c",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "dfd4e9141122d3f32bf0b2cd44aa9d19aaee37d0c51405ae7389bb627463a744",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "62a393e3b2a772d344f2538fd55f8693980b72f003b44b75456de8d741b43db0",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "a5c8558cae1186e935e80f523174e02c47af4e87b0cd974a11a5b93b30f74571",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "cfe9c2e434d86655564f1916d5b30934fbb6a910bf28e2b895a5a64bfbe3cb08",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "82898d5296c1afa881e13108b3b05873840145278ec36d0e4036d7b465f98440",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "09d38f6711777eae4c20261b8e6af24b6dbcd836272b76eb835c3c580304a6ba",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "4671256d6cbaf79775b9708ea2910eeaafb7f7edd5091702a713674941c2319f",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "4b2817d39ab3d041fbc4012ab5e7ade2199efa27bdc34b30a54e3da3c60c2400",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "aaa40ed72616b808ca91eb9ce7130f3d6c9add8391268678921c86a15f57f183",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-075-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "643b7a6d440233bf5afa2da913679515783b7cd890844815ccfb7b29fc047d17",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "4f37eed1620cd725dbf6da2a256097125845738e8f81b1dfd8d8a137c322da5e",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "306631eedbac7d30beec566228ab47516df2d4264621d98deec90dc5368360af",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "b93dd6c0dfd8d767fc995df427b673de4a11c21c11b4bef570b888db6cae2759",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "0fed004357ee6a6322540eef0fffa7279d3f8834adfc0fc1ba3df0a4060ab0d6",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "f1ba0ef853d1e81df21665d76873afaa985c28367979b1229a33e56591bf0c3f",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "46ce1b58828a90ba56f1f0a6afea9d439488e88640d69298611fad74cf3d10cc",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "f6d00df1d8a4d46e1d795c07afbd223262f96c1992bd3e067ae78450a4d95888",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "b867cad0bf1dbf92970d141049ed45fa4398fc60cd3a3ae6413ed356427cb55e",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "f6413e24559e72dfcb33c835a512ef3c42e7ffa235c824f5bbabba9624e4e7e6",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "9d0989f384409706989246feb7f99fa2bd99c576f8407374193944f6174934ad",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "2459fb864d39fc7ef24e80ca2b6bf4f047571b9926363c2e5571c700dc8ea5d3",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-076-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "79938537c84ed1a124e7bc094e387a19e1cfb30d1d797bd53575a57568d0b552",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "fcfd6719b67f04d99d9c259758abce7bc2d649e9b6acc5117c1f1f25bc5909fe",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "28ca82988f6d6f0555ed58f821a9fe09399a277556045ad8128f422561f991cd",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "f9fc570d1a23bd4bf5317cae746623cd102338857e0401a59e36b67e29f29ac7",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "cc50ee826bf403f2792055d324b68964b81296442050b4dde043935485a6ad95",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "e8a277ca57ae22c652997f86804229dbba9ae1df7f24e2a081b667123d346617",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "61b334cba4b8e9c49b55172fa9017b8aea3d8d411c254689b182d28a6a8e2be0",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "96ea76490a14c0a3ae9029c489832eba0a7d45a1aada7dfc0746456d0b8b114d",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "dc5731082fa9544b2ad123880b9575bd4761ff161ff0c20c97bb503267c63908",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "025cccc21f5ffb4d602ef695bd1954484a151d678804b1b9add6edb653a6fbf1",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "d91786e81d1200a3d7188688296cff3224f2f4411ecc5805db9121bf3101cf9e",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "b1ddbfa3608c8e6254f71d879c9e421a57c59774e813011e95f1af3805f5f4f1",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace/layer-077-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "1ee51283c9a8581af930643d8d027312137b7409620d8b3b53c8e02ce358538c",
+      "unique_positions": 2048
+    }
+  ],
+  "baseline_trace_root": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-a025-r1/r33/tail-trace",
+  "candidate_kld_evidence": {
+    "mean": 0.06393484145449926,
+    "metadata": {
+      "direction": "KL(ref||model)",
+      "positions": "2047",
+      "schema": "glm52-paired-position-kld-v1"
+    },
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/r33-position-kld.safetensors",
+    "positions": 2047,
+    "sha256": "a9cde3ef5b4b2b4189aaf165a22d8fb6f444bf2395c36bd4c085fdaffef3b8f6"
+  },
+  "candidate_trace_evidence": [
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "d71a78594a09cc2637a383aa262f199740ae80445399c0cffe63733239998081",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "de80008a22617345b9523bdc563f8ff64204ecf6bf598c556d3d43715bab49a0",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "b775c97c0bc0026bdfbbfe28fbf9ad3b6340cc29cb0c19a6f39c16d87d1435ef",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "69f19d7c6d4e0187609e93c0b35b09ff2ea310a232bd6529201ce281a60fa4df",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "6c7f9f1ba0a1acd4c3a83e26cb1ade7b42d3b07a05b625873b021c57d5d9eb74",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "7a74c97c4b603822061133657624886deb37b1f5444a2114083dce54d9fe62db",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "abc1482459ef6a2dab9cc41f0bf075b9ae9ff559b91fc5886f00b4cac199d59c",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "b6107f77c3c623271565232255bdea6910b552cb8c3155569b8d5a117f14028b",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "9e9a6c403a0e7427007b19010f811a08f6e0418ac7a550a74bcd0356034b0736",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "1d49cfe0b22bc154ed863812c749ea6ba2b9bece7651e74c002d59b0c63a72fb",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "5638ca89ea31d75f73f24d1e4a4682873c37740b580635527dcdac4d874223d2",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 74,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-074-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "e9689564d696a398bccc64384f0743eae115fca9f645084768e86fa2975e38e5",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "b730a583dd4adaa023a3c6d98b616375870d7744db95b70e21fa6809b5885fe6",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "bcbc1f4342762447a45891baa2256846831b7dc94c379a93586beb89d5c9ccf6",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "cdacb260193fa512a6037dc31333a0dd69a3faa8931ef053cd970dd84213f8e5",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "342c6500c48940d45d075191bb2e9bd68b35ffc3db87a0bfcf41307371b3afa1",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "6315a69a32ac0579b4281decbf9cfc6ab744d00e6686a15b8c5564d56d6d8469",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "a95715e1716af23aa13f24a90cc078afdd29e7a10ac5d9d34476871cfc2e732d",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "103abc97a06e681562ee515fe4f1e5897eef6df84bf6407fa483bf542a2b0779",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "4edb66ceb446983520d427afae4b3a97cb0be70440735d4608f6773f750b2e8e",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "fe9ca862e4cfedd253bd22e950ec9c3a9997fde6fae098fe36b9b0dc0bcffdbd",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "72fcf03e21797ee44366084c68eaabb475df638f9e3a06c87d1e0f89eb191da8",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "4cfedbe87e7f17fec9f24a8106c53779e05bc8a0c2f4e699a46adf03285a932c",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 75,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-075-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "9c4f6e978bc6107454498ba2d7feca0a47d7a1954ed2529f7d31b9d4c580e0f9",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "0bfaebea735b120624cf1948b7bda8d1e1eb6916415320758fce10dc2e241488",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "19043b4dbf05cd3c12e21275886f07b5139a22a50876227a676687f3352a0027",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "5b9342a08637e3d8c1bd22ebec848831ba787d1c240b3ab3f971cdf497173de3",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "2f010534ec391b5be41b23654bd53f40bc9008990eedd1edcc64c84b529e1573",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "e930a981d885b58f39a0a7efc635fce403d14c9646642abb373e634f6396ddc6",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "a3054c1f4d2df657a3e40c8d0730be10a59054ad192635c44f12652da3491842",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "0a6c8f49cc08ec38f0f84e4fe17ac3e780299a2d4fa774a95fc90fe55575a4c6",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "cbe0f0ccd2271e6ac96796441a84ef497284687423f913d0daea507e17832ee2",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "a1770ce14973d4a6f27e2ae58c802a184352d721a5bc3564206c9de0dd1ff9a2",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "ebbbe0bb6218bfec314f97ce30e6c3fb2176bfd6269073dfc5be70baa190d1a7",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "1b1d76c8ee370ed864136bf33414cea0350c14122cf854c07adbb00409d09dad",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 76,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-076-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "dc74de1a5274bd2529c5f303bfe335e206eb5d60fcdc13d27720d42897492fb1",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-000-call-000.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "553d391defb057449e6a1d3c09365dbe07fe5957b68074a0bf14418d324ad83f",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-000-call-001.safetensors",
+      "rank": 0,
+      "rows": 4,
+      "sha256": "ff8ac905034e487a9d59a251fca061a4d37511853a7070be6ba717f835d85ea6",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-000-call-003.safetensors",
+      "rank": 0,
+      "rows": 2048,
+      "sha256": "000f3c3589efb4be8e7d70b3138d96a965a21e1173443758c2370ad84b42db92",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-001-call-000.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "3257539f842e6902d6e4156b87206c11b032360e056ea5d32caed0e07d247df8",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-001-call-001.safetensors",
+      "rank": 1,
+      "rows": 4,
+      "sha256": "1f8627f61292cdecc119483bc79738219b546e3a882852cdfdb5db2caf019ede",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-001-call-003.safetensors",
+      "rank": 1,
+      "rows": 2048,
+      "sha256": "73ab9097217590ad3cf25fa205b58cfcf30e5dc78b436bb290621297b04f5ab7",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-002-call-000.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "f6d13139f0b2f926ca7dfe55ec4f74079f7ea8322334eeaf8a276c906688a5d8",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-002-call-001.safetensors",
+      "rank": 2,
+      "rows": 4,
+      "sha256": "0ab8fbd94a41333c2b787ef2aa45a90d4e9a08e286edca28c02f48ef6be38587",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-002-call-003.safetensors",
+      "rank": 2,
+      "rows": 2048,
+      "sha256": "5c1deffc913749114a679b8839a2b2c6ebfc81fc74560fa50c4dc69983bd049f",
+      "unique_positions": 2048
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 0,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-003-call-000.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "da57b136f31dc537a0000e868961a30530108372eee4b28d8e85754747637ad1",
+      "unique_positions": 1
+    },
+    {
+      "analysis_selected": false,
+      "invocation": 1,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-003-call-001.safetensors",
+      "rank": 3,
+      "rows": 4,
+      "sha256": "a39d9dc9d80ae37acc4f468ff4c84ab7b58ac03451eb22f52296eeb81db5a883",
+      "unique_positions": 4
+    },
+    {
+      "analysis_selected": true,
+      "dcp_rank_replica_exact": true,
+      "invocation": 3,
+      "layer": 77,
+      "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace/layer-077-rank-003-call-003.safetensors",
+      "rank": 3,
+      "rows": 2048,
+      "sha256": "d1ac1a13651bb8146e08bdab1546c52c68dd1f5afe074df68cceb4dedc9a953c",
+      "unique_positions": 2048
+    }
+  ],
+  "candidate_trace_root": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-tail-trace-contig-late-r33-null-r1/tail-trace",
+  "kld": {
+    "baseline_mean": 0.06429775202010701,
+    "candidate_mean": 0.06393484145449926,
+    "delta_quantiles": {
+      "max": 1.4858720898628235,
+      "p50": -6.471543656516587e-08,
+      "p90": 0.012814385443925876,
+      "p95": 0.049228329211473375,
+      "p99": 0.19857261389493883,
+      "p99_5": 0.40654989128233754,
+      "p99_9": 0.9953900558948326
+    },
+    "improved_fraction": 0.5114802149487054,
+    "mean_delta": -0.00036291056560776584,
+    "median_delta": -6.471543656516587e-08,
+    "negative_delta_sum": -22.924719612714213,
+    "positions": 2047,
+    "positive_delta_cvar_1pct": 0.5101326298123846,
+    "positive_delta_sum": 22.181841684915117,
+    "worsened_fraction": 0.47191011235955055
+  },
+  "layers": {
+    "74": {
+      "correlation_with_positive_kld_delta": {
+        "moe_output_relative_delta": {
+          "pearson": -0.015318958323253124,
+          "spearman": 0.05432474398273305
+        },
+        "residual_after_relative_delta": {
+          "pearson": -0.008444122865676546,
+          "spearman": 0.07492260259270264
+        },
+        "route_weight_l1": {
+          "pearson": -0.04463100213796419,
+          "spearman": 0.016509563656770213
+        }
+      },
+      "hidden_relative_delta": {
+        "max": 0.970264806837936,
+        "mean": 0.023522767510482906,
+        "p50": 0.012022190920265198,
+        "p90": 0.030490068371159054,
+        "p95": 0.0483641846778192,
+        "p99": 0.3834126369729919,
+        "p99_5": 0.6366299062897334,
+        "p99_9": 0.8631336748286473
+      },
+      "moe_output_relative_delta": {
+        "max": 1.0584274982051136,
+        "mean": 0.036957519261626486,
+        "p50": 0.020647409596791916,
+        "p90": 0.061284112863701536,
+        "p95": 0.09802298097178355,
+        "p99": 0.44864731050483925,
+        "p99_5": 0.6690714264225381,
+        "p99_9": 0.9186726580995372
+      },
+      "positions": 2047,
+      "residual_after_relative_delta": {
+        "max": 0.8136072240083698,
+        "mean": 0.019432821925150265,
+        "p50": 0.011106621283216007,
+        "p90": 0.027436002171198317,
+        "p95": 0.04104811628281488,
+        "p99": 0.28828019879167244,
+        "p99_5": 0.40190823300106143,
+        "p99_9": 0.6052817947881942
+      },
+      "residual_before_relative_delta": {
+        "max": 0.9411023598521232,
+        "mean": 0.019706048697502532,
+        "p50": 0.01087510376939227,
+        "p90": 0.026749442852312292,
+        "p95": 0.041675464690098356,
+        "p99": 0.30127701865952533,
+        "p99_5": 0.44499091456571604,
+        "p99_9": 0.6599314126905645
+      },
+      "route_exact_order_fraction": 0.180752320468979,
+      "route_exact_set_fraction": 0.542256961406937,
+      "route_overlap_mean": 7.42647777234978,
+      "route_set_changed_fraction": 0.45774303859306303,
+      "route_weight_l1_mean": 0.11806912376951657,
+      "tail": {
+        "moe_output_relative_delta_mean": 0.03274602358967833,
+        "positions": 21,
+        "residual_after_relative_delta_mean": 0.01780173515695225,
+        "route_set_changed_fraction": 0.42857142857142855,
+        "route_weight_l1_mean": 0.08613948229079445
+      }
+    },
+    "75": {
+      "correlation_with_positive_kld_delta": {
+        "moe_output_relative_delta": {
+          "pearson": -0.019696862396581465,
+          "spearman": 0.06400583885522924
+        },
+        "residual_after_relative_delta": {
+          "pearson": -0.0054106948938831695,
+          "spearman": 0.07865394677465214
+        },
+        "route_weight_l1": {
+          "pearson": -0.039686466870545695,
+          "spearman": 0.029093671785631173
+        }
+      },
+      "hidden_relative_delta": {
+        "max": 0.8406916730742433,
+        "mean": 0.02155624900885669,
+        "p50": 0.012209306371146067,
+        "p90": 0.02954000047696532,
+        "p95": 0.04515693192507906,
+        "p99": 0.28491555811481517,
+        "p99_5": 0.5095059645396081,
+        "p99_9": 0.677199815367609
+      },
+      "moe_output_relative_delta": {
+        "max": 0.8812565051721422,
+        "mean": 0.039499484068836604,
+        "p50": 0.023553691209520795,
+        "p90": 0.07671548690723089,
+        "p95": 0.11745448856936033,
+        "p99": 0.3574530344068264,
+        "p99_5": 0.49097430118563207,
+        "p99_9": 0.7833570226729215
+      },
+      "positions": 2047,
+      "residual_after_relative_delta": {
+        "max": 0.734459028065401,
+        "mean": 0.01887180883770896,
+        "p50": 0.011659000776920243,
+        "p90": 0.027557165064535236,
+        "p95": 0.04070799322097414,
+        "p99": 0.22932944298934496,
+        "p99_5": 0.3573715504356866,
+        "p99_9": 0.5233747858380312
+      },
+      "residual_before_relative_delta": {
+        "max": 0.7264672413868717,
+        "mean": 0.018091562881531142,
+        "p50": 0.0110258585853872,
+        "p90": 0.02642362482717412,
+        "p95": 0.038347203588576344,
+        "p99": 0.2252138470138581,
+        "p99_5": 0.34436214421039224,
+        "p99_9": 0.49390309847903335
+      },
+      "route_exact_order_fraction": 0.1441133365901319,
+      "route_exact_set_fraction": 0.5017098192476795,
+      "route_overlap_mean": 7.360527601367855,
+      "route_set_changed_fraction": 0.49829018075232046,
+      "route_weight_l1_mean": 0.14189001075281027,
+      "tail": {
+        "moe_output_relative_delta_mean": 0.031313365760144714,
+        "positions": 21,
+        "residual_after_relative_delta_mean": 0.01836528580339543,
+        "route_set_changed_fraction": 0.47619047619047616,
+        "route_weight_l1_mean": 0.09417003588307471
+      }
+    },
+    "76": {
+      "correlation_with_positive_kld_delta": {
+        "moe_output_relative_delta": {
+          "pearson": 0.01033107839445641,
+          "spearman": 0.06822743148762422
+        },
+        "residual_after_relative_delta": {
+          "pearson": -0.0034577850361925196,
+          "spearman": 0.07814166965667424
+        },
+        "route_weight_l1": {
+          "pearson": -0.016241955793684752,
+          "spearman": 0.01207656853793766
+        }
+      },
+      "hidden_relative_delta": {
+        "max": 0.6785756942554593,
+        "mean": 0.02105475950775984,
+        "p50": 0.013035920393195809,
+        "p90": 0.0302680071601717,
+        "p95": 0.04646915287672558,
+        "p99": 0.25071213342475174,
+        "p99_5": 0.41385932561968647,
+        "p99_9": 0.5478342705850626
+      },
+      "moe_output_relative_delta": {
+        "max": 0.5651247894698568,
+        "mean": 0.018356346292154588,
+        "p50": 0.011372788870307573,
+        "p90": 0.03239785097875474,
+        "p95": 0.046396902843626506,
+        "p99": 0.18077565249526123,
+        "p99_5": 0.2444369345576436,
+        "p99_9": 0.3891652636329163
+      },
+      "positions": 2047,
+      "residual_after_relative_delta": {
+        "max": 0.6117221346790837,
+        "mean": 0.018806273945819938,
+        "p50": 0.011983390889250958,
+        "p90": 0.027629631927547593,
+        "p95": 0.04158295533366915,
+        "p99": 0.20723297743318356,
+        "p99_5": 0.3288798188516735,
+        "p99_9": 0.46584966365197295
+      },
+      "residual_before_relative_delta": {
+        "max": 0.6246352842287491,
+        "mean": 0.01814360781347635,
+        "p50": 0.011753178550984945,
+        "p90": 0.02699029130386385,
+        "p95": 0.04098063318715742,
+        "p99": 0.19953159596704972,
+        "p99_5": 0.308294678344462,
+        "p99_9": 0.4680395945635149
+      },
+      "route_exact_order_fraction": 0.1695163654127992,
+      "route_exact_set_fraction": 0.5246702491450904,
+      "route_overlap_mean": 7.41866145578896,
+      "route_set_changed_fraction": 0.47532975085490964,
+      "route_weight_l1_mean": 0.1286913650581684,
+      "tail": {
+        "moe_output_relative_delta_mean": 0.021662181302291066,
+        "positions": 21,
+        "residual_after_relative_delta_mean": 0.01884366043368109,
+        "route_set_changed_fraction": 0.6190476190476191,
+        "route_weight_l1_mean": 0.10851590190681495
+      }
+    },
+    "77": {
+      "correlation_with_positive_kld_delta": {
+        "moe_output_relative_delta": {
+          "pearson": 0.022152127210694646,
+          "spearman": 0.04752005222103494
+        },
+        "residual_after_relative_delta": {
+          "pearson": 0.004310241218746263,
+          "spearman": 0.07206038782244382
+        },
+        "route_weight_l1": {
+          "pearson": -0.00960493927916042,
+          "spearman": 0.0028627957887290742
+        }
+      },
+      "hidden_relative_delta": {
+        "max": 0.6126672488940663,
+        "mean": 0.020011301616309235,
+        "p50": 0.013168041965943475,
+        "p90": 0.029958740256369857,
+        "p95": 0.04530646151378778,
+        "p99": 0.1906093305509128,
+        "p99_5": 0.331103412359044,
+        "p99_9": 0.4765653777511799
+      },
+      "moe_output_relative_delta": {
+        "max": 0.5943401721749156,
+        "mean": 0.012886779234540596,
+        "p50": 0.007900200277998346,
+        "p90": 0.02200826606139038,
+        "p95": 0.03433804616146383,
+        "p99": 0.1074411606072668,
+        "p99_5": 0.16558024672273972,
+        "p99_9": 0.3232152641193565
+      },
+      "positions": 2047,
+      "residual_after_relative_delta": {
+        "max": 0.5629847218704399,
+        "mean": 0.020729414944870985,
+        "p50": 0.014090286423083555,
+        "p90": 0.0310905023691311,
+        "p95": 0.04682217996064419,
+        "p99": 0.17629530614707356,
+        "p99_5": 0.3047648199187868,
+        "p99_9": 0.4725316905917913
+      },
+      "residual_before_relative_delta": {
+        "max": 0.5970057623431849,
+        "mean": 0.0183426912616625,
+        "p50": 0.012280784365789906,
+        "p90": 0.027640511200964037,
+        "p95": 0.041507467131456525,
+        "p99": 0.16789831108552233,
+        "p99_5": 0.27750124517992036,
+        "p99_9": 0.40038119993965005
+      },
+      "route_exact_order_fraction": 0.20127015144113336,
+      "route_exact_set_fraction": 0.5510503175378603,
+      "route_overlap_mean": 7.4684904738641915,
+      "route_set_changed_fraction": 0.44894968246213973,
+      "route_weight_l1_mean": 0.11561108631358046,
+      "tail": {
+        "moe_output_relative_delta_mean": 0.018396315141775726,
+        "positions": 21,
+        "residual_after_relative_delta_mean": 0.02333159495706298,
+        "route_set_changed_fraction": 0.3333333333333333,
+        "route_weight_l1_mean": 0.08841608001274012
+      }
+    }
+  },
+  "row_arrays": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_same_checkpoint_tail_trace_null_r1.npz",
+    "sha256": "9216ee1b38e56f35040639f2fdfadb56322e4e657de0112d2620e0e3acb7d64c"
+  },
+  "schema": "glm52-sqg-paired-tail-trace-analysis-v1",
+  "tail_definition": "largest 1 percent of candidate-minus-baseline per-position KLD deltas",
+  "worst_positive_positions": [
+    {
+      "baseline_kld": 0.5420243144035339,
+      "candidate_kld": 2.0278964042663574,
+      "delta": 1.4858720898628235,
+      "position": 565
+    },
+    {
+      "baseline_kld": 1.1795655488967896,
+      "candidate_kld": 2.465681314468384,
+      "delta": 1.2861157655715942,
+      "position": 168
+    },
+    {
+      "baseline_kld": 0.9705443382263184,
+      "candidate_kld": 1.9838006496429443,
+      "delta": 1.013256311416626,
+      "position": 1024
+    },
+    {
+      "baseline_kld": 1.5804966688156128,
+      "candidate_kld": 2.2053561210632324,
+      "delta": 0.6248594522476196,
+      "position": 913
+    },
+    {
+      "baseline_kld": 0.9686367511749268,
+      "candidate_kld": 1.5776466131210327,
+      "delta": 0.609009861946106,
+      "position": 907
+    },
+    {
+      "baseline_kld": 0.18920543789863586,
+      "candidate_kld": 0.7918840646743774,
+      "delta": 0.6026786267757416,
+      "position": 431
+    },
+    {
+      "baseline_kld": 2.6555917263031006,
+      "candidate_kld": 3.1952383518218994,
+      "delta": 0.5396466255187988,
+      "position": 111
+    },
+    {
+      "baseline_kld": 0.1924086958169937,
+      "candidate_kld": 0.6419610977172852,
+      "delta": 0.44955240190029144,
+      "position": 92
+    },
+    {
+      "baseline_kld": 1.0971784591674805,
+      "candidate_kld": 1.5282727479934692,
+      "delta": 0.43109428882598877,
+      "position": 584
+    },
+    {
+      "baseline_kld": 0.3955966830253601,
+      "candidate_kld": 0.8182230591773987,
+      "delta": 0.4226263761520386,
+      "position": 99
+    },
+    {
+      "baseline_kld": 0.32459959387779236,
+      "candidate_kld": 0.7451448440551758,
+      "delta": 0.4205452501773834,
+      "position": 795
+    },
+    {
+      "baseline_kld": 0.002625155495479703,
+      "candidate_kld": 0.36232101917266846,
+      "delta": 0.35969586367718875,
+      "position": 1762
+    },
+    {
+      "baseline_kld": 0.7765756845474243,
+      "candidate_kld": 1.1153528690338135,
+      "delta": 0.33877718448638916,
+      "position": 796
+    },
+    {
+      "baseline_kld": 0.64461749792099,
+      "candidate_kld": 0.971537172794342,
+      "delta": 0.32691967487335205,
+      "position": 1792
+    },
+    {
+      "baseline_kld": 0.32467180490493774,
+      "candidate_kld": 0.62831711769104,
+      "delta": 0.3036453127861023,
+      "position": 1856
+    },
+    {
+      "baseline_kld": 0.38480067253112793,
+      "candidate_kld": 0.6718953847885132,
+      "delta": 0.28709471225738525,
+      "position": 447
+    },
+    {
+      "baseline_kld": 0.628069281578064,
+      "candidate_kld": 0.9084698557853699,
+      "delta": 0.2804005742073059,
+      "position": 739
+    },
+    {
+      "baseline_kld": 0.2282036989927292,
+      "candidate_kld": 0.49472129344940186,
+      "delta": 0.26651759445667267,
+      "position": 1023
+    },
+    {
+      "baseline_kld": 0.623515784740448,
+      "candidate_kld": 0.8705050945281982,
+      "delta": 0.24698930978775024,
+      "position": 1238
+    },
+    {
+      "baseline_kld": 0.918031632900238,
+      "candidate_kld": 1.1294655799865723,
+      "delta": 0.21143394708633423,
+      "position": 450
+    }
+  ]
+}

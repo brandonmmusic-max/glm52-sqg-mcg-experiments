@@ -1,0 +1,215 @@
+{
+  "full": {
+    "capture_fingerprint": "a9e43e589d8c80bda22a879d7d32be39e3919b490f683b2c8477e23f9f64824d",
+    "fit_rows": 601343,
+    "h13_matrix_sha256": "576c595824a1b09628b44b482bfe0d3ab3e48ac2308c016df31587c68533aafb",
+    "h13_path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-encode-absfix-r2/layer_077/preparation/h13.safetensors",
+    "h13_sha256": "a8dcf817cb17d41d6f8d0d3a576b1a882425cb2a1d2f097bf664a074dc0b2b5b",
+    "selection_documents": 892
+  },
+  "layer": 77,
+  "limitations": {
+    "advancement_allowed": false,
+    "external_document_cross_score_complete": false,
+    "matched_candidate_bytes": false,
+    "matched_expert_panel": false
+  },
+  "matrix": {
+    "full": {
+      "diagonal_mean": 0.14334712331280267,
+      "frobenius_effective_rank": 37.19732754483059,
+      "frobenius_norm": 144.4056944807291,
+      "maximum_symmetry_error": 0.0,
+      "trace": 880.7247256338596
+    },
+    "random_probe_rayleigh_ratio_reduced_over_full": {
+      "maximum": 1.2581212404929598,
+      "mean": 0.9933282138007884,
+      "median": 0.9834444361397296,
+      "minimum": 0.615404072279521,
+      "p05": 0.8508764933596602,
+      "p95": 1.1854781514486414,
+      "probes": 64,
+      "seed": 20260810
+    },
+    "reduced": {
+      "diagonal_mean": 0.14274122084134433,
+      "frobenius_effective_rank": 29.706346384536733,
+      "frobenius_norm": 160.90739115547194,
+      "maximum_symmetry_error": 0.0,
+      "trace": 877.0020608492196
+    },
+    "relative": {
+      "diagonal_mean_change_percent": -0.42268198862712714,
+      "diagonal_pearson_correlation": 0.9006097596226196,
+      "effective_rank_change_percent": -20.138492883032132,
+      "frobenius_cosine": 0.891940249563745,
+      "frobenius_difference_over_full": 0.5038596226479155,
+      "trace_change_percent": -0.42268198862713824
+    },
+    "shape": [
+      6144,
+      6144
+    ]
+  },
+  "profiles": {
+    "causal_corpus_size_comparison": false,
+    "common_cell_error_spearman": {
+      "note": "candidate bytes/profile vectors differ; diagnostic only",
+      "pvalue": 0.05501502977813754,
+      "statistic": 0.488235294117647
+    },
+    "full_ranked_cell_ids": [
+      "draw-00__identity",
+      "draw-01__identity",
+      "draw-03__identity",
+      "draw-02__identity",
+      "draw-01__inverse_quarter_rms",
+      "draw-01__aggregate_rms",
+      "draw-03__quarter_rms",
+      "draw-01__quarter_rms",
+      "draw-00__aggregate_rms",
+      "draw-00__quarter_rms",
+      "draw-02__quarter_rms",
+      "draw-03__inverse_quarter_rms",
+      "draw-02__inverse_quarter_rms",
+      "draw-03__aggregate_rms",
+      "draw-02__aggregate_rms",
+      "draw-00__inverse_quarter_rms"
+    ],
+    "full_selected_cell": "draw-00__identity",
+    "reduced_ranked_cell_ids": [
+      "draw-03__identity",
+      "draw-02__identity",
+      "draw-01__identity",
+      "draw-00__identity",
+      "draw-02__aggregate_rms",
+      "draw-01__inverse_quarter_rms",
+      "draw-02__inverse_quarter_rms",
+      "draw-00__quarter_rms",
+      "draw-03__aggregate_rms",
+      "draw-00__aggregate_rms",
+      "draw-01__aggregate_rms",
+      "draw-00__inverse_quarter_rms",
+      "draw-01__quarter_rms",
+      "draw-03__quarter_rms",
+      "draw-02__quarter_rms",
+      "draw-03__inverse_quarter_rms"
+    ],
+    "reduced_selected_cell": "draw-03__identity",
+    "required_followup": "cross-score the reduced draw-00 and draw-03 candidate bytes on full-capture documents excluded from the reduced 217-document plan",
+    "selected_cell_diagnostics": {
+      "draw-00__identity": {
+        "full_bootstrap_vs_own_baseline": {
+          "baseline_self_comparison": true,
+          "lower_bound": 0.0,
+          "lower_bound_gt_zero": false,
+          "observed_mean_improvement": 0.0,
+          "schema": "glm52-fresh-sqg-paired-document-bootstrap-control-v1",
+          "upper_bound": 0.0
+        },
+        "full_mean_document_relative_error": 0.0017572869708831222,
+        "full_rank": 1,
+        "reduced_bootstrap_vs_own_baseline": {
+          "baseline_self_comparison": true,
+          "lower_bound": 0.0,
+          "lower_bound_gt_zero": false,
+          "observed_mean_improvement": 0.0,
+          "schema": "glm52-fresh-sqg-paired-document-bootstrap-control-v1",
+          "upper_bound": 0.0
+        },
+        "reduced_mean_document_relative_error": 0.0020378786499760377,
+        "reduced_rank": 4
+      },
+      "draw-03__identity": {
+        "full_bootstrap_vs_own_baseline": {
+          "bootstrap_id": "910356f313401367ff4754b1b4dcbf498d49c1b7effb52c447ad2a2b00fb818b",
+          "confidence": 0.9983870967741936,
+          "documents": 892,
+          "improvement_definition": "baseline_document_relative_error_minus_candidate",
+          "iterations": 10000,
+          "lower_bound": -7.204033927458569e-05,
+          "lower_bound_gt_zero": false,
+          "numpy_version": "2.3.5",
+          "observed_mean_improvement": -7.096648818903928e-05,
+          "schema": "glm52-fresh-sqg-paired-document-bootstrap-v1",
+          "seed": 6917599529230869118,
+          "upper_bound": -6.818821223857882e-05
+        },
+        "full_mean_document_relative_error": 0.0018282534590721615,
+        "full_rank": 3,
+        "reduced_bootstrap_vs_own_baseline": {
+          "bootstrap_id": "e54a60831b2507ec2623d78a40f5ad462fe63ae0ca4ee38a2481b0695d211835",
+          "confidence": 0.9983870967741936,
+          "documents": 41,
+          "improvement_definition": "baseline_document_relative_error_minus_candidate",
+          "iterations": 10000,
+          "lower_bound": 9.270076683027829e-05,
+          "lower_bound_gt_zero": true,
+          "numpy_version": "2.3.5",
+          "observed_mean_improvement": 9.541356438558669e-05,
+          "schema": "glm52-fresh-sqg-paired-document-bootstrap-v1",
+          "seed": 4662560222789544724,
+          "upper_bound": 9.776286765823403e-05
+        },
+        "reduced_mean_document_relative_error": 0.0019424650855904514,
+        "reduced_rank": 1
+      }
+    },
+    "selection_panels": {
+      "full": [
+        0,
+        24,
+        87,
+        90,
+        127,
+        129,
+        130,
+        168,
+        196,
+        201,
+        206,
+        227,
+        229,
+        230,
+        237,
+        252
+      ],
+      "intersection": [
+        90,
+        230
+      ],
+      "intersection_count": 2,
+      "jaccard": 0.06666666666666667,
+      "reduced": [
+        6,
+        18,
+        43,
+        52,
+        72,
+        81,
+        90,
+        124,
+        135,
+        140,
+        143,
+        181,
+        183,
+        194,
+        207,
+        230
+      ]
+    },
+    "selection_reversed": true,
+    "why_not_causal": "the searches rebuilt H13, residual profiles, signs, permutations, expert panels, and candidate bytes"
+  },
+  "reduced": {
+    "capture_fingerprint": "4caecdb1547937bbf999284b14d5778568df9052784ea8122c3da9b1bde07bfa",
+    "fit_rows": 150368,
+    "h13_matrix_sha256": "d5d249500ac077c6c3576e0de9bdfa87f2aa644895e496d211ae706822c716ef",
+    "h13_path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-contig-late-a025-r1/layer_077/preparation/h13.safetensors",
+    "h13_sha256": "3fac806e4c1343970b2001023c1d9ef3022129e0507a26b2db0aca7483ea5b18",
+    "selection_documents": 41
+  },
+  "schema": "glm52-capture-representativeness-layer-v1"
+}

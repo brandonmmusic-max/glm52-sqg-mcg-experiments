@@ -1,0 +1,32 @@
+{
+  "schema": "glm52-kld-float32-roundoff-validator-recovery-v2",
+  "complete": true,
+  "boot_rerun": false,
+  "kld_tensor_modified": false,
+  "reason": "one persisted float32 per-position KL reduction was -1.1124e-7, below the old decimal -1e-7 floor but within two float32 epsilons",
+  "original_validator_sha256": "3a3388657a0d6fa72341db9a10c2d59bada1b7be78f8792737a8aaaba1ba7017",
+  "recovery_validator_sha256": "e6b57fc605e3ec7f9ec297f10ef400f83664a06d7b0c04d3320a7f7996193758",
+  "negative_roundoff_tolerance": 2.384185791015625E-7,
+  "original_eval_code": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/eval-code.sha256",
+    "sha256": "5a38b28ad4c3e9ba8d1a89334240a6daf40918722eefb236d34e74ddb45a8e45"
+  },
+  "preserved_position": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+    "sha256": "4ec9a3457dc13ff90d0115b0cb8b0170e6f0167f5860fc91c50f3d68fb7f7236",
+    "positions": 2047
+  },
+  "preserved_raw_record": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run3-record.raw.json",
+    "sha256": "ab26be76a035b0cd7ac3c18a9c3b5fe6cd9fcf754120b134c2afacc2573a890e",
+    "mean_kld": 0.06256102924107773
+  },
+  "preserved_log": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run3.log",
+    "sha256": "04db5b6f1c7054962b70167c32519f7f47824fb40961345f3703e989b2b3ddfa"
+  },
+  "recovery_validation": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run3-position-kld.validation.json",
+    "sha256": "65014c59eb56109763135ed81cf8cb7caec2747a91df1b5af6a3294ea6ee2203"
+  }
+}

@@ -53,7 +53,8 @@ def _passes(
 
 
 def select_layerwise(
-    source: dict[str, Any], *, baseline_label: str
+    source: dict[str, Any], *, baseline_label: str,
+    require_all_nonbaseline: bool = False,
 ) -> dict[str, Any]:
     layers = sorted(int(layer) for layer in source["layers"])
     labels = list(source["aggregate"]["metrics"])
@@ -91,8 +92,15 @@ def select_layerwise(
         baseline_error, baseline_error, reference_total
     )
 
+    choice_labels = (
+        [label for label in labels if label != baseline_label]
+        if require_all_nonbaseline
+        else labels
+    )
+    if not choice_labels:
+        raise ValueError("no nonbaseline labels are available")
     combinations = []
-    for choices in product(labels, repeat=len(layers)):
+    for choices in product(choice_labels, repeat=len(layers)):
         error = sum(errors[layer][label] for layer, label in zip(layers, choices))
         tail = tail_comparison(error, baseline_error, reference_total)
         metric = {
@@ -101,7 +109,11 @@ def select_layerwise(
         }
         mapping = {str(layer): label for layer, label in zip(layers, choices)}
         nonbaseline_layers = sum(label != baseline_label for label in choices)
-        eligible = nonbaseline_layers > 0 and _passes(
+        eligible = (
+            nonbaseline_layers == len(layers)
+            if require_all_nonbaseline
+            else nonbaseline_layers > 0
+        ) and _passes(
             metric,
             baseline_nmse,
             baseline_tail,
@@ -133,14 +145,43 @@ def select_layerwise(
         )
         status = "tail_and_mean_constraints_passed"
     else:
-        winner = next(
-            item for item in combinations if item["nonbaseline_layers"] == 0
-        )
-        status = "no_nonbaseline_combination_passed_baseline_retained"
+        if require_all_nonbaseline:
+            winner = min(
+                combinations,
+                key=lambda item: (
+                    item["tail_vs_baseline"]["candidate_squared_error"][
+                        "upper_cvar_1pct"
+                    ],
+                    item["tail_vs_baseline"]["candidate_relative_error"][
+                        "upper_cvar_1pct"
+                    ],
+                    item["signed_top8_nmse"],
+                    -item["tail_vs_baseline"]["improved_fraction"],
+                ),
+            )
+            status = "no_all_sqg_combination_passed_mcg_hard_gates"
+        else:
+            winner = next(
+                item for item in combinations if item["nonbaseline_layers"] == 0
+            )
+            status = "no_nonbaseline_combination_passed_baseline_retained"
 
     uniform_label = source["aggregate"]["selection_policy"].get(
         "winner", baseline_label
     )
+    if uniform_label not in choice_labels:
+        fallback = source["aggregate"]["selection_policy"].get(
+            "diagnostic_fallback_nonbaseline"
+        )
+        if fallback in choice_labels:
+            uniform_label = fallback
+        else:
+            uniform_label = min(
+                choice_labels,
+                key=lambda label: source["aggregate"]["metrics"][label][
+                    "signed_top8_nmse"
+                ],
+            )
     uniform_metric = next(
         item
         for item in combinations
@@ -186,6 +227,7 @@ def select_layerwise(
         "layers": layers,
         "labels": labels,
         "baseline_label": baseline_label,
+        "require_all_nonbaseline": require_all_nonbaseline,
         "search_space": len(combinations),
         "eligible_count": len(eligible),
         "minimum_relative_nmse_gain": MINIMUM_RELATIVE_NMSE_GAIN,
@@ -228,6 +270,11 @@ def select_layerwise(
             (
                 "aggregate signed-top8 NMSE improves by at least "
                 f"{MINIMUM_RELATIVE_NMSE_GAIN:.3%}"
+            ),
+            *(
+                ["every selected layer uses an SQG arm; MCG is forbidden"]
+                if require_all_nonbaseline
+                else []
             ),
         ],
         "limitation": (
@@ -275,10 +322,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--baseline-label", default="alpha0")
+    parser.add_argument("--require-all-nonbaseline", action="store_true")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     source = json.loads(args.input.read_text(encoding="utf-8"))
-    result = select_layerwise(source, baseline_label=args.baseline_label)
+    result = select_layerwise(
+        source,
+        baseline_label=args.baseline_label,
+        require_all_nonbaseline=args.require_all_nonbaseline,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
