@@ -12,6 +12,11 @@ review](docs/qsrt_current_update_review_2026-08-10.md) covers the new coupled
 K3 Hadamard path, allocation evidence, W4A8 implications, and attribution
 history without treating QSRT fixtures as GLM quality results.
 
+The [post-falsification QSRT-head
+addendum](docs/qsrt_current_update_review_2026-08-11.md) records which current
+mechanisms transfer to the protected mixed per-tensor K3/K4 design and which
+uniform-K3/H308 assumptions are rejected.
+
 The experiment kept the production topology and the per-tensor K3/K4 bit
 assignment fixed. Bits were **not** reallocated per expert. The initial
 diagnostic layers were 6, 28, 52, and 77; the first contiguous block is layers
@@ -36,6 +41,9 @@ KLD.
 | Test 8c compact-core speed | projected `1.1310x` at M=3,072 and `1.0684x` at M=4,096, assuming MoE fraction `0.31` | The native FP8 path is real, but the serial-core projection misses the `1.15x` long-prefill migration floor and is not serving acceptance |
 | Same-candidate-path 5v5 null | mean-delta p95 envelope `±0.0013867` | Ten reused boots provide a checkpoint/prompt-specific empirical reference, not independent experiments or a formal false-positive calibration |
 | Late paired trace versus one r33-r33 pair | MoE drift ratio `1.49–1.72x`; post-residual `1.04–1.29x` | Treatment-consistent but unreplicated mechanistic evidence; not a causal estimate or proof that compounding is absent |
+| Winner-native layer-77 profile | `-1.5202%` selection and `-0.8131%` untouched holdout versus the frozen profile | Repeating profile search under alpha 0.25 fixes a measurable home-field mismatch on the 16-expert panel |
+| Exact h-A8 `(H,B)` down re-encode | `+0.9885%` holdout NMSE despite `-25.08%` cross-expert error | The floating refit does not survive K3/K4 trellis re-encoding; reject the full-strength target |
+| Unary-bounded retained-profile selection | `-0.4684%` holdout NMSE; bootstrap crosses zero | Favorable expert-private profile signal; `93.32%` of selection gain is unary, not cancellation |
 
 The direct E4M3 result strengthens SQG's W4A8 architecture thesis, but its full
 `16.8964%` SQG-versus-MCG E4M3 NMSE gap is not solely an endpoint benefit:
@@ -110,6 +118,9 @@ exceed even the late p95 reference.
 - [Late all-arm H13 holdout](results/contiguous_late_h13_blend_holdout_full_r1.md)
 - [Test 8b activation-quality result](results/glm52_w4a8_activation_quality_l077_r1.md)
 - [Test 8c compact-core speed result](results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
+- [Winner-native profile result](results/glm52_alpha025_winner_native_profile_l077_r1.md)
+- [Exact h-A8 `(H,B)` down re-encode](results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
+- [Unary-bounded retained-profile co-routing](results/glm52_retained_profile_corouting_l077_r1.md)
 - [Conditional full-model plan and NO-GO decision](docs/conditional_full_model_sqg_w4a8_plan.md)
 - [W4A8 code identity and omitted-evidence receipt](published_evidence/w4a8_core/README.md)
 - [QSRT/Kimi K3 K1 feasibility audit](docs/qsrt_kimi_k3_k1_feasibility.md)
