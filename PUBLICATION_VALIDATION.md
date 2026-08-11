@@ -9,6 +9,7 @@ started by the publication work.
 | Suite | Result |
 |---|---:|
 | Main project, current update | 301 passed, 1 skipped |
+| New retained-profile co-routing unit tests | 2 passed |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
@@ -90,6 +91,17 @@ values for those keys. The complete suite then passed.
   publishes its compact 126-case report plus exact benchmark/test/kernel
   snapshots.  The omitted 3,516,542-byte timing JSON hashes to
   `6740f8be4480a9272866b03055ea0f2dee3e5ed8d4453a8e1d4f5d757f64bb58`.
+- The winner-native profile result, realized exact h-A8 `(H,B)` down reject,
+  and unary-bounded retained-profile result are published with their methods,
+  holdout dispositions, and authoritative IDs. The omitted co-routing result
+  JSON hashes to
+  `11e483476866862b47f9fc74cd1c715fbcabdbe228bb5fd9a4b48a2b4361304b`.
+  Its preregistration hashes to
+  `c236fd36b0e3e2cbd422ec0ef46a76fe4e103f939abbbb9ba5b6a2b2fc80825e`.
+- The co-routing runner passes Python byte compilation, Ruff, shell syntax,
+  and both deterministic solver unit tests. The 112-second production run
+  completed with zero new encodes, zero uniform-K3 substitution, and zero MCG
+  inputs.
 - Shell syntax checks, Python byte compilation, and the sealed pure-SQG source
   manifest check passed. The corrected runner hashes to
   `aa7f5d556d2b5700b7fe49a441778822853bd75eeb0db70090eb71bf93dda636`;
