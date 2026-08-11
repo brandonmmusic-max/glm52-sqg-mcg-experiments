@@ -1,0 +1,13 @@
+{
+  "schema": "glm52-contiguous-late-h13-blend-panel-receipt-v1",
+  "selection": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_blend_selection_r1.json",
+    "sha256": "b0e3e81a5d74adbaaa2304d919d11a9fd437bed46522ea31798ff9bae925c657"
+  },
+  "holdout": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_blend_holdout_r1.json",
+    "sha256": "2b431a2db868892e1d7dd8341a545af99332fb90206289673ae1d4116a3dcfc7"
+  },
+  "selected_or_diagnostic": "sqg_a025",
+  "note": "If MCG retained the hard-gate win, holdout evaluates the named best nonbaseline diagnostic; it does not override MCG."
+}

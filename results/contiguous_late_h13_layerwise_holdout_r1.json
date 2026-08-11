@@ -1,0 +1,104 @@
+{
+  "analysis_type": "frozen_layerwise_mapping_evaluation",
+  "baseline_label": "mcg",
+  "baseline_signed_top8_nmse": 0.006834071680335527,
+  "candidate": {
+    "signed_top8_nmse": 0.007023407971153465,
+    "tail_vs_baseline": {
+      "baseline_relative_error": {
+        "max": 0.03920372479033634,
+        "mean": 0.01035931086702432,
+        "p50": 0.009777881151889033,
+        "p90": 0.016469046823050743,
+        "p95": 0.01918391113953957,
+        "p99": 0.02429805165653617,
+        "p99_5": 0.0264518386589346,
+        "p99_9": 0.031325875765264216,
+        "upper_cvar_1pct": 0.02735032113027416
+      },
+      "baseline_squared_error": {
+        "max": 4676.8143706548,
+        "mean": 41.20199571436383,
+        "p50": 24.172198401020296,
+        "p90": 81.103294949808,
+        "p95": 109.62643476266216,
+        "p99": 196.74509013351695,
+        "p99_5": 248.0378491732218,
+        "p99_9": 644.6515116539138,
+        "upper_cvar_1pct": 646.3883524783142
+      },
+      "candidate_relative_error": {
+        "max": 0.03708331494210125,
+        "mean": 0.010793284400649623,
+        "p50": 0.010199617715284666,
+        "p90": 0.017122592561179848,
+        "p95": 0.0199726317367655,
+        "p99": 0.02480939929391739,
+        "p99_5": 0.026508361034694575,
+        "p99_9": 0.030491396112795704,
+        "upper_cvar_1pct": 0.027255725337389628
+      },
+      "candidate_squared_error": {
+        "max": 3889.614129460914,
+        "mean": 42.3434869669799,
+        "p50": 25.154407058350227,
+        "p90": 86.4807501071829,
+        "p95": 117.38156709462682,
+        "p99": 200.61437464321983,
+        "p99_5": 252.41887132697371,
+        "p99_9": 633.4557486517732,
+        "upper_cvar_1pct": 587.4295248466611
+      },
+      "improved_fraction": 0.3902952375485525,
+      "improved_positions": 20398,
+      "mean_relative_delta": 0.0004339735336253016,
+      "median_relative_delta": 0.00022409138348159288,
+      "positions": 52263,
+      "relative_delta": {
+        "max": 0.011793772454773754,
+        "p50": 0.00022409138348159288,
+        "p90": 0.00217490070523709,
+        "p95": 0.003519357452692701,
+        "p99": 0.0062166507285404985,
+        "p99_5": 0.0069740406381464115,
+        "p99_9": 0.007872788834653975,
+        "positive_max": 0.011793772454773754,
+        "positive_mean_all_positions": 0.0007449920502397624,
+        "upper_cvar_1pct": 0.007090128863279468
+      },
+      "squared_error_delta": {
+        "max": 262.3594175225678,
+        "p50": 0.4753931373910163,
+        "p90": 8.457981892156118,
+        "p95": 17.785179339202816,
+        "p99": 39.41107803131884,
+        "p99_5": 48.80889554588991,
+        "p99_9": 80.72669939957638,
+        "upper_cvar_1pct": 56.53311121309029
+      },
+      "unchanged_positions": 0,
+      "worsened_fraction": 0.6097047624514474,
+      "worsened_positions": 31865
+    }
+  },
+  "layers": [
+    74,
+    75,
+    76,
+    77
+  ],
+  "limitation": "The existing holdout is encoder-unseen but analysis-seen from the earlier alpha0/alpha075 experiment.",
+  "mapping": {
+    "74": "sqg_a025",
+    "75": "sqg_a025",
+    "76": "sqg_a025",
+    "77": "sqg_a025"
+  },
+  "passes_all_hard_constraints": false,
+  "role": "holdout",
+  "selection_source": {
+    "analysis_type": "exploratory_layerwise_refinement",
+    "selection_status": "no_all_sqg_combination_passed_mcg_hard_gates",
+    "source_role": "selection"
+  }
+}

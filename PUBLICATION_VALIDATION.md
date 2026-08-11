@@ -8,7 +8,7 @@ started by the publication work.
 
 | Suite | Result |
 |---|---:|
-| Main project, current update | 289 passed, 1 skipped |
+| Main project, current update | 301 passed, 1 skipped |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
@@ -52,6 +52,11 @@ values for those keys. The complete suite then passed.
 - All 5,543 published JSON files parsed successfully; the compact contiguous-
   late evidence subtree contains 63 JSON files and 97 total files (about 1.2
   MB).
+- After the completed alpha/Test 8b/Test 8c update, all 5,566 published JSON
+  files parse successfully.  The seven current entry-point/evidence Markdown
+  files have zero broken repository-relative links.  Three pre-existing links
+  in explicitly historical/vendored documentation remain nonportable and are
+  outside this update's entry-point audit.
 - The Test 10 capture manifest reports `complete: true` and 253,863 rows for
   each of layers 74--77; the four published preparation logs each report 256
   permutations, fit-only construction, zero MCG inputs, and zero fallback.
@@ -74,6 +79,17 @@ values for those keys. The complete suite then passed.
 - The new E4M3 endpoint, signed top-8 holdout, empirical-null, cross-arm trace,
   and r33-r33 trace-control JSON hashes match the values recorded in the
   experiment ledger.
+- All five completed late H13 alpha run seals are archived with a local
+  SHA-256 manifest.  The selected alpha-0.25 seal matches the already
+  published contiguous-late seal byte for byte.  All-arm selection/secondary-
+  holdout JSON, support-conditioned diagnostics, and the 625-combination
+  layerwise result are published; bulky per-position NPZ arrays are bound by
+  path, byte count, and SHA-256 instead of duplicated.
+- Test 8b publishes its full 256-expert aggregate JSON/Markdown and exact
+  scorer/tests; its omitted per-position arrays are hash-bound.  Test 8c
+  publishes its compact 126-case report plus exact benchmark/test/kernel
+  snapshots.  The omitted 3,516,542-byte timing JSON hashes to
+  `6740f8be4480a9272866b03055ea0f2dee3e5ed8d4453a8e1d4f5d757f64bb58`.
 - Shell syntax checks, Python byte compilation, and the sealed pure-SQG source
   manifest check passed. The corrected runner hashes to
   `aa7f5d556d2b5700b7fe49a441778822853bd75eeb0db70090eb71bf93dda636`;

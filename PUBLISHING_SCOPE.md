@@ -7,8 +7,9 @@ per-expert JSON records, run seals, manifests, and execution logs.
 
 ## Intentionally excluded payload bytes
 
-The following local directories were not copied into Git because they contain
-model-scale tensors or regenerated runtime caches:
+The following local directories and raw result payloads were not copied into
+Git because they contain model-scale tensors, regenerated runtime caches, or
+bulky per-sample arrays whose compact results are published separately:
 
 | Local source | Local bytes | Exclusion | Preserved binding/evidence |
 |---|---:|---|---|
@@ -26,7 +27,9 @@ model-scale tensors or regenerated runtime caches:
 | `fresh-sqg-evaluation-contig-late-a025-r1/...candidate-kld-fp8-dcp4` | about 830 MB | runtime/cache payload and raw inference logs | rejected-attempt metadata plus compact accepted summaries, records, validations, and five 2,047-position vectors |
 | `fresh-sqg-evaluation-contig-late-null-r1/...candidate-kld-fp8-dcp4` | about 830 MB | second same-candidate-path runtime/cache payload and raw logs | compact summaries, identity limitations, records, validations, and five 2,047-position vectors |
 | late routed trace roots | about 4.6 GiB per traced arm | raw DCP4 hidden/router/MoE/residual buffers | compact JSON/Markdown analyses and SHA-256 bindings; analysis NPZ files remain local |
-| `fresh-sqg-contig-late-alpha{000,050,075,100}-r1` | active multi-arm encode payloads | incomplete alpha-panel expert/model tensors and working state | resumable launcher only; no selection or holdout result is published before completion |
+| `fresh-sqg-contig-late-alpha{000,050,075,100}-r1` | model-scale per-arm payloads | completed alpha-panel expert/model tensors and working state | all-arm aggregate/per-layer JSON, Markdown, support analysis, layerwise follow-up, receipts, and all four run seals |
+| alpha-panel and Test 8b per-position NPZ arrays | about 32 MB | bulky per-position/per-layer analysis arrays | aggregate and per-layer JSON/Markdown plus exact path, byte count, and SHA-256 manifest |
+| `results/glm52_sqg_w4a8_core_benchmark_l077_r1.json` | 3,516,542 | 126-case raw timing arrays with 200 samples per arm | compact Test 8c report, exact benchmark/test/kernel snapshots, and raw-result path/SHA-256 receipt |
 
 The omitted tensors cannot be reconstructed from this Git repository alone.
 Their identities and the measurements derived from them remain auditable through
@@ -46,11 +49,21 @@ logs are preserved as historical provenance and refer to the original machine.
   preparation, profile selection, encoding seal, candidate manifest, rejected
   first KLD-attempt record, accepted five-boot KLD evidence, and an independent
   five-boot same-checkpoint null.
+- `published_evidence/w4a8_core/`: Test 8c benchmark/test/kernel byte snapshots,
+  compact decision index, and hashes for intentionally omitted alpha-panel,
+  Test 8b, and Test 8c raw arrays.
+- `published_evidence/late_h13_alpha_runs/`: byte-identical run seals and a
+  SHA-256 manifest for all five alpha arms, including the selected alpha-0.25
+  final seal and the four nonwinning alpha 0/0.5/0.75/1.0 seals.
 
 Test 9 retains its already-published compact summary JSON/Markdown and small
 final-KLD/trace NPZ arrays. Newly added Test 10 analyses publish JSON/Markdown
 and compact KLD position vectors, while raw routed-trace buffers, analysis NPZ
 payloads, and per-layer NPZ arrays remain omitted. Per-layer JSON measurements
-and the analysis code are published.
+and the analysis code are published. The completed alpha panel adds all five
+selection and secondary-holdout arms, support-conditioned diagnostics, and the
+625-combination exploratory layerwise result. Test 8b publishes its admissible
+aggregate JSON and Test 8c publishes a compact report rather than its raw
+timing-sample JSON.
 
 `SHA256SUMS` binds every published file except itself and Git metadata.
