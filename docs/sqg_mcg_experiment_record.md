@@ -2853,6 +2853,51 @@ full build is an authorized measurement program, not an accepted release;
 multi-prompt KLD, LAVD, Estonia, integrated DCP4/MTP/long-context serving, and
 publication remain downstream gates.
 
+## Test 16 — same-rate CUDA encoder batching equivalence
+
+### Hypothesis and methodology
+
+The construction-speed hypothesis was that candidate-specific down encodes of
+the same rate could be grouped into one CUDA call without changing accepted
+bytes. Real layer-77 tensors and fit evidence were used. W4A8-native H13,
+exact upstream operands, coordinate-correct `(H,B)` targets, anchored scales,
+beta, and source/runtime seals were frozen. The production batch-size-one path
+was the control.
+
+Acceptance required exact trellis, payload, independent decoded
+reconstruction, proxy, `suh`, `svh`, and complete-manifest equality for every
+candidate. Numerical tolerance was forbidden. Expert 0 mapped K3/K4 behavior;
+the selected-beta K3 follow-up preregistered eight experts spanning fit route
+mass and stopped on the first mismatch.
+
+### Results and validation
+
+K4 groups of four changed two expert-0 candidates. K4 pairs retained failures.
+A K3x4/K4x1 schedule happened to match all eight expert-0 triplets, but failed
+on the first selected-beta panel expert. Layer-77 expert 243, route-mass rank
+8, changed the all-K3 trellis payload, decoded reconstruction, proxy, and
+manifest under K3x4. The serial proxy was `0.0069042488674654675`; K3x4
+produced `0.006904248648560349`. Both scale vectors remained exact and MCG
+inputs were zero.
+
+The change is therefore inside multi-source CUDA encoding, not scale or
+manifest lineage. A tiny floating-point-order difference can select a
+different trellis state; approximate proxy equality does not make the
+quantized model byte-equivalent. The fail-fast panel correctly stopped after
+one expert because one valid mismatch falsifies a universal scheduling claim.
+
+### Decision and next hypothesis
+
+Reject all same-rate batching. Every production gate, up, and down candidate
+remains batch size one, preserving fourteen physical encodes per expert in the
+triplet scorer. This is a construction-time result only and does not reduce
+the measured route-packed W4A8 inference speed.
+
+The full method, hashes, source-drift receipt, and disposition are in
+`results/glm52_w4a8_encoder_batch_equivalence_r1.md`. The next speed work stays
+outside encoder arithmetic: parallelize independent experts/layers across
+GPUs while leaving every tensor encode singleton.
+
 ## Cumulative findings
 
 ### Accepted findings

@@ -49,6 +49,7 @@ exists yet.
 | Unary-bounded retained-profile selection | `-0.4684%` holdout NMSE; bootstrap crosses zero | Favorable expert-private profile signal; `93.32%` of selection gain is unary, not cancellation |
 | Coordinate-corrected full-W4A8 `(H,B)` down repair | `-9.5762%` selection and `-9.3043%` secondary-holdout signed top-8 NMSE versus base full W4A8 | Correct caller coordinates plus exact dual-scale anchoring recover about half of Test 8b's activation damage; repaired W4A8 remains `+10.22%`/`+10.86%` versus SQG A16 |
 | Fit-only full-W4A8 beta panel | selected `beta=0.0625`; `-0.3344%` SSE versus beta 0; beta 1 NMSE `0.04367` versus winner `0.01270` | Full-strength candidate conditioning is rejected; the selected beta now governs exact triplet allocation and final encoding |
+| Same-rate encoder batching | K4x2/K4x4 changed bytes; K3x4 failed on the first selected-beta high-route-mass panel expert | Production encoding remains singleton per tensor; build time changes, not route-packed inference speed |
 
 The direct E4M3 result strengthens SQG's W4A8 architecture thesis, but its full
 `16.8964%` SQG-versus-MCG E4M3 NMSE gap is not solely an endpoint benefit:
@@ -135,6 +136,7 @@ exceed even the late p95 reference.
 - [Unary-bounded retained-profile co-routing](results/glm52_retained_profile_corouting_l077_r1.md)
 - [Coordinate-corrected full-W4A8 down repair](results/glm52_full_w4a8_xterm_coordinate_fixed_l077_r2.md)
 - [Fit-only full-W4A8 beta selection](results/glm52_full_w4a8_beta_selection_l077_r1.md)
+- [Same-rate encoder batching equivalence audit](results/glm52_w4a8_encoder_batch_equivalence_r1.md)
 - [Conditional full-model plan and NO-GO decision](docs/conditional_full_model_sqg_w4a8_plan.md)
 - [W4A8 code identity and omitted-evidence receipt](published_evidence/w4a8_core/README.md)
 - [QSRT/Kimi K3 K1 feasibility audit](docs/qsrt_kimi_k3_k1_feasibility.md)
