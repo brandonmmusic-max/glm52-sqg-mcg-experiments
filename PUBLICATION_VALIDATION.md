@@ -11,6 +11,13 @@ measurement did use an SM120 GPU and is separately identified below.
 | Main project, current update | 301 passed, 1 skipped |
 | New retained-profile co-routing unit tests | 2 passed |
 | Route-packed M64xN256 bit-exact kernel test, external runtime tree | 2 passed in 14.96s |
+| Corrected full-W4A8 beta/down focused source-workspace tests | 23 passed |
+| Same-rate batching structural tests | 3 passed; real-CUDA equivalence rejected |
+| Full-build contract tests, source workspace | 7 passed |
+| Native-profile/orchestration focused tests, source workspace | 26 passed |
+| Progressive fixed-point recapture tests, source workspace | 102 default + 4 next-wave tests passed |
+| Compact retention/storage focused tests, source workspace | 11 passed |
+| Full-W4A8 runtime static integration | B12X 16 passed; vLLM GLM-SQG 23 passed |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
@@ -21,6 +28,24 @@ CUDA FP16 boundary regression that requires SM120.
 The QSRT count belongs to the pinned upstream audit described in
 [`docs/qsrt_kimi_k3_k1_feasibility.md`](docs/qsrt_kimi_k3_k1_feasibility.md),
 not to the vendored KQuant tree.
+
+The corrected full-W4A8 row was run in the authoritative construction
+workspace after the preliminary-H2 initialization and canonical-contract hash
+repairs. It covers the beta panel, selected encoder, and derived-target
+binding; it is recorded here as source-workspace evidence, not as a test run
+from this publication-only checkout.
+
+The same-rate structural tests establish coordinator wiring only. They are not
+evidence of CUDA arithmetic equality: real layer-77 K4 and K3 candidates both
+changed bytes under batching, so the optimization is rejected and production
+encoding remains singleton.
+
+The full-build, orchestration, progressive-recapture, retention, and runtime
+rows were run in the authoritative construction/runtime workspaces. They are
+published as static/CPU contract evidence, not rerun from this compact checkout
+and not evidence of a live four-GPU model load. The first-wave bootstrap search
+has launched, but no final first-wave profile, beta choice, encoded layer, or
+full-model quality result is claimed.
 
 The BMM Law directory retains its historical local name
 `bmmlaw_r7_encoder`, while its tests import `r7_encoder`. The validation run
@@ -54,7 +79,7 @@ values for those keys. The complete suite then passed.
 - All 5,543 published JSON files parsed successfully; the compact contiguous-
   late evidence subtree contains 63 JSON files and 97 total files (about 1.2
   MB).
-- After the route-packed update, all 5,567 published JSON files parse
+- After the final route-packed r2 update, all 5,568 published JSON files parse
   successfully.  The current entry-point/evidence Markdown
   files have zero broken repository-relative links.  Three pre-existing links
   in explicitly historical/vendored documentation remain nonportable and are
@@ -106,6 +131,14 @@ values for those keys. The complete suite then passed.
 - The new route-packed machine-readable summary parses as JSON, and all local
   links added to the README and kernel report resolve. `git diff --check`
   passes.
+- The final same-environment r2 summary binds all eight raw before/after result
+  files by SHA-256, records the exact kernel/benchmark/test identities, and
+  preserves the earlier independent r1 summary instead of overwriting it.
+- The coordinate-corrected down and fit-only beta reports record the sealed
+  result/selection IDs, distinguish fit-only choice from selection/holdout
+  scoring, and explicitly exclude the superseded beta-1 partial triplet run.
+  The README, both new reports, the conditional plan, and the updated ledger
+  have zero broken repository-relative links; `git diff --check` passes.
 - The external kernel test covered both four-block and two-block CTA variants.
   Each must bit-match the original one-warp kernel, agree with a dense decoded
   SQG reference, and remain equal under CUDA-graph replay. The complete
@@ -119,5 +152,11 @@ values for those keys. The complete suite then passed.
 - No nested Git repository is present.
 - No file exceeds GitHub's 100 MB per-file limit.
 - A high-confidence token/private-key scan found no secret.
+- The published rolling plan parses as JSON, reports 75 unique routed layers
+  across 19 non-overlapping waves, and matches canonical plan ID
+  `b95c351e5d9af20e43a45e5d2318f2bd7ce934486480f8836bd0e2368e293c31`.
+- The construction-status record distinguishes the completed layer-77 proxy,
+  source/runtime static validation, and first-wave launch from all still-open
+  KLD, LAVD, Estonia, integrated prefill/decode, and release gates.
 
 The repository-wide `SHA256SUMS` file was generated after these checks.

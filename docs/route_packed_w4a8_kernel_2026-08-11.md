@@ -51,16 +51,22 @@ initial kernel values, so the speed repair did not alter arithmetic.
 
 The sealed layer-77 artifact was measured with 20 warmups and 200 balanced
 ABBA samples per arm. Confidence intervals use 10,000 bootstrap replicates.
+The table below uses the final same-environment r2 controls; this replaces the
+earlier independent timing summary but reaches the same decision.
 
 ```text
                     M=3072                 M=4096
-A16 median          31.897568 ms           39.493376 ms
-hybrid median       27.003600 ms           33.796177 ms
-A16 / hybrid         1.181233895            1.168575247
-95% CI               1.180526--1.181949     1.167744--1.169290
+A16 median          32.043039 ms           39.417887 ms
+hybrid median       27.201119 ms           33.733183 ms
+A16 / hybrid         1.178004435            1.168519640
+95% CI               1.176995--1.178972     1.167691--1.169322
 layer NMSE           0.0002545059            0.0002096047
 layer cosine         0.9998730585            0.9998958985
 ```
+
+The isolated gate/up projection moved from `55.613` to `16.306` ms at
+M=3,072 (`3.411x`) and from `73.065` to `19.552` ms at M=4,096 (`3.737x`).
+The corresponding one-warp full hybrid layers were `68.277` and `86.468` ms.
 
 The two-block CTA was slower than A16 at M=4,096: A16/hybrid `0.870585`.
 
@@ -102,8 +108,33 @@ same model bytes now run 1.17--1.18x faster than the dispatch-matched A16
 layer instead of approximately 2x slower.
 
 This does not yet pass deployment. With the preregistered 31% MoE share, the
-layer ratios project to only 1.04994x at M=3,072 and 1.04681x at M=4,096 for
+layer ratios project to only 1.04915x at M=3,072 and 1.04680x at M=4,096 for
 whole prefill, below the 1.15x migration threshold. The next admissible speed
 evidence is an integrated, workload-weighted DCP4 serving benchmark. Encoding
 remains frozen until that runtime result and the hybrid-versus-full-W4A8
 down-path quality contract are fixed.
+
+## Residual kernel diagnosis
+
+An independent Nsight Compute pass on the M=4,096 M64xN256 projection found
+that the original global-A reread collapse is gone, but the replacement is
+not yet close to its attainable FP8 ceiling:
+
+- 255 registers per thread and 16.02% achieved occupancy;
+- 14,957,856 local spill requests, all reported as spill traffic;
+- 48.87% compute and 40.95% memory utilization, but only 14.03% DRAM;
+- 0.57 eligible warps per scheduler and no eligible warp in 56.16% of cycles;
+- substantial uncoalesced global sectors and 3.7-way shared-load conflicts.
+
+N128 and N64 variants passed the same focused correctness test but did not
+improve the result: the M=4,096 A16/hybrid ratios were `1.17139x` and
+`1.123997x`. Tile-width selection is therefore not the remaining lever. The
+next kernel step is per-expert chunked-M reuse so a trellis fragment is decoded
+once across multiple route blocks, together with T12-LUT shared staging and
+lower register pressure; gate/up fusion is admissible only if it preserves the
+same byte and arithmetic contracts.
+
+The profiler report is retained locally at
+`/tmp/glm52_sqg_fc1_m4096_m64n256_ncu.ncu-rep`; it is intentionally not
+published because it embeds local absolute paths. The compact r2 result is
+[`results/glm52_sqg_route_packed_w4a8_v2_l077_r2.json`](../results/glm52_sqg_route_packed_w4a8_v2_l077_r2.json).

@@ -2718,10 +2718,10 @@ candidate used W4A8 gate/up and compact W4A16 down.
 
 ```text
                     M=3072                 M=4096
-A16 median          31.897568 ms           39.493376 ms
-hybrid median       27.003600 ms           33.796177 ms
-A16 / hybrid         1.181233895            1.168575247
-95% CI               1.180526--1.181949     1.167744--1.169290
+A16 median          32.043039 ms           39.417887 ms
+hybrid median       27.201119 ms           33.733183 ms
+A16 / hybrid         1.178004435            1.168519640
+95% CI               1.176995--1.178972     1.167691--1.169322
 layer NMSE           0.0002545059            0.0002096047
 layer cosine         0.9998730585            0.9998958985
 ```
@@ -2737,16 +2737,166 @@ M=4,096 (`0.870585x`); it was rejected.
 The isolated kernel defect is repaired: unchanged SQG bytes now run the
 hybrid layer 1.17--1.18x faster than matched A16 instead of approximately 2x
 slower. This is not an end-to-end serving pass. At the preregistered 31% MoE
-share, the ratios project to only 1.04994x and 1.04681x whole-prefill speedups,
+share, the final r2 ratios project to only 1.04915x and 1.04680x whole-prefill speedups,
 below the 1.15x migration floor.
 
-The next test is integrated, workload-weighted vLLM/DCP4 serving using the
-actual brief and long-prefill distributions. It must measure the real MoE
-share, collectives, route packing, graph behavior, and non-MoE overlap rather
-than promoting the layer Amdahl estimate into a serving claim. Full encoding
-remains frozen until this runtime gate and the hybrid-versus-full-W4A8
-down-path quality contract close. Full details and source/result identities
-are in `docs/route_packed_w4a8_kernel_2026-08-11.md`.
+The final same-environment r2 controls independently reproduced the repair:
+the gate/up projection improved `3.411x` at M=3,072 and `3.737x` at M=4,096.
+Nsight then localized the residual to 255 registers/thread, spill traffic,
+low occupancy, shared conflicts, and repeated decode/LUT work rather than
+HBM. N128 and N64 tile variants did not improve the layer ratio. The next
+kernel hypothesis is per-expert chunked-M decode reuse with lower register
+pressure and shared T12 staging.
+
+The subsequent admissible test is integrated, workload-weighted vLLM/DCP4
+serving using the actual brief and long-prefill distributions. It must measure
+the real MoE share, collectives, route packing, graph behavior, and non-MoE
+overlap rather than promoting the layer Amdahl estimate into a serving claim.
+Full encoding remains frozen until this runtime gate and the hybrid-versus-
+full-W4A8 down-path quality contract close. Full details and source/result
+identities are in `docs/route_packed_w4a8_kernel_2026-08-11.md`.
+
+## Test 15 — corrected full-W4A8 down objective and fit-only beta selection
+
+### Hypothesis and methodology
+
+Test 8b localized most remaining full-W4A8 damage to the heavy-tailed
+`act = SiLU(gate) * up` operand. The next hypothesis was that the down encoder
+could recover part of that damage by fitting the exact candidate-path normal
+equations rather than treating the original BF16 down matrix as the only
+target:
+
+```text
+H = Q_eff^T Q_eff
+B = Q_eff^T Y_BF16
+```
+
+The first beta-1 implementation was rejected before use because it supplied an
+already transformed Hessian to KQuant, whose finalizer then applied the
+Hadamard/sign congruence again, and because the re-encoded private down `suh`
+could differ from the scale used to construct the target. The corrected run:
+
+- used the native direct-E4M3 gate/up path and both K32 UE8M0/E4M3 activation
+  quantization points;
+- executed exact GLM `SiLU(gate) * up`, FP16 projection boundaries, and FP32
+  accumulation;
+- built canonical `(H,B)` from `Q_eff`, while giving KQuant
+  `q_pre = q_label H128 D` so its internal finalization recovered the intended
+  label-coordinate covariance;
+- anchored both the private down `suh` and shared down `svh` exactly; and
+- used fit routes only for construction, with selection and secondary holdout
+  reported independently.
+
+No MCG codebook, payload, transform, or scale entered the corrected treatment.
+
+### Corrected beta-1 construction result
+
+On all 256 layer-77 experts, the coordinate-corrected beta-1 down repair
+reduced signed top-8 NMSE versus the matched base full-W4A8 path by `9.5762%`
+on selection and `9.3043%` on secondary holdout. Paired-document 95%
+improvement intervals excluded zero. Absolute-error maxima and worst-1% CVaR
+also improved by about 30%.
+
+The repaired W4A8 result remained `10.22%`/`10.86%` worse than the matched SQG
+A16 proxy and improved only `28.84%`/`29.91%` of positions. This promoted the
+corrected objective, not beta 1 or a claim of W4A8 quality parity.
+
+### Fit-only beta panel
+
+Beta was then selected without using selection or holdout. Sixteen experts
+spanning equal-count strata of fit/calibration gate-square mass were assigned
+a balanced mixed-rate panel in which every gate/up/down K3/K4 triplet appeared
+twice. Across the 48 panel tensors this was exactly 24 K3 and 24 K4 tensors,
+or 3.5 bpw. Uniform K3 was not an arm.
+
+`fit/calibration` built H13, native upstream candidates, the private down
+anchor, and canonical H/B. `fit/allocation` scored complete-expert raw SSE for
+the frozen beta grid. Smaller beta was the tie-break.
+
+| Beta | Fit/allocation NMSE | Fit/allocation SSE | Expert wins |
+|---:|---:|---:|---:|
+| 0 | 0.012742601916 | 21,986.448510 | 5 |
+| 0.03125 | 0.012716441926 | 21,941.311318 | 3 |
+| **0.0625** | **0.012699989438** | **21,912.923727** | 4 |
+| 0.125 | 0.012714802383 | 21,938.482404 | 2 |
+| 0.25 | 0.012747242951 | 21,994.456285 | 2 |
+| 0.5 | 0.012885581781 | 22,233.150045 | 0 |
+| 1 | 0.043671878309 | 75,352.703485 | 0 |
+
+The selected `beta=0.0625` improves aggregate SSE by `0.3344%` versus beta 0.
+Beta 1 is catastrophically worse on the frozen fit-only panel and is excluded
+from production allocation. An all-triplet beta-1 reference run was therefore
+stopped after 73 expert records; the records remain preserved but are not
+eligible for final bytes.
+
+### Errors discovered and validation
+
+Two beta-worker attempts failed before accepting any expert record. The first
+exposed an uninitialized preliminary-down H2 codec contract; the second exposed
+a pretty-JSON versus compact-canonical execution-contract hash mismatch.
+Neither rewrote the prepared panel or H13. Both were repaired explicitly and
+covered by regression tests. The final panel validated all 16 expert receipts;
+23 focused tests passed, with Ruff and shell syntax clean.
+
+The selected-beta manifest is
+`results/glm52_full_w4a8_beta_selection_l077_r1.md` in this publication and the
+sealed local JSON has selection ID
+`5b0d1f37868a3b04a0d6b632e0f025ee250bf66a5d924802f10da26c965fe3ee`.
+
+### Next hypothesis and active construction
+
+The exact all-eight-triplet layer-77 scorer and 384-K4 dynamic program now use
+`beta=0.0625`. The first full-model wave, layers 3--6, is prepared on the full
+4,497-document capture and will run W4A8-native profile selection, realized
+mixed-rate allocation, selected-only re-encoding, and a zero-MCG census. The
+full build is an authorized measurement program, not an accepted release;
+multi-prompt KLD, LAVD, Estonia, integrated DCP4/MTP/long-context serving, and
+publication remain downstream gates.
+
+## Test 16 — same-rate CUDA encoder batching equivalence
+
+### Hypothesis and methodology
+
+The construction-speed hypothesis was that candidate-specific down encodes of
+the same rate could be grouped into one CUDA call without changing accepted
+bytes. Real layer-77 tensors and fit evidence were used. W4A8-native H13,
+exact upstream operands, coordinate-correct `(H,B)` targets, anchored scales,
+beta, and source/runtime seals were frozen. The production batch-size-one path
+was the control.
+
+Acceptance required exact trellis, payload, independent decoded
+reconstruction, proxy, `suh`, `svh`, and complete-manifest equality for every
+candidate. Numerical tolerance was forbidden. Expert 0 mapped K3/K4 behavior;
+the selected-beta K3 follow-up preregistered eight experts spanning fit route
+mass and stopped on the first mismatch.
+
+### Results and validation
+
+K4 groups of four changed two expert-0 candidates. K4 pairs retained failures.
+A K3x4/K4x1 schedule happened to match all eight expert-0 triplets, but failed
+on the first selected-beta panel expert. Layer-77 expert 243, route-mass rank
+8, changed the all-K3 trellis payload, decoded reconstruction, proxy, and
+manifest under K3x4. The serial proxy was `0.0069042488674654675`; K3x4
+produced `0.006904248648560349`. Both scale vectors remained exact and MCG
+inputs were zero.
+
+The change is therefore inside multi-source CUDA encoding, not scale or
+manifest lineage. A tiny floating-point-order difference can select a
+different trellis state; approximate proxy equality does not make the
+quantized model byte-equivalent. The fail-fast panel correctly stopped after
+one expert because one valid mismatch falsifies a universal scheduling claim.
+
+### Decision and next hypothesis
+
+Reject all same-rate batching. Every production gate, up, and down candidate
+remains batch size one, preserving fourteen physical encodes per expert in the
+triplet scorer. This is a construction-time result only and does not reduce
+the measured route-packed W4A8 inference speed.
+
+The full method, hashes, source-drift receipt, and disposition are in
+`results/glm52_w4a8_encoder_batch_equivalence_r1.md`. The next speed work stays
+outside encoder arithmetic: parallelize independent experts/layers across
+GPUs while leaving every tensor encode singleton.
 
 ## Cumulative findings
 
