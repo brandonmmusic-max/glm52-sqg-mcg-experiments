@@ -1,0 +1,162 @@
+{
+  "contract": {
+    "activation": "exact silu(gate) * up",
+    "caller_owned_fixed_workspace": true,
+    "candidate": "route-packed SQG W4A8 gate/up plus compact SQG W4A16 down",
+    "control": "route-packed compact SQG W4A16 gate/up/down",
+    "cuda_graph_replay": true,
+    "dense_weight_materialization": false,
+    "experts": 256,
+    "hidden": 6144,
+    "intermediate": 2048,
+    "layer": 77,
+    "m": 3072,
+    "rates": "independent per tensor K3/K4; no uniform K3",
+    "route_block": 128,
+    "router_sum": "FP32 signed top-8 weighted sum to BF16",
+    "routes": 24576,
+    "timing": "balanced ABBA with alternating orientation",
+    "topk": 8,
+    "transforms": "topology-neutral shared/private suh/svh and H128"
+  },
+  "device": {
+    "capability": [
+      12,
+      0
+    ],
+    "name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+    "sm_count": 188
+  },
+  "full_w4a8_speed_only_arm": {
+    "a16_control": {
+      "max_us": 32860.67199707031,
+      "median_us": 32612.25700378418,
+      "min_us": 32359.905242919922,
+      "p10_us": 32480.76629638672,
+      "p90_us": 32755.233764648438
+    },
+    "amdahl_projected_end_to_end_prefill_speedup": 1.1538901966396,
+    "full_w4a8": {
+      "max_us": 18766.33644104004,
+      "median_us": 18581.99977874756,
+      "min_us": 18457.120895385742,
+      "p10_us": 18512.41683959961,
+      "p90_us": 18647.424697875977
+    },
+    "full_w4a8_vs_a16_layer_output": {
+      "cosine_similarity": 0.9995377444186766,
+      "max_abs": 4.0,
+      "nmse": 0.0009300907790712264,
+      "rmse": 0.016491606831550598
+    },
+    "quality_status": "NOT quality-qualified: act-A8 measured ~+19% routed damage in Test 8b; this arm prices speed only",
+    "speedup": {
+      "a16_over_hybrid": 1.755045602846427,
+      "bootstrap_ci95_high": 1.7564935504892414,
+      "bootstrap_ci95_low": 1.7540880280101674,
+      "replicates": 10000
+    }
+  },
+  "gate": {
+    "projected_end_to_end_pass": false,
+    "quality": "report relative to dispatch-matched A16; KLD remains final acceptance",
+    "speed_threshold": 1.15
+  },
+  "kind": "b12x_glm52_sqg_route_packed_hybrid_layer_benchmark",
+  "provenance": {
+    "capture_layer": "/home/brandonmusic/KLC_CAPTURE_RUNS/contig-late-capture-r1/contig-late-r1/layer_077",
+    "capture_run_uuid": "fa5b5504-e695-4fdf-bc17-601352b8a295",
+    "command": "/home/brandonmusic/klc-env/bin/python benchmarks/benchmark_glm_sqg_route_packed_hybrid.py --layer-shard /home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.safetensors --layer-manifest /home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.json --capture-layer /home/brandonmusic/KLC_CAPTURE_RUNS/contig-late-capture-r1/contig-late-r1/layer_077 --warmup 20 --samples 200 --moe-prefill-fraction 0.31 --m 3072 --output /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_route_packed_hybrid_l077_m3072_r5_full_w4a8_arm.json",
+    "cuda_visible_devices": "0",
+    "git_commit": "7cecbb2c4819636ae7f05f8b116f2c45ee2cff7b",
+    "layer_manifest": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.json",
+    "layer_manifest_sha256": "9301807125afa2b21aa073ffc86e5815f6645748482094c8b799eebaf25b931d",
+    "layer_shard": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.safetensors",
+    "layer_shard_sha256_from_manifest": "04b07b35282673a684315d23db11c48f954ea802a83135e44ae75604ec7c8341",
+    "w4a8_kernel": "m64n256",
+    "w4a8_v2_blocks": "4",
+    "worktree": "/home/brandonmusic/KLC_SANDBOXES/glm52-sqg-runtime-20260809/b12x"
+  },
+  "rate_census": {
+    "down": {
+      "3": 51,
+      "4": 205
+    },
+    "gate": {
+      "3": 149,
+      "4": 107
+    },
+    "up": {
+      "3": 184,
+      "4": 72
+    }
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "timing": {
+    "a16_control": {
+      "max_us": 32769.535064697266,
+      "median_us": 32463.88816833496,
+      "min_us": 29597.440719604492,
+      "p10_us": 32304.256439208984,
+      "p90_us": 32598.560333251953
+    },
+    "amdahl_projected_end_to_end_prefill_speedup": 1.1024372498112764,
+    "hybrid": {
+      "max_us": 22856.224060058594,
+      "median_us": 22733.21533203125,
+      "min_us": 20475.584030151367,
+      "p10_us": 22606.20880126953,
+      "p90_us": 22807.039260864258
+    },
+    "moe_prefill_fraction": 0.31,
+    "samples_per_arm": 200,
+    "speedup": {
+      "a16_over_hybrid": 1.428037683811191,
+      "bootstrap_ci95_high": 1.4288474627672396,
+      "bootstrap_ci95_low": 1.4274950781640137,
+      "replicates": 10000
+    },
+    "warmup": 20
+  },
+  "validation": {
+    "a16_eager_graph_bit_exact": true,
+    "all_finite": true,
+    "dense_down_oracle": {
+      "passed": true,
+      "rows": [
+        {
+          "bits": 3,
+          "distortion": {
+            "cosine_similarity": 1.0000000369866056,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "rmse": 0.0
+          },
+          "expert": 90,
+          "route": 0
+        },
+        {
+          "bits": 4,
+          "distortion": {
+            "cosine_similarity": 0.9999999540428075,
+            "max_abs": 0.0,
+            "nmse": 0.0,
+            "rmse": 0.0
+          },
+          "expert": 38,
+          "route": 3
+        }
+      ]
+    },
+    "hybrid_eager_graph_bit_exact": true,
+    "hybrid_vs_a16_layer_output": {
+      "cosine_similarity": 0.9998730585173291,
+      "max_abs": 0.5,
+      "nmse": 0.0002545059276315372,
+      "rmse": 0.008626789785921574
+    },
+    "signed_top8_sample_passed": true,
+    "signed_top8_sample_tokens": 32
+  }
+}
