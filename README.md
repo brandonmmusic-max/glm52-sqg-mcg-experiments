@@ -40,7 +40,7 @@ establish lower full-model KLD.
 | Late 74--77 all-arm H13 panel | MCG retained every formal hard-gate decision; alpha 0.25 was the stable SQG diagnostic | 25% expert-local/75% layer-shared is the SQG prior, not an MCG-beating result |
 | Test 8b full W4A8 versus matched SQG A16 | `+22.9802%` selection NMSE; `+22.7790%` secondary-holdout NMSE | The current A8 policy is a replicated functional regression and fails the quality gate |
 | Test 8c compact-core speed | projected `1.1310x` at M=3,072 and `1.0684x` at M=4,096, assuming MoE fraction `0.31` | The native FP8 path is real, but the serial-core projection misses the `1.15x` long-prefill migration floor and is not serving acceptance |
-| Test 8c route-packed hybrid layer | `1.1812x` at M=3,072 and `1.1686x` at M=4,096 versus dispatch-matched A16 | The M64xN256/K128 kernel repairs the original slowdown without changing encoded bytes; 31%-MoE Amdahl projections are only `1.0499x`/`1.0468x`, so integrated serving remains unaccepted |
+| Test 8c route-packed hybrid layer | final same-environment r2: `1.1780x` at M=3,072 and `1.1685x` at M=4,096 versus dispatch-matched A16 | The M64xN256/K128 kernel repairs the original slowdown without changing encoded bytes; 31%-MoE Amdahl projections are only `1.0491x`/`1.0468x`, so integrated serving remains unaccepted |
 | Same-candidate-path 5v5 null | mean-delta p95 envelope `±0.0013867` | Ten reused boots provide a checkpoint/prompt-specific empirical reference, not independent experiments or a formal false-positive calibration |
 | Late paired trace versus one r33-r33 pair | MoE drift ratio `1.49–1.72x`; post-residual `1.04–1.29x` | Treatment-consistent but unreplicated mechanistic evidence; not a causal estimate or proof that compounding is absent |
 | Winner-native layer-77 profile | `-1.5202%` selection and `-0.8131%` untouched holdout versus the frozen profile | Repeating profile search under alpha 0.25 fixes a measurable home-field mismatch on the 16-expert panel |
@@ -79,7 +79,7 @@ early/middle/late blocks.
 | Support-conditioned alpha analysis | Complete: alpha 0.25 won all four effective-support quartiles; the association is diagnostic and does not justify per-expert alpha selection |
 | Exploratory layerwise alpha search | Complete: 0 of 625 all-SQG mappings passed MCG hard gates; the frozen uniform alpha-0.25 mapping also failed holdout |
 | Test 8b activation quality | **Red**: full W4A8 was `22.9802%`/`22.7790%` worse than matched SQG A16 on selection/secondary holdout |
-| Test 8c route-packed speed | **Layer kernel green, deployment open**: M64xN256 hybrid is `1.1812x`/`1.1686x` faster than A16 at M=3,072/4,096, but the 31%-MoE whole-prefill projections are only `1.0499x`/`1.0468x` |
+| Test 8c route-packed speed | **Original collapse fixed, deployment open**: final same-environment r2 M64xN256 hybrid is `1.1780x`/`1.1685x` faster than A16 at M=3,072/4,096, but the 31%-MoE whole-prefill projections are only `1.0491x`/`1.0468x` |
 
 The initial failure remains excluded. A later run-3 validator rejection exposed
 a float32-roundoff floor that was smaller than one machine epsilon; the saved
@@ -123,7 +123,7 @@ exceed even the late p95 reference.
 - [Test 8b activation-quality result](results/glm52_w4a8_activation_quality_l077_r1.md)
 - [Test 8c compact-core speed result](results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
 - [Test 8c route-packed hybrid kernel result](docs/route_packed_w4a8_kernel_2026-08-11.md)
-- [Test 8c route-packed machine-readable summary](results/glm52_sqg_route_packed_w4a8_v2_l077_r1.json)
+- [Test 8c route-packed final r2 machine-readable summary](results/glm52_sqg_route_packed_w4a8_v2_l077_r2.json)
 - [Winner-native profile result](results/glm52_alpha025_winner_native_profile_l077_r1.md)
 - [Exact h-A8 `(H,B)` down re-encode](results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
 - [Unary-bounded retained-profile co-routing](results/glm52_retained_profile_corouting_l077_r1.md)

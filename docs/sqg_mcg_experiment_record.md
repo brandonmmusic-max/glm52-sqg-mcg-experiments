@@ -2718,10 +2718,10 @@ candidate used W4A8 gate/up and compact W4A16 down.
 
 ```text
                     M=3072                 M=4096
-A16 median          31.897568 ms           39.493376 ms
-hybrid median       27.003600 ms           33.796177 ms
-A16 / hybrid         1.181233895            1.168575247
-95% CI               1.180526--1.181949     1.167744--1.169290
+A16 median          32.043039 ms           39.417887 ms
+hybrid median       27.201119 ms           33.733183 ms
+A16 / hybrid         1.178004435            1.168519640
+95% CI               1.176995--1.178972     1.167691--1.169322
 layer NMSE           0.0002545059            0.0002096047
 layer cosine         0.9998730585            0.9998958985
 ```
@@ -2737,16 +2737,24 @@ M=4,096 (`0.870585x`); it was rejected.
 The isolated kernel defect is repaired: unchanged SQG bytes now run the
 hybrid layer 1.17--1.18x faster than matched A16 instead of approximately 2x
 slower. This is not an end-to-end serving pass. At the preregistered 31% MoE
-share, the ratios project to only 1.04994x and 1.04681x whole-prefill speedups,
+share, the final r2 ratios project to only 1.04915x and 1.04680x whole-prefill speedups,
 below the 1.15x migration floor.
 
-The next test is integrated, workload-weighted vLLM/DCP4 serving using the
-actual brief and long-prefill distributions. It must measure the real MoE
-share, collectives, route packing, graph behavior, and non-MoE overlap rather
-than promoting the layer Amdahl estimate into a serving claim. Full encoding
-remains frozen until this runtime gate and the hybrid-versus-full-W4A8
-down-path quality contract close. Full details and source/result identities
-are in `docs/route_packed_w4a8_kernel_2026-08-11.md`.
+The final same-environment r2 controls independently reproduced the repair:
+the gate/up projection improved `3.411x` at M=3,072 and `3.737x` at M=4,096.
+Nsight then localized the residual to 255 registers/thread, spill traffic,
+low occupancy, shared conflicts, and repeated decode/LUT work rather than
+HBM. N128 and N64 tile variants did not improve the layer ratio. The next
+kernel hypothesis is per-expert chunked-M decode reuse with lower register
+pressure and shared T12 staging.
+
+The subsequent admissible test is integrated, workload-weighted vLLM/DCP4
+serving using the actual brief and long-prefill distributions. It must measure
+the real MoE share, collectives, route packing, graph behavior, and non-MoE
+overlap rather than promoting the layer Amdahl estimate into a serving claim.
+Full encoding remains frozen until this runtime gate and the hybrid-versus-
+full-W4A8 down-path quality contract close. Full details and source/result
+identities are in `docs/route_packed_w4a8_kernel_2026-08-11.md`.
 
 ## Cumulative findings
 
