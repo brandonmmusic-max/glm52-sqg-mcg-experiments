@@ -54,7 +54,7 @@ values for those keys. The complete suite then passed.
 - All 5,543 published JSON files parsed successfully; the compact contiguous-
   late evidence subtree contains 63 JSON files and 97 total files (about 1.2
   MB).
-- After the route-packed update, all 5,567 published JSON files parse
+- After the final route-packed r2 update, all 5,568 published JSON files parse
   successfully.  The current entry-point/evidence Markdown
   files have zero broken repository-relative links.  Three pre-existing links
   in explicitly historical/vendored documentation remain nonportable and are
@@ -106,6 +106,9 @@ values for those keys. The complete suite then passed.
 - The new route-packed machine-readable summary parses as JSON, and all local
   links added to the README and kernel report resolve. `git diff --check`
   passes.
+- The final same-environment r2 summary binds all eight raw before/after result
+  files by SHA-256, records the exact kernel/benchmark/test identities, and
+  preserves the earlier independent r1 summary instead of overwriting it.
 - The external kernel test covered both four-block and two-block CTA variants.
   Each must bit-match the original one-warp kernel, agree with a dense decoded
   SQG reference, and remain equal under CUDA-graph replay. The complete
