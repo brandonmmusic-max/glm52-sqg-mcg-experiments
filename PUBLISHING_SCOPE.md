@@ -59,6 +59,12 @@ logs are preserved as historical provenance and refer to the original machine.
 - `published_evidence/late_h13_alpha_runs/`: byte-identical run seals and a
   SHA-256 manifest for all five alpha arms, including the selected alpha-0.25
   final seal and the four nonwinning alpha 0/0.5/0.75/1.0 seals.
+- `docs/full_w4a8_construction_status_2026-08-11.md` and
+  `contracts/full_model_rolling_wave_plan_v2.json`: compact, non-tensor
+  publication of the frozen full-W4A8 format, per-layer beta/build-binding
+  policy, rolling fixed-point DAG, production-v2/storage/runtime static
+  integration boundary, and first-wave construction status. No live model
+  payload, raw capture, runtime cache, or secret is included.
 
 Test 9 retains its already-published compact summary JSON/Markdown and small
 final-KLD/trace NPZ arrays. Newly added Test 10 analyses publish JSON/Markdown

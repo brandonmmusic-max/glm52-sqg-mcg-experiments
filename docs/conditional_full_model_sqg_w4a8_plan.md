@@ -6,6 +6,13 @@ fit-only beta selection are complete. The owner explicitly authorized the
 full encode under the corrected contract. Integrated serving and final
 full-model quality remain release gates rather than construction blockers.
 
+The current executable contract and first-wave boundary are summarized in the
+[full native-W4A8 construction-status record](full_w4a8_construction_status_2026-08-11.md).
+The first 3--6 wave has launched bootstrap native-W4A8 profile search under a
+canonical whole-build binding; no final profile selection, per-layer beta
+choice, encoded first-wave layer, or new full-model quality result existed at
+that publication point.
+
 The target is not merely a second 3.5-bpw checkpoint.  The deliverable is a
 fully SQG, BMMLaw-calibrated GLM-5.2 model whose compact K3/K4 bytes can be
 served through validated GLM kernels, followed by same-regime KLD,

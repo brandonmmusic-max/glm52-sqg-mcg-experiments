@@ -30,6 +30,11 @@ encoder. Construction is active; release acceptance is not. No corrected
 full-model KLD, LAVD, Estonia, integrated serving result, or claim of lower KLD
 exists yet.
 
+The [current construction-status record](docs/full_w4a8_construction_status_2026-08-11.md)
+freezes the full-W4A8 format, per-layer beta/build-binding policy, 19-wave
+fixed-point DAG, production-v2 lineage, compact retention contract, runtime
+static-integration boundary, and exact limits of the first-wave launch.
+
 | Measurement | Result | What it establishes |
 |---|---:|---|
 | Raw encoded-weight NMSE, 3,072 matched tensors | SQG `15.105%` lower than MCG | SQG is geometrically closer to BF16 under ordinary weight NMSE |
@@ -87,7 +92,7 @@ early/middle/late blocks.
 | Test 8c route-packed speed | **Isolated speed gate green, integrated serving open**: PR11 full W4A8 is `1.7550x`/`1.8236x` faster than A16 at M=3,072/4,096 and projects to `1.1539x`/`1.1628x` at the declared 31% MoE fraction |
 | Corrected full-W4A8 down calibration | Complete on all layer-77 experts: `9.5762%`/`9.3043%` better than base full W4A8 on selection/secondary holdout, but still `10.22%`/`10.86%` worse than SQG A16 |
 | Fit-only beta selection | Complete: `beta=0.0625`; all 16 receipts validated; selection and holdout unused; beta 1 rejected |
-| Full native-W4A8 build | Active: full-corpus layers 3--6 prepared; W4A8-native profile search, realized mixed-rate allocation, selected-only encode, progressive recapture, and final acceptance remain |
+| Full native-W4A8 build | Active: layers 3--6 have sealed BF16/capture inputs and completed preparation; bootstrap native-W4A8 profile search launched under canonical source binding `32b9a4b1...`; no final profile selections, beta choices, encoded layers, progressive checkpoint, or full-model quality result yet |
 
 The initial failure remains excluded. A later run-3 validator rejection exposed
 a float32-roundoff floor that was smaller than one machine epsilon; the saved
@@ -137,6 +142,8 @@ exceed even the late p95 reference.
 - [Coordinate-corrected full-W4A8 down repair](results/glm52_full_w4a8_xterm_coordinate_fixed_l077_r2.md)
 - [Fit-only full-W4A8 beta selection](results/glm52_full_w4a8_beta_selection_l077_r1.md)
 - [Same-rate encoder batching equivalence audit](results/glm52_w4a8_encoder_batch_equivalence_r1.md)
+- [Full native-W4A8 construction status](docs/full_w4a8_construction_status_2026-08-11.md)
+- [Sealed 19-wave fixed-point plan](contracts/full_model_rolling_wave_plan_v2.json)
 - [Conditional full-model plan and NO-GO decision](docs/conditional_full_model_sqg_w4a8_plan.md)
 - [W4A8 code identity and omitted-evidence receipt](published_evidence/w4a8_core/README.md)
 - [QSRT/Kimi K3 K1 feasibility audit](docs/qsrt_kimi_k3_k1_feasibility.md)

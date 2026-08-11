@@ -13,6 +13,11 @@ measurement did use an SM120 GPU and is separately identified below.
 | Route-packed M64xN256 bit-exact kernel test, external runtime tree | 2 passed in 14.96s |
 | Corrected full-W4A8 beta/down focused source-workspace tests | 23 passed |
 | Same-rate batching structural tests | 3 passed; real-CUDA equivalence rejected |
+| Full-build contract tests, source workspace | 7 passed |
+| Native-profile/orchestration focused tests, source workspace | 26 passed |
+| Progressive fixed-point recapture tests, source workspace | 102 default + 4 next-wave tests passed |
+| Compact retention/storage focused tests, source workspace | 11 passed |
+| Full-W4A8 runtime static integration | B12X 16 passed; vLLM GLM-SQG 23 passed |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
@@ -34,6 +39,13 @@ The same-rate structural tests establish coordinator wiring only. They are not
 evidence of CUDA arithmetic equality: real layer-77 K4 and K3 candidates both
 changed bytes under batching, so the optimization is rejected and production
 encoding remains singleton.
+
+The full-build, orchestration, progressive-recapture, retention, and runtime
+rows were run in the authoritative construction/runtime workspaces. They are
+published as static/CPU contract evidence, not rerun from this compact checkout
+and not evidence of a live four-GPU model load. The first-wave bootstrap search
+has launched, but no final first-wave profile, beta choice, encoded layer, or
+full-model quality result is claimed.
 
 The BMM Law directory retains its historical local name
 `bmmlaw_r7_encoder`, while its tests import `r7_encoder`. The validation run
@@ -140,5 +152,11 @@ values for those keys. The complete suite then passed.
 - No nested Git repository is present.
 - No file exceeds GitHub's 100 MB per-file limit.
 - A high-confidence token/private-key scan found no secret.
+- The published rolling plan parses as JSON, reports 75 unique routed layers
+  across 19 non-overlapping waves, and matches canonical plan ID
+  `b95c351e5d9af20e43a45e5d2318f2bd7ce934486480f8836bd0e2368e293c31`.
+- The construction-status record distinguishes the completed layer-77 proxy,
+  source/runtime static validation, and first-wave launch from all still-open
+  KLD, LAVD, Estonia, integrated prefill/decode, and release gates.
 
 The repository-wide `SHA256SUMS` file was generated after these checks.
