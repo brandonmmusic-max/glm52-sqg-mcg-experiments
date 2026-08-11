@@ -1,0 +1,201 @@
+{
+  "contract": {
+    "activation": "exact silu(gate) * up",
+    "activation_endpoint": "MXFP8 E4M3 rows with per-K32 E8M0 scales",
+    "caller_owned_fixed_workspace": true,
+    "cuda_graph_replay": true,
+    "dense_weight_materialization": false,
+    "excluded": [
+      "down A16 projection",
+      "router-weighted expert sum",
+      "residual and non-MoE layer work"
+    ],
+    "hidden": 6144,
+    "independent_per_tensor_rates": true,
+    "input_transform": "shared gate_up_suh then normalized H128",
+    "intermediate": 2048,
+    "layer": 77,
+    "m": 4096,
+    "num_experts": 256,
+    "output_transform": "normalized H128 then expert-private gate/up svh",
+    "route_block": 128,
+    "routes": 32768,
+    "scope": "route-packed W4A8 gate/up FC1 plus exact SwiGLU prefix",
+    "topk": 8,
+    "uniform_k3": false,
+    "weight_endpoint": "native SQG labels decoded directly to E4M3 MMA"
+  },
+  "device": {
+    "capability": [
+      12,
+      0
+    ],
+    "name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+    "sm_count": 188
+  },
+  "interpretation": {
+    "reason": "this closes and times the actual route-packed mixed-rate hybrid FC1 prefix; the independently rated compact A16 down projection and routed sum must still be integrated before a layer speed gate",
+    "serving_acceptance": false
+  },
+  "kind": "b12x_glm52_sqg_route_packed_w4a8_fc1",
+  "provenance": {
+    "capture_layer": "/home/brandonmusic/KLC_CAPTURE_RUNS/contig-late-capture-r1/contig-late-r1/layer_077",
+    "capture_run_uuid": "fa5b5504-e695-4fdf-bc17-601352b8a295",
+    "command": "/home/brandonmusic/klc-env/bin/python benchmarks/benchmark_glm_sqg_route_packed_fc1.py --layer-shard /home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.safetensors --layer-manifest /home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.json --capture-layer /home/brandonmusic/KLC_CAPTURE_RUNS/contig-late-capture-r1/contig-late-r1/layer_077 --warmup 20 --samples 200 --m 4096 --output /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_route_packed_fc1_l077_m4096_r4_stages3.json",
+    "cuda_visible_devices": "0",
+    "git_commit": "7cecbb2c4819636ae7f05f8b116f2c45ee2cff7b",
+    "layer_manifest": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.json",
+    "layer_manifest_sha256": "9301807125afa2b21aa073ffc86e5815f6645748482094c8b799eebaf25b931d",
+    "layer_shard": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-alpha025-winner-native-l77-full-r1/layer_077/final/fresh-sqg-layer-077.safetensors",
+    "layer_shard_sha256_from_manifest": "04b07b35282673a684315d23db11c48f954ea802a83135e44ae75604ec7c8341",
+    "w4a8_kernel": "m64n256",
+    "w4a8_v2_blocks": "4",
+    "worktree": "/home/brandonmusic/KLC_SANDBOXES/glm52-sqg-runtime-20260809/b12x"
+  },
+  "rate_census": {
+    "gate": {
+      "3": 149,
+      "4": 107
+    },
+    "up": {
+      "3": 184,
+      "4": 72
+    }
+  },
+  "route_distribution": {
+    "active_experts": 255,
+    "max": 1608,
+    "median": 85.0,
+    "min": 0
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "timing": {
+    "component_graphs": {
+      "mixed_rate_gate_up_projection": {
+        "max_us": 15492.671966552734,
+        "median_us": 15451.711654663086,
+        "min_us": 15388.09585571289,
+        "p10_us": 15427.103996276855,
+        "p90_us": 15466.11213684082
+      },
+      "output_transform_exact_swiglu": {
+        "max_us": 638.4959816932678,
+        "median_us": 632.3519945144653,
+        "min_us": 605.791985988617,
+        "p10_us": 630.2719712257385,
+        "p90_us": 634.8159909248352
+      },
+      "route_pack_input_transform_mxfp8": {
+        "max_us": 143.93599331378937,
+        "median_us": 99.87200051546097,
+        "min_us": 91.00800007581711,
+        "p10_us": 99.80800002813339,
+        "p90_us": 99.90400075912476
+      }
+    },
+    "cuda_graph_full_prefix": {
+      "max_us": 16338.432312011719,
+      "median_us": 16138.079643249512,
+      "min_us": 14342.432022094727,
+      "p10_us": 16072.223663330078,
+      "p90_us": 16173.599243164062
+    },
+    "samples": 200,
+    "warmup": 20
+  },
+  "validation": {
+    "all_finite": true,
+    "dense_oracle": {
+      "passed": true,
+      "rate_pairs_found": 4,
+      "rows": [
+        {
+          "comparisons": {
+            "activation": {
+              "max_abs": 0.5,
+              "nmse": 7.52731981050185e-08
+            },
+            "gate": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            },
+            "up": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            }
+          },
+          "expert": 90,
+          "gate_bits": 3,
+          "route": 0,
+          "token": 0,
+          "up_bits": 3
+        },
+        {
+          "comparisons": {
+            "activation": {
+              "max_abs": 0.001953125,
+              "nmse": 1.5981323290879615e-07
+            },
+            "gate": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            },
+            "up": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            }
+          },
+          "expert": 112,
+          "gate_bits": 3,
+          "route": 147,
+          "token": 18,
+          "up_bits": 4
+        },
+        {
+          "comparisons": {
+            "activation": {
+              "max_abs": 0.001953125,
+              "nmse": 1.472129221761057e-07
+            },
+            "gate": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            },
+            "up": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            }
+          },
+          "expert": 229,
+          "gate_bits": 4,
+          "route": 47,
+          "token": 5,
+          "up_bits": 3
+        },
+        {
+          "comparisons": {
+            "activation": {
+              "max_abs": 0.00048828125,
+              "nmse": 1.4359415540484995e-07
+            },
+            "gate": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            },
+            "up": {
+              "max_abs": 0.0,
+              "nmse": 0.0
+            }
+          },
+          "expert": 38,
+          "gate_bits": 4,
+          "route": 3,
+          "token": 0,
+          "up_bits": 4
+        }
+      ]
+    },
+    "eager_graph_bit_exact": true
+  }
+}
