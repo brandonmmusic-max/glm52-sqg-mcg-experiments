@@ -75,7 +75,7 @@ from .fresh_pipeline_evaluation import (
     score_routed_artifacts,
 )
 from .glm52_bf16_manifest import SOURCE_REPO, SOURCE_REVISION
-from .glm52_bf16_source import BF16ExpertSource
+from .glm52_bf16_source import BF16ExpertSource, read_safetensors_header
 from .glm52_fresh_sqg import (
     BF16TensorBinding,
     DenseHessian,
@@ -222,13 +222,16 @@ class LayerRuntime:
 
 def _validate_source_seal(path: Path) -> dict[str, Any]:
     seal = load_json_object(path)
+    shards = seal.get("shards")
     if (
         seal.get("schema") != SOURCE_SEAL_SCHEMA
         or seal.get("repo") != SOURCE_REPO
         or seal.get("revision") != SOURCE_REVISION
         or seal.get("layers") != list(SELECTED_LAYERS)
         or seal.get("target_tensor_count") != 3_072
-        or seal.get("shard_count") != 18
+        or not isinstance(shards, Mapping)
+        or not shards
+        or seal.get("shard_count") != len(shards)
         or seal.get("complete_index_header_binding_validated") is not True
     ):
         raise ValueError("official BF16 source seal contract differs")
@@ -275,6 +278,7 @@ def build_preflight(
     settings: PipelineSettings,
     *,
     verify_capture_hashes: bool = True,
+    verify_source_hashes: bool = True,
 ) -> dict[str, object]:
     """Perform all fail-closed read-only validation and bind later workers."""
 
@@ -310,22 +314,36 @@ def build_preflight(
             project_root / "evidence",
         ),
     )
-    # Revalidate every frozen source shard/header/payload against embedded
-    # official identities.  The provider is discarded; workers will repeat
-    # this before consuming BF16 tensors so a post-preflight mutation fails.
-    source = BF16ExpertSource(
-        index_path=source_seal["index"]["path"],
-        config_path=source_seal["config"]["path"],
-        shard_root=source_seal["shard_root"],
-        source_revision=SOURCE_REVISION,
-    )
-    if {
-        name: record.sha256 for name, record in source.validation.shards.items()
-    } != {
-        name: str(record["sha256"])
-        for name, record in source_seal["shards"].items()
-    }:
-        raise ValueError("source provider and source seal shard identities differ")
+    if verify_source_hashes:
+        # Full payload validation remains available for release sealing.
+        source = BF16ExpertSource(
+            index_path=source_seal["index"]["path"],
+            config_path=source_seal["config"]["path"],
+            shard_root=source_seal["shard_root"],
+            source_revision=SOURCE_REVISION,
+        )
+        if {
+            name: record.sha256 for name, record in source.validation.shards.items()
+        } != {
+            name: str(record["sha256"])
+            for name, record in source_seal["shards"].items()
+        }:
+            raise ValueError("source provider and source seal shard identities differ")
+    else:
+        # Follow-up pilots may reuse the payload hashes that were just sealed.
+        # Recheck every cheap structural property and bind exact file identities;
+        # the fast workers reject any later inode/size/mtime change.
+        shard_root = Path(str(source_seal["shard_root"])).resolve()
+        for name, record in source_seal["shards"].items():
+            path = shard_root / str(name)
+            if path.stat().st_size != int(record["bytes"]):
+                raise ValueError(f"sealed BF16 shard size differs: {name}")
+            header = read_safetensors_header(path)
+            if (
+                header.header_sha256 != str(record["header_sha256"])
+                or len(header.tensors) != int(record["total_tensor_count"])
+            ):
+                raise ValueError(f"sealed BF16 shard header differs: {name}")
     input_manifest = input_allowlist_manifest(
         source_seal=paths.source_seal,
         capture_manifest=paths.capture_dir / "capture_manifest.json",
@@ -346,6 +364,7 @@ def build_preflight(
             "sha256": sha256_file(paths.source_seal),
             "repo": SOURCE_REPO,
             "revision": SOURCE_REVISION,
+            "payload_hashes_verified": verify_source_hashes,
             "shard_file_identity": {
                 name: file_identity(Path(str(source_seal["shard_root"])) / name)
                 for name in sorted(source_seal["shards"])
@@ -407,9 +426,13 @@ def write_preflight(
     settings: PipelineSettings,
     *,
     verify_capture_hashes: bool = True,
+    verify_source_hashes: bool = True,
 ) -> Path:
     value = build_preflight(
-        paths, settings, verify_capture_hashes=verify_capture_hashes
+        paths,
+        settings,
+        verify_capture_hashes=verify_capture_hashes,
+        verify_source_hashes=verify_source_hashes,
     )
     destination = paths.output_root / "preflight.json"
     atomic_json(destination, value)

@@ -17,8 +17,10 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .pilot_config import selected_layers
 
-LAYERS = (6, 28, 52, 77)
+
+LAYERS = selected_layers()
 EXPERTS = 256
 PROJECTIONS = ("down_proj", "gate_proj", "up_proj")
 EXPECTED_PER_LAYER = EXPERTS * len(PROJECTIONS)

@@ -1,8 +1,9 @@
 # SQG versus MCG on GLM-5.2 3.5 bpw: experiment record
 
-**Record status:** living audit, updated 2026-08-10.  Tests 0–7b now have local
-artifacts.  Test 7 is a packed-byte routed-function result; Test 7b is the
-completed five-boot final-logit KLD endpoint for its materialized candidate.
+**Record status:** living audit, updated 2026-08-10. Tests 0–7b and Test 9 now
+have local artifacts. Test 8 remains unrun. Test 10 is preregistered; its late
+block capture and preparation are complete, while profile selection, alpha-0.25
+encoding, final-logit KLD, and propagation tracing are not yet complete.
 
 This document reconstructs the SQG/MCG investigation in chronological and
 causal order.  It distinguishes accepted measurements from rejected pilots,
@@ -77,6 +78,8 @@ quantization is absent from the current A16 measurements.
 | 7a | Materialize the expert-local-H13 treatment as a runnable four-layer candidate | Completed | Binds the sealed Test 7 bytes into a separate runnable checkpoint without re-encoding or mutating the protected source |
 | 7b | Expert-local-H13 four-layer final-logit KLD | Completed; same-dispatch mean direction worse but repeat-noise inconclusive | Did not demonstrate that Test 7's isolated-expert gain lowers final-logit KLD on the one fixed prompt |
 | 8 | Direct E4M3 endpoint and full GLM W4A8 tests | Not run | Weight-endpoint advantage, A8 quality, and actual FP8-MMA speed |
+| 9 | Signed top-8, tail-constrained H13 blend ablation | Completed; proxy winner failed the final-logit tail gate | Alpha 0.25 is the best tested proxy blend, but is not a validated final-KLD winner |
+| 10 | Three four-layer contiguous-block propagation tests | Late capture and preparation complete; encoding/KLD pending | Whether routing, residual, and positive-tail errors compound across adjacent SQG layers |
 
 ---
 
@@ -1528,6 +1531,479 @@ measured should W4A8 be described as a demonstrated GLM improvement.
 
 ---
 
+## Test 9 — signed top-8, tail-constrained H13 blend ablation
+
+### Status and hypothesis
+
+The calibration, selection, encoder-unseen holdout, five-boot final-logit KLD,
+and paired runtime-trace phases are complete. The candidate failed the strict
+final-logit tail gate, so it is not yet a full-quant recipe. This test addresses
+the specific Test 7b failure mode: the
+fixed 0.75 treatment improved 51.83195% of final-logit positions, yet a small
+positive tail made its mean KLD worse. The hypothesis is not merely that some
+expert-local H13 component improves average isolated expert error. It is that
+an intermediate global/local blend can retain that broad benefit without
+increasing the signed top-8 error tail that downstream layers can amplify.
+
+The earlier label “OAS blend” was too broad. The weighted-OAS helper produced
+a reliability coefficient for each expert, but every expert hit the imposed
+0.75 cap. Therefore Test 7 tested one fixed 75% local/25% global blend. Test 9
+treats alpha as the independent ablation variable and records the uncapped OAS
+recommendation only as diagnostic evidence.
+
+### Frozen construction and independent variable
+
+For expert `e`, the gate/up Hessian used for a candidate alpha is
+
+```text
+H13(alpha,e) = (1 - alpha) H13_global + alpha H13_local,e
+```
+
+where `H13_local,e` is built only from fit rows routed to expert `e`, weighted
+by the square of the applied route gate. The coarse panel is alpha 0, 0.25,
+0.50, 0.75, and 1.0. Alpha 0 is the existing layer-shared-H13 SQG arm. Alpha
+0.75 is the already completed Test 7 arm. Alpha 0.25, 0.50, and 1.0 are new
+packed-byte encodes, not rescoring of old bytes.
+
+All other construction choices remain frozen:
+
+- official BF16 gate/up/down tensors;
+- the per-tensor 1,536 K3/1,536 K4 assignment, with no per-expert topology
+  change;
+- profile cells, physical permutations, transform seeds, SQG codebook, and
+  C128 tail-biting;
+- the same H13 for each expert's gate and up projections;
+- candidate-specific H2 rebuilt from the decoded gate/up candidate and its
+  resulting SwiGLU path before down encoding; and
+- zero imported MCG packed bytes, transforms, scales, permutations, or seeds
+  in every selected-layer SQG payload, except the frozen bit assignment that
+  defines the rate-matched experimental topology.
+
+The implementation accepts `--local-alpha` only in the closed interval
+`[0,1]`, writes the exact coefficient and a coefficient-specific construction
+identifier into every expert manifest, propagates it through layer assembly,
+and binds it into the four-layer run seal. Omitting the option preserves the
+original capped Test 7 behavior; it is not silently reinterpreted as one of
+the fixed-alpha arms.
+
+### Selection, holdout, and tail rule
+
+The calibration corpus is unchanged: each layer contains 1,050,468 captured
+rows split before this ablation into 601,343 fit, 219,650 selection, and
+229,475 holdout rows. Fit rows alone construct every candidate H13. The coarse
+alpha is chosen on selection rows. Only the shared-H13 baseline and the
+selected alpha are then rescored on the existing holdout rows. Thus the
+holdout does not directly choose alpha, a profile, a rate, a permutation, or a
+stopping rule in Test 9.
+
+However, this holdout must not be called globally untouched: Test 7 already
+reported aggregate alpha-0/alpha-0.75 results on all of it, and that result
+helped motivate the alpha ablation. It remains encoder-unseen and is useful as
+a secondary confirmation, but it is analysis-seen. A truly blind confirmation
+requires newly captured documents whose statistics have not been inspected.
+The fixed WikiText KLD prompt is also heavily reused and is a directional
+endpoint, not a blind model-selection set.
+
+The selection scorer corrects the principal omission in Test 7. For every
+captured token and layer it:
+
+1. computes the BF16 complete-expert function for each of the exact routed
+   top-8 experts;
+2. decodes each candidate's actual packed SQG bytes and computes the complete
+   gate/up/SwiGLU/down function;
+3. applies the exact captured signed route gate to each candidate-minus-BF16
+   expert-output vector;
+4. sums all eight signed error vectors; and
+5. squares only after the top-8 sum.
+
+It also retains the sum of individually squared routed errors. Their ratio and
+difference expose cross-expert cancellation or reinforcement instead of
+assuming independent positive errors.
+
+The winner is deliberately tail constrained. Relative to alpha 0, a
+nonbaseline candidate is eligible only if all five conditions hold on the
+selection aggregate across layers 6, 28, 52, and 77:
+
+1. signed top-8 NMSE is no worse;
+2. the upper-CVaR of the worst 1% per-position squared errors is no worse;
+3. p99 per-position squared error is no worse;
+4. the upper-CVaR of the worst 1% per-position relative errors is no worse;
+5. p99 per-position relative error is no worse.
+
+Among eligible candidates, selection first maximizes the fraction of improved
+positions, then minimizes worst-1% CVaR, then signed top-8 NMSE. Therefore a
+candidate cannot win by moving 51% or more positions slightly in the right
+direction while making a few positions catastrophically worse. If no
+nonbaseline arm passes all hard constraints, the report says so and produces
+only a tail-first diagnostic fallback; it does not mislabel that fallback as
+a validated improvement.
+
+Before the coarse-panel results were inspected, a second, explicitly
+exploratory refinement was registered: enumerate the 625 ways to select one
+of the five already encoded coefficients independently for each of the four
+layers. This introduces no new encoding and combines the exact saved
+per-position layer error vectors. It uses the same five hard gates and the
+same tail-first ranking. A layerwise winner can advance only through the
+encoder-unseen holdout and final-logit KLD checks; it cannot be reported as a
+preregistered single-alpha result. This refinement tests the plausible case
+that conditional geometry changes with depth while retaining a
+topology-neutral bit allocation.
+
+The first implementation of that exploratory ranking exposed a materiality
+failure: it selected alpha 0.50 only for layer 6 and reported 96.702% improved
+positions, but aggregate NMSE changed by just `0.000032%`. That is a
+numerical-scale pseudo-win and is not advanced. After observing this failure,
+the exploratory layerwise rule was corrected to require at least a 0.1%
+aggregate NMSE reduction in addition to the five original tail gates. This
+post-hoc correction is recorded explicitly; it does not change the
+preregistered single-alpha winner.
+
+The corrected layerwise winner must also justify four coefficients instead of
+one. Relative to the preregistered uniform winner, it advances only if all
+four tail statistics remain no worse and it adds either at least 0.1% relative
+NMSE improvement or at least one percentage point of position wins. This
+parsimony gate was likewise added after detecting the pseudo-win and is
+therefore exploratory, not retrospectively described as preregistered.
+
+### Runtime tail localization
+
+The final-logit confirmation retains every per-position KLD value and adds an
+environment-gated eager-mode trace for the tested layers. Each TP/DCP rank
+writes absolute token positions, layer input, router logits, exact top-8 IDs
+and applied weights, routed MoE output, residual before MoE, and residual after
+MoE. Files are joined by absolute position rather than rank or write order.
+
+For a paired baseline/candidate run, KLD entry `i` is aligned with trace token
+position `i`, the hidden state that produces the logits for token `i+1`. The
+analysis reports route-set changes, union-aligned route-weight L1 drift,
+hidden/MoE/residual relative deltas, their correlation with positive KLD
+deltas, and the same metrics restricted to the worst 1% positive KLD tail.
+This determines whether any remaining mean regression comes from routing
+transitions, expert-output reinforcement, or residual amplification.
+
+Tracing is off by default and changes no model bytes. The trace overlay is a
+freshly sealed copy of the evaluated runtime overlay with only the model-level
+instrumentation file replaced. Trace runs diagnose the mechanism; the normal
+untraced multi-boot KLD result remains the quality endpoint.
+
+### Known limits before results
+
+- The signed top-8 selection scorer uses frozen captured hidden states and
+  routes. It isolates each treated layer but cannot represent hidden-state or
+  route changes caused by an earlier treated layer. The runtime trace and
+  final-logit KLD confirmation cover that missing path.
+- Layers 6, 28, 52, and 77 remain separated. This test selects the H13 blend;
+  it does not answer contiguous error propagation.
+- The fixed KLD prompt is one 2,048-token document. Per-position coverage is
+  not document-level generalization.
+- This remains W4A16. W4A8 activation error and FP8-MMA speed are separate
+  experiments.
+- The selection proxy is computed with high-precision matrix products to
+  isolate encoded-weight/function error. It is not represented as a runtime
+  kernel benchmark.
+
+### Errors discovered and validation so far
+
+The initial fixed-alpha implementation correctly changed expert encoding but
+left the layer assembler and run sealer bound to the old layer-global codec
+construction constant. That would have caused validation to reject valid new
+manifests or encouraged a manual validation bypass. Both stages now bind the
+exact coefficient-specific construction before validation. No completed
+candidate was accepted under the stale binding.
+
+Targeted tests cover fixed-alpha bounds and construction naming, the existing
+calibration Hessian contract, fresh-pipeline behavior, signed-sum-before-square
+tail statistics, and the evaluation overlay/runner contract. The blend runs
+also require exactly 256 expert manifests per layer, candidate-conditioned H2,
+zero MCG inputs, four assembled layer artifacts, and a coefficient-bound run
+seal before they can be scored. The documentation was also corrected before
+selection to distinguish the existing analysis-seen holdout from a genuinely
+new document holdout.
+
+### Selection result
+
+All five packed-byte arms completed with 3,072 SQG tensors, zero MCG tensors,
+candidate-conditioned H2, and zero fallbacks. On the 219,650 selection
+positions, alpha 0.25 was the sole nonbaseline candidate to pass all five hard
+constraints:
+
+| Alpha | Signed top-8 NMSE | Positions improved | Absolute CVaR 1% | Relative CVaR 1% | Relative p99 | Eligible |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 | `2.539505205e-3` | baseline | `639.961555` | `2.240171991e-2` | `1.936763292e-2` | baseline |
+| 0.25 | `2.373400202e-3` | `89.701343%` | `637.414567` | `2.191427300e-2` | `1.887691540e-2` | yes |
+| 0.50 | `2.356708812e-3` | `89.288413%` | `640.274580` | `2.214374643e-2` | `1.901942424e-2` | no |
+| 0.75 | `2.378155986e-3` | `82.537218%` | `648.009155` | `2.285086742e-2` | `1.961015985e-2` | no |
+| 1.00 | `2.449385903e-3` | `57.228318%` | `634.870348` | `2.562192395e-2` | `2.189990710e-2` | no |
+
+Relative to alpha 0, alpha 0.25 reduced aggregate signed-top-8 NMSE by
+`6.540841%`, absolute p99 by `6.194459%`, relative worst-1% CVaR by
+`2.175935%`, and relative p99 by `2.533699%`. Alpha 0.50 achieved a slightly
+lower mean NMSE but failed the absolute-CVaR gate; this is exactly why the
+tail rule precedes position-count or mean ranking.
+
+The exploratory 625-arm layerwise search first exposed and then corrected a
+position-count materiality bug as described above. After the 0.1% floor, its
+best mapping was layer 6 alpha 1.0, layer 28 alpha 0.50, and layers 52/77 alpha
+0.25. It improved NMSE by only `0.003498%` and position wins by only `0.011382`
+percentage points over uniform alpha 0.25, while failing the no-worse-tail
+parsimony gate. It is not advanced; uniform alpha 0.25 remains the selected
+treatment.
+
+The primary selection JSON SHA256 is
+`4ca919ae24761079a4cff7739f15edcc78302b203ad610832c5c427f33752c97`.
+The corrected exploratory layerwise JSON SHA256 is
+`66942f115647eeb245db9d101d4165b981374fadbd15ea83027d31c4bf8aad64`.
+The alpha-0.25/0.50/1.0 run-seal IDs are respectively
+`e2a392e0f76b044f496b3c9bb2bd00be4623fe34ad1e365206366b01a2080883`,
+`eb1d6fcc2b709965c5b51c6cf35ad5c774ea138854c25f001fd9de64f66ad68f`,
+and `5a922311dc4532b898e14511c7311aec578ad2a8477aa6678feb44da58419438`.
+
+### Encoder-unseen holdout confirmation
+
+The frozen alpha-0.25 decision was then compared only with alpha 0 on all
+229,475 holdout positions. Alpha 0.25 passed the same five hard constraints:
+
+| Arm | Signed top-8 NMSE | Positions improved | Absolute CVaR 1% | Absolute p99 | Relative CVaR 1% | Relative p99 |
+|---|---:|---:|---:|---:|---:|---:|
+| alpha 0 | `2.548697629e-3` | baseline | `673.343734` | `84.688052` | `2.219782997e-2` | `1.967832881e-2` |
+| alpha 0.25 | `2.385867558e-3` | `89.261140%` | `671.095963` | `77.659488` | `2.191765363e-2` | `1.934645514e-2` |
+
+This is a `6.388756%` NMSE reduction, `0.333822%` absolute-CVaR reduction,
+`8.299357%` absolute-p99 reduction, `1.262179%` relative-CVaR reduction, and
+`1.686493%` relative-p99 reduction. The selection-to-holdout position win rate
+changed by only `-0.440204` percentage points. The directional result is
+therefore not confined to selection rows.
+
+The holdout JSON SHA256 is
+`36b0adec0a107f264defbc24612864df6a038e4231fbe4b7996d191b3d1052f3`.
+As stated above, this split is encoder-unseen but analysis-seen from Test 7;
+it is secondary confirmation rather than a newly blind corpus.
+
+### Five-boot final-logit confirmation
+
+Alpha 0 and alpha 0.25 were each evaluated in five fresh container/engine/
+worker/model boots under the same r33 A16, FP8-KV, TP4/DCP4 regime. This did
+not rerun the native-MCG control. The accepted values were:
+
+| Arm | Accepted boot KLD values | Mean | Sample SD |
+|---|---|---:|---:|
+| alpha 0 | `0.0616990812`, `0.0620511976`, `0.0621874888`, `0.0640116675`, `0.0643000464` | `0.0628498963` | `0.0012097237` |
+| alpha 0.25 | `0.0638940859`, `0.0607529618`, `0.0635429494`, `0.0617011705`, `0.0624172908` | `0.0624616917` | `0.0012962439` |
+
+The selected blend reduced mean KLD by `0.0003882046`, or `0.617669%`, and
+improved 1,065/2,047 (`52.027357%`) positions in the five-boot mean vector.
+That direction is promising but not resolved against fresh-boot variation:
+the independent-boot standard error is `0.0007929287`, Welch `t=-0.489583`
+with approximately `7.96` degrees of freedom. A 10,000-iteration circular
+block bootstrap over the fixed prompt, block size 32, gives
+`[-0.003572644, 0.002770346]`; it also crosses zero and is not a document-
+generalization interval.
+
+Most importantly, alpha 0.25 failed the preregistered tail constraints:
+
+| Arm | Mean KLD | KLD p99 | KLD p99.5 | Worst-1% KLD CVaR |
+|---|---:|---:|---:|---:|
+| alpha 0 | `0.062849897` | `1.079668074` | `1.569784798` | `1.838378917` |
+| alpha 0.25 | `0.062461691` | `1.206657501` | `1.653692652` | `1.904047408` |
+
+Thus the blend moved mean KLD in the desired direction while increasing p99
+by `11.762%` and worst-1% CVaR by `3.572%`. Its positive per-position delta
+mass (`22.457388`) nearly cancels its negative mass (`-23.252044`). The
+correct conclusion is not “alpha 0.25 wins”; it is that expert-local H13 has a
+credible favorable center effect but the harmful tail remains uncontrolled.
+
+The final-logit JSON SHA256 is
+`8fdbccd25f9b51110e3a3b7d9536114b5593d43d350df517fcb90d9cb09095df`.
+
+### Runtime trace and negative control
+
+One alpha-0 and one alpha-0.25 boot were then traced at layers 6, 28, 52, and
+77. The DCP4 runtime emitted warmup calls and four exact rank replicas. The
+analysis rejects repeated-position warmups, selects only the complete ordered
+0--2047 invocation, and requires every selected tensor to be byte-numerically
+identical across ranks before retaining rank 0. A test now covers BF16 loading,
+complete-invocation selection, and exact DCP replica proof.
+
+The direct alpha-0.25-minus-alpha-0 trace showed 51.539% position wins and a
+mean KLD delta of `-0.003215336` in that one boot pair. Routing and residual
+differences grew with depth:
+
+| Layer | Route sets changed | Mean route L1 | Hidden relative delta | MoE-output relative delta | Residual-after relative delta |
+|---:|---:|---:|---:|---:|---:|
+| 6 | `19.541%` | `0.047123` | `0.000322` | `0.010851` | `0.000417` |
+| 28 | `35.564%` | `0.088852` | `0.011558` | `0.039460` | `0.008547` |
+| 52 | `41.133%` | `0.114272` | `0.024936` | `0.085438` | `0.021358` |
+| 77 | `51.343%` | `0.133400` | `0.027029` | `0.022037` | `0.030197` |
+
+However, layer-6 input and routing occur before the first changed expert
+weights execute. Their nonzero difference is therefore a runtime negative-
+control failure, not an H13 effect. A third trace boot reran the identical
+alpha-0 checkpoint and found 20.225% layer-6 route-set changes, mean route L1
+`0.047956`, and hidden relative delta `0.000346`—essentially the same as the
+nominal treatment pair. Its final KLD changed by `+0.002725892`, comparable in
+magnitude to the treatment pair's `-0.003215336`.
+
+The post-MoE differences are larger than the same-checkpoint control, which is
+consistent with a real treatment perturbation: at layer 6, MoE-output and
+residual-after relative deltas were `0.010851`/`0.000417` for treatment versus
+`0.007167`/`0.000287` for the control; at layer 77 they were
+`0.022037`/`0.030197` versus `0.012750`/`0.020635`. But a single traced pair
+cannot cleanly assign individual tail positions to the blend. The worst-1%
+positive KLD-delta CVaR was `0.546969` for treatment and `0.519125` for the
+same-checkpoint control, and only three of their worst 20 positions overlapped.
+Correlations between positive KLD delta and traced route/output/residual
+metrics were weak.
+
+The trace therefore establishes two facts: errors and routing differences do
+propagate and become substantial by layer 77, but the current fresh-boot
+runtime variation is itself large enough to invalidate naive per-position
+causal attribution. Contiguous-block tests must retain multi-boot final KLD
+as the endpoint and use within-path candidate-aware calibration; trace metrics
+remain mechanistic diagnostics with an explicit same-checkpoint control.
+
+The treatment-trace and same-checkpoint-control JSON SHA256 values are
+`6cb994a21eff72f9413553dd258b0dee1ac787abf661586c50804797f56ac528`
+and `3e112aef36fcd30e59ac81c50422da53682968ffc40eca67b0c11d3d29c9edfb`.
+
+### Test 9 decision
+
+Uniform alpha 0.25 is the best calibration/holdout blend tested and has a
+favorable but noise-limited mean final-KLD direction. It does **not** pass the
+final-logit tail gate and is not sufficient evidence for a full SQG quant.
+The next quality experiment is the planned early/middle/late contiguous-block
+test, preserving alpha 0.25 as the simple preregistered arm while measuring
+candidate-conditioned downstream activations, routing, residual propagation,
+and the positive KLD tail. W4A8 remains a separate endpoint and speed test.
+
+## Test 10: preregistered contiguous-block propagation experiment
+
+### Question and frozen blocks
+
+Test 10 asks whether four adjacent SQG expert layers preserve the proxy gain
+from Test 9 without allowing routing, residual, or positive final-logit KLD
+errors to compound.  It is deliberately a propagation test, not another
+search over isolated layers.  The three frozen blocks are:
+
+- early: layers 10--13;
+- middle: layers 38--41; and
+- late: layers 74--77.
+
+Layers 6--9 were rejected as the early block because layer 9 contains three
+K5 tensors in the production allocation.  Substituting them or silently
+retaining MCG would violate the topology-neutral all-K3/K4 test.  Every chosen
+layer instead contains exactly 384 K3 and 384 K4 tensors, or 2,688 bit units
+over its 768 expert tensors.
+
+The reduced document plan was frozen before encoding.  It contains 217 whole
+documents and 253,863 tokens: 131 documents/150,368 tokens for fit, 41/51,232
+for selection, and 45/52,263 for holdout.  No document crosses a split.  The
+plan SHA256 is
+`2282bf5acbe6d094463113e9ed7a4ee05a5a9a484a011a01f6d8ce4b8da84afb`
+and its canonical fingerprint is
+`4caecdb1547937bbf999284b14d5778568df9052784ea8122c3da9b1bde07bfa`.
+
+### Treatment and calibration contract
+
+For each block, the unchanged r33 MCG checkpoint supplies the routed capture;
+official pinned BF16 weights supply all 3,072 treatment tensors.  Preparation,
+profile permutations, and expert-private downstream construction are rebuilt
+for the block.  The frozen treatment is the Test 9 winner:
+
+```text
+H13_e = 0.75 * H13_layer + 0.25 * H13_local,e
+```
+
+Here `alpha=0.25` is explicitly the **expert-local** coefficient; it is not a
+75% expert-local blend.  Local statistics remain route-probability weighted.
+The down-projection H2 is rebuilt from the decoded gate/up candidate within
+each expert, so the nonlinearity sees the actual upstream SQG candidate rather
+than BF16 gate/up weights.  Expert-private rotation/permutation search is
+retained, and the layer's production K3/K4 allocation is frozen rather than
+reoptimized to favor SQG.
+
+Every selected tensor must be newly encoded as SQG.  A block with any retained
+MCG transform, code, or scale is invalid.  The existing model is never
+modified in place; each block is materialized as a separate candidate.
+
+### Endpoints and tail gate
+
+The primary endpoint remains final-logit KLD against the sealed BF16 logits,
+with repeated fresh boots and paired per-position vectors.  Report:
+
+- mean KLD and repeat variation;
+- percentage and count of positions improved;
+- median, p95, p99, p99.5, and p99.9 per-position KLD;
+- worst-1% positive-delta CVaR, total positive and negative delta mass, and
+  maximum regression;
+- route-set changes and route-probability L1 distance at every layer in the
+  block; and
+- hidden-state, signed router-weighted top-8 MoE output, and post-residual
+  relative drift through the block.
+
+Advancement requires more than a lower arithmetic mean: the positive tail may
+not materially worsen, and the position win fraction must move in the desired
+direction rather than relying on a small number of large improvements.  The
+saved native-dispatch MCG control is reused; it is not rerun merely to produce
+another baseline number.
+
+### Holdouts and known limitation
+
+Profile selection and H13 construction use only fit/selection rows.  The
+document-disjoint holdout is report-only.  Final prompt logits are a separate
+fixed endpoint but not a corpus-generalization guarantee.
+
+The initial block capture is produced by the MCG teacher.  Consequently, H13
+for layers after the first block layer is not a fixed-point recapture from the
+partially converted SQG candidate.  The runtime KLD and trace still directly
+measure actual contiguous error propagation, while candidate-specific H2 is
+exact within each expert.  If a block improves the center but fails its tail
+gate, the next hypothesis is candidate-aware recapture/re-encode for the
+downstream block layers, not an immediate full-model quant.
+
+The late block is run first because it reuses four already-sealed official
+shards and directly tests the neighborhood of the prior layer-77 sample.
+Middle and early follow under the same frozen rules.  W4A8 quality and speed
+remain a separate test after A16 block quality is understood.
+
+### Current execution status: late block
+
+As of this publication, the late-block capture and layer-preparation boundary
+is complete and independently reviewable. No late-block SQG quality result has
+yet been produced.
+
+The sealed capture manifest reports `complete: true`, selected layers
+74--77, and exactly 253,863 rows per layer under the frozen 217-document plan.
+Its SHA256 is
+`d8eff2f48c205414a4c653efbe53df1de5ae6822259cf89184ea509d9c3297d6`.
+The four layer-manifest SHA256 values, in layer order 74--77, are:
+
+```text
+7b65528a8b3dc63da611424ba6da63bb5c2412301bfdd83d5a3cd1c5181e49e4
+40bc6c5ef46884e460cb10b45cece9d77fb13d57c1c79808e498169817a3d982
+5ebaafef4c9b2ae50a703fff0b35542b4f1530284a0913d7f2d0804fe824b0f6
+f4726e3f3c7e7e7e40ee82da86a82093169db01aeb84cb469d6f2aba8ff7b113
+```
+
+The official-BF16 shard manifest covers the 15 shards required for layers
+74--77 and has SHA256
+`f0e4659daf871e10148262fa5113d9c668817a3345ae7ccc4f92c7196827220e`.
+The corresponding source seal has SHA256
+`151c2bc9615691a9a0246e32085afe2e917246ff0bf037382f9d1245a6d8e7d1`.
+
+Four parallel preparation passes then completed. Each reports 256 physical
+expert permutations, fit-only construction, `selection_data_used: false`,
+`holdout_data_used: false`, zero MCG inputs, and zero fallback. The real
+expert-0 absolute-scale smoke also completed. Compact manifests, logs, and
+receipts are published under
+[`published_evidence/contiguous_late/`](../published_evidence/contiguous_late/README.md).
+
+Profile-search preregistrations exist, but the profile workers have not yet
+produced completed search results. Therefore the alpha-0.25 block has not been
+encoded or materialized, no KLD boots have been run, and there is no result yet
+about contiguous error propagation. Publishing this boundary prevents a
+completed preparation stage from being mistaken for a completed quantization
+or validation stage.
+
 ## Cumulative findings
 
 ### Accepted findings
@@ -1576,6 +2052,24 @@ measured should W4A8 be described as a demonstrated GLM improvement.
 15. Against the preserved r33 MCG scalar mean, H13e was 1.06198% worse and
     repeat-noise inconclusive; that comparison remains dispatch-confounded and
     is not a causal SQG-versus-MCG result.
+16. In the fixed-alpha signed top-8 ablation, alpha 0.25 was the only
+    nonbaseline arm to pass all five selection gates. It reduced aggregate
+    selection NMSE by 6.54084%, improved 89.70134% of selection positions, and
+    improved every registered absolute and relative tail statistic.
+17. Against alpha 0 on the encoder-unseen but analysis-seen holdout, alpha 0.25
+    reduced signed top-8 NMSE by 6.38876%, improved 89.26114% of positions,
+    and again lowered the registered p99 and worst-1% CVaR statistics.
+18. The alpha-0.25 five-boot final-KLD mean was 0.0624616917 versus
+    0.0628498963 for alpha 0, a favorable 0.61767% direction, but repeat and
+    within-prompt uncertainty crossed zero.
+19. Alpha 0.25 improved 1,065 of 2,047 final-logit positions (52.02736%) but
+    failed the final tail gate: p99 rose from 1.079668 to 1.206658 and
+    worst-1% CVaR rose from 1.838379 to 1.904047. It is therefore the selected
+    proxy blend, not a validated final-KLD winner.
+20. Test 10's late-block capture is sealed at 253,863 rows per layer and its
+    four layer-preparation passes are complete with 256 permutations per layer,
+    fit-only construction, zero MCG inputs, and zero fallback. This is pipeline
+    readiness evidence only; profile search, encoding, and KLD remain pending.
 
 ### Findings that are not established
 
@@ -1584,72 +2078,83 @@ measured should W4A8 be described as a demonstrated GLM improvement.
   layer-global-H13 SQG treatment on isolated routed expert functions.
 - Fully local H13 is not proven optimal.  The completed re-encode tested only a
   fixed 75% local/25% global blend because every expert hit the alpha cap.
+- Alpha 0.25 is not proven to lower final-logit KLD. Its proxy and noisy mean
+  direction were favorable, but its positive final-logit tail was worse.
 - Test 7b did not demonstrate a final-logit KLD win for the fixed 75/25 H13e
   treatment on its one prompt.  Its inconclusive 0.4187% worse sample mean does
   not prove that expert-local geometry is harmful or that another shrinkage
   level cannot improve KLD.
 - SQG is not proven better or worse than MCG in controlled final-logit KLD.
 - The external 2.6–3.3% dispatch observation is not a completed local control.
-- Four separated layers do not predict full-model contiguous error propagation.
+- Four separated layers do not predict full-model contiguous error propagation,
+  and Test 10 has not yet crossed the encoding/KLD boundary.
 - SQG has not reduced model size at the frozen map.
 - MCG-to-E4M3 has not been shown locally to incur 3.859% error.
 - W4A8 has not yet shown a GLM KLD or speed win.
 
 ## Recommended experiment order from here
 
-1. Run the unchanged MCG checkpoint through the exact SQG-native selected-layer
-   dispatch and complete the paired per-position causal comparison.
-2. Localize Test 7b's positive KLD tail with signed top-8 summed expert outputs,
-   router changes, and downstream residuals at the affected positions.
-3. Run the preregistered H13 alpha ablation on a panel using a signed summed
-   top-8 or downstream-sensitive selection objective, then untouched-document
-   confirmation.
-4. Extend the surviving corrected candidate to several document-paired KLD
-   prompts, retaining paired per-position outputs.
-5. Test three four-layer **contiguous** blocks (early/middle/late) before a full
-   conversion to measure propagation that the separated design cannot see.
-6. Run the direct E4M3 endpoint falsification and decode-cost microbenchmark.
-7. Only then attempt exact-path W4A8 and, if the evidence remains favorable, a
-   full BF16 SQG quantization.
+1. Complete late-block profile selection and alpha-0.25 encoding under the
+   frozen Test 10 contract.
+2. Run repeated A16 KLD and per-layer routing/residual traces for layers 74--77,
+   retaining the final-logit positive-tail gate as a hard decision boundary.
+3. Repeat the same frozen procedure for middle layers 38--41 and early layers
+   10--13 before extrapolating to a full conversion.
+4. If a block improves its center but worsens its tail, recapture downstream
+   layers from the partially converted candidate and test whether fixed-point
+   calibration repairs the propagation defect.
+5. Run the direct MCG-versus-SQG E4M3 endpoint falsification and isolated decode
+   cost benchmark.
+6. Test exact-path W4A8 quality and speed separately for C1 decode and prefill.
+7. Attempt a full BF16 SQG quant only if contiguous A16 quality and the desired
+   W4A8 endpoint both pass their preregistered gates.
 
 ## Artifact and source index
 
 ### Primary reports and sealed results
 
-- [Raw encoded NMSE report](../results/raw_encoded_nmse_sqg_vs_mcg.md)
-- [Raw encoded NMSE JSON](../results/raw_encoded_nmse_sqg_vs_mcg.json)
-- [Hessian-weighted NMSE report](../results/hessian_weighted_nmse_sqg_vs_mcg.md)
-- [Hessian-weighted NMSE JSON](../results/hessian_weighted_nmse_sqg_vs_mcg.json)
-- [Expert-local H13 routed-function report](../results/recalibrated_sqg_vs_mcg.md)
-- [Expert-local H13 routed-function JSON](../results/recalibrated_sqg_vs_mcg.json)
-- [Expert-local H13 four-layer run seal](../published_evidence/h13e_encode/run_seal.json)
-- [Expert-local H13 runnable-candidate manifest](../published_evidence/model_manifest/MANIFEST.json)
-- [Runnable-candidate verified marker](../published_evidence/model_manifest/manifest_verified.txt)
-- [Candidate materialization log](../published_evidence/h13e_encode/logs/materialize-candidate.log)
-- [Completed expert-local-H13 five-boot KLD log](../published_evidence/h13e_encode/logs/kld-five-boot.log)
-- [Expert-local-H13 KLD summary](../published_evidence/h13e_kld/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/summary.json)
-- [Expert-local-H13 KLD output and per-boot evidence](../published_evidence/h13e_kld/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4)
-- [H13e versus current-SQG paired analysis](../results/h13e_vs_current_sqg_kld.json)
-- [H13e versus current-SQG paired tensors](../results/h13e_vs_current_sqg_kld.safetensors)
-- [First pre-inference quarantine: cache census](../published_evidence/h13e_kld/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4.quarantine-incomplete-run1-20260810T194812Z)
-- [Second pre-inference quarantine: permissions](../published_evidence/h13e_kld/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4.quarantine-incomplete-run1-20260810T194830Z)
-- [Corrected fresh-SQG run seal](../published_evidence/shared_h13_encode/run_seal.json)
-- [Corrected four-layer KLD summary](../published_evidence/shared_h13_kld/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/summary.json)
-- [Historical no-BF16 KLD summary](../published_evidence/historical_sqg_kld/results/sqg-four-layer-r1-candidate-kld-fp8-dcp4/summary.json)
-- [Recovered capture manifest](../published_evidence/calibration/capture_manifest.json)
+- [Test 9 alpha-blend selection](../results/h13_blend_selection_r1.md)
+- [Test 9 alpha-blend holdout](../results/h13_blend_holdout_alpha025_r1.md)
+- [Test 9 alpha-blend final KLD](../results/h13_blend_final_kld_r1.md)
+- [Test 9 treatment tail trace](../results/h13_blend_tail_trace_alpha025_r1.md)
+- [Test 9 same-checkpoint trace control](../results/h13_blend_tail_trace_alpha0_control_r1.md)
+- [Test 10 reduced document plan](../evidence/contiguous_document_plan_r1.json)
+- [Test 10 late-block compact capture/preparation evidence](../published_evidence/contiguous_late/README.md)
+- [QSRT/Kimi K3 K1 feasibility audit](qsrt_kimi_k3_k1_feasibility.md)
+- [Raw encoded NMSE report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/raw_encoded_nmse_sqg_vs_mcg.md)
+- [Raw encoded NMSE JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/raw_encoded_nmse_sqg_vs_mcg.json)
+- [Hessian-weighted NMSE report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/hessian_weighted_nmse_sqg_vs_mcg.md)
+- [Hessian-weighted NMSE JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/hessian_weighted_nmse_sqg_vs_mcg.json)
+- [Expert-local H13 routed-function report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/recalibrated_sqg_vs_mcg.md)
+- [Expert-local H13 routed-function JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/recalibrated_sqg_vs_mcg.json)
+- [Expert-local H13 four-layer run seal](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/run_seal.json)
+- [Expert-local H13 runnable-candidate manifest](/home/brandonmusic/models/GLM-5.2-EXL3-TR3v4-3.5bpw-SQG-H13E-OAS-r1/MANIFEST.json)
+- [Runnable-candidate verified marker](/home/brandonmusic/models/GLM-5.2-EXL3-TR3v4-3.5bpw-SQG-H13E-OAS-r1/.manifest_verified)
+- [Candidate materialization log](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/logs/materialize-candidate.log)
+- [Completed expert-local-H13 five-boot KLD log](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1/logs/kld-five-boot.log)
+- [Expert-local-H13 KLD summary](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4/summary.json)
+- [Expert-local-H13 KLD output and per-boot evidence](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4)
+- [H13e versus current-SQG paired analysis](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/h13e_vs_current_sqg_kld.json)
+- [H13e versus current-SQG paired tensors](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/h13e_vs_current_sqg_kld.safetensors)
+- [First pre-inference quarantine: cache census](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4.quarantine-incomplete-run1-20260810T194812Z)
+- [Second pre-inference quarantine: permissions](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-h13e-oas-r1/candidate/fresh-sqg-h13e-oas-r1-candidate-kld-fp8-dcp4.quarantine-incomplete-run1-20260810T194830Z)
+- [Corrected fresh-SQG run seal](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-encode-absfix-r2/run_seal.json)
+- [Corrected four-layer KLD summary](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-absrms-r2/candidate/fresh-sqg4-absrms-r2-candidate-kld-fp8-dcp4/summary.json)
+- [Historical no-BF16 KLD summary](/home/brandonmusic/KLC_SANDBOXES/sqg_candidate_kld_20260809/results/sqg-four-layer-r1-candidate-kld-fp8-dcp4/summary.json)
+- [Recovered capture manifest](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-full2.GPlzPL/fresh-sqg-calibration-r1/capture_manifest.json)
 
 ### Protocol and implementation
 
-- [Fresh calibration contract](../docs/fresh_sqg_calibration_capture.md)
-- [Fast parallel SQG encoding and corrected-pilot record](../docs/fast_parallel_sqg_encoding.md)
-- [No-BF16 conversion record](../published_evidence/offline_codec/README.md)
-- [Preregistered native-dispatch controls](../evaluation/CONTROL_ARMS.md)
-- [Hessian comparison implementation](../scripts/compare_hessian_weighted_nmse.py)
-- [Expert-local H13 re-encoder](../scripts/encode_expert_local_h13_shard.py)
-- [Expert-local packed comparison](../scripts/compare_recalibrated_sqg.py)
-- [H13e/current-SQG KLD analyzer](../scripts/analyze_h13e_kld_pair.py)
-- [KQuant technical brief](../kquant/docs/qsrt-technical-brief.md)
+- [Fresh calibration contract](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/docs/fresh_sqg_calibration_capture.md)
+- [Fast parallel SQG encoding and corrected-pilot record](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/docs/fast_parallel_sqg_encoding.md)
+- [No-BF16 conversion record](/home/brandonmusic/KLC_SANDBOXES/glm52_sqg_no_bf16_test/offline_codec/README.md)
+- [Preregistered native-dispatch controls](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evaluation/CONTROL_ARMS.md)
+- [Hessian comparison implementation](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/compare_hessian_weighted_nmse.py)
+- [Expert-local H13 re-encoder](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/encode_expert_local_h13_shard.py)
+- [Expert-local packed comparison](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/compare_recalibrated_sqg.py)
+- [H13e/current-SQG KLD analyzer](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/analyze_h13e_kld_pair.py)
+- [KQuant technical brief](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/kquant/docs/qsrt-technical-brief.md)
 
 ### Expert-local H13 treatment
 
-- [Expert-local H13 run root](../published_evidence/h13e_encode)
+- [Expert-local H13 run root](/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-expert-h13-oas-r1)

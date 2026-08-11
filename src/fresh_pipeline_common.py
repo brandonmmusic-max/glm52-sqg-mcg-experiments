@@ -28,6 +28,7 @@ from .glm52_fresh_sqg.manifest import (
     APPROVED_KQUANT_STATUS_SHA256,
     APPROVED_KQUANT_TRACKED_DIFF_SHA256,
 )
+from .pilot_config import selected_layers, validated_sha256_env
 
 
 PIPELINE_SCHEMA = "glm52-fresh-sqg-four-layer-pipeline-v1"
@@ -42,12 +43,13 @@ RUN_SEAL_SCHEMA = "glm52-fresh-sqg-four-layer-run-seal-v1"
 SOURCE_SEAL_SCHEMA = "glm52-fresh-sqg-bf16-source-v2"
 BIT_CONTRACT_SCHEMA = "glm52-fresh-sqg-frozen-per-tensor-bit-allocation-v1"
 BIT_CONTRACT_PURPOSE = "topology-neutral per-tensor K3/K4 experimental control"
-FROZEN_BIT_CONTRACT_SHA256 = (
-    "1fe5a065ef31c2e4c27589415b87bb77a91f095c55eaf4594807ca22645dab33"
+FROZEN_BIT_CONTRACT_SHA256 = validated_sha256_env(
+    "FRESH_SQG_BIT_CONTRACT_SHA256",
+    "1fe5a065ef31c2e4c27589415b87bb77a91f095c55eaf4594807ca22645dab33",
 )
 CAPTURE_SCHEMA = "glm52-fresh-sqg-calibration-capture-v1"
 
-SELECTED_LAYERS = (6, 28, 52, 77)
+SELECTED_LAYERS = selected_layers()
 NUM_EXPERTS = 256
 PROJECTIONS = ("gate_proj", "up_proj", "down_proj")
 ROLES = ("fit", "selection", "holdout")
@@ -396,7 +398,9 @@ def load_bit_contract(path: str | Path) -> dict[int, LayerBitBudget]:
     ):
         raise ValueError("frozen bit-allocation identity differs")
     if set(value.get("layers", {})) != {str(layer) for layer in SELECTED_LAYERS}:
-        raise ValueError("frozen bit allocation must contain exactly layers 6/28/52/77")
+        raise ValueError(
+            f"frozen bit allocation must contain exactly layers {SELECTED_LAYERS}"
+        )
     budgets: dict[int, LayerBitBudget] = {}
     for layer in SELECTED_LAYERS:
         raw = value["layers"][str(layer)]
@@ -479,7 +483,7 @@ def assert_role(role: str, expected: str) -> None:
 def validate_layer(layer: int) -> int:
     layer = int(layer)
     if layer not in SELECTED_LAYERS:
-        raise ValueError("layer must be one of 6, 28, 52, 77")
+        raise ValueError(f"layer must be one of {SELECTED_LAYERS}")
     return layer
 
 

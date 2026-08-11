@@ -24,11 +24,21 @@ from typing import Any
 
 NUM_EXPERTS = 256
 HIDDEN = 6144
-LOCAL_ALPHA_CAP = 0.75
+OAS_LOCAL_ALPHA_CAP = 0.75
 H13_CONSTRUCTION = (
     "fit_gate_square_expert_local_weighted_oas_reliability_"
     "layer_global_prior_cap_0p75_v1"
 )
+
+
+def _fixed_alpha_construction(alpha: float | None) -> str:
+    if alpha is None:
+        return H13_CONSTRUCTION
+    slug = f"{alpha:.6f}".rstrip("0").rstrip(".").replace(".", "p")
+    return (
+        "fit_gate_square_expert_local_fixed_alpha_"
+        f"{slug}_layer_global_prior_v2"
+    )
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -41,6 +51,15 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--threads", type=int, default=3)
     parser.add_argument("--chunk-rows", type=int, default=256)
+    parser.add_argument(
+        "--local-alpha",
+        type=float,
+        default=None,
+        help=(
+            "Optional exact expert-local blend coefficient in [0,1]. "
+            "When omitted, retain the original weighted-OAS value capped at 0.75."
+        ),
+    )
     return parser
 
 
@@ -63,6 +82,8 @@ def _build_h13(
     canonical_sha256: Any,
     tensor_sha256: Any,
     DenseHessian: Any,
+    requested_local_alpha: float | None,
+    h13_construction: str,
 ) -> tuple[Any, dict[str, Any]]:
     import torch
 
@@ -97,9 +118,16 @@ def _build_h13(
         local, importance_cpu
     )
     del identity_blend
-    local_alpha = float(reliability["local_alpha"])
-    if not 0.0 <= local_alpha <= LOCAL_ALPHA_CAP:
+    oas_local_alpha = float(reliability["local_alpha"])
+    if not 0.0 <= oas_local_alpha <= OAS_LOCAL_ALPHA_CAP:
         raise RuntimeError("weighted-OAS H13 reliability lies outside its cap")
+    local_alpha = (
+        oas_local_alpha
+        if requested_local_alpha is None
+        else float(requested_local_alpha)
+    )
+    if not 0.0 <= local_alpha <= 1.0:
+        raise ValueError("expert-local H13 blend coefficient must be in [0,1]")
     global_gpu = global_h13.matrix.to(device=device, dtype=torch.float32)
     blended = torch.lerp(global_gpu, local, local_alpha)
     blended = ((blended + blended.T) * 0.5).cpu().contiguous()
@@ -110,7 +138,7 @@ def _build_h13(
         raise ValueError("shrunk expert-local H13 is degenerate")
     blended_sha256 = tensor_sha256(blended)
     evidence: dict[str, Any] = {
-        "construction": H13_CONSTRUCTION,
+        "construction": h13_construction,
         "role": "fit",
         "layer": runtime.layer,
         "expert": expert,
@@ -120,11 +148,17 @@ def _build_h13(
         "matrix_sha256": blended_sha256,
         "diagonal_mean": diag_mean,
         "shrinkage": {
-            "policy": "weighted_oas_reliability_layer_global_prior",
+            "policy": (
+                "weighted_oas_reliability_layer_global_prior"
+                if requested_local_alpha is None
+                else "fixed_alpha_ablation_layer_global_prior"
+            ),
             "effective_sample_size": float(reliability["effective_sample_size"]),
             "oas_shrinkage": float(reliability["oas_shrinkage"]),
+            "oas_recommended_local_alpha": oas_local_alpha,
             "local_alpha": local_alpha,
-            "local_alpha_cap": LOCAL_ALPHA_CAP,
+            "local_alpha_cap": float(reliability["max_local_alpha"]),
+            "fixed_alpha_override": requested_local_alpha is not None,
             "global_alpha": 1.0 - local_alpha,
         },
         "fit_only": True,
@@ -137,7 +171,7 @@ def _build_h13(
         DenseHessian(
             matrix=blended,
             evidence_id=evidence_id,
-            construction=H13_CONSTRUCTION,
+            construction=h13_construction,
             split_id="fit",
             normalization_count=1,
             routed_sample_count=routed.rows,
@@ -152,6 +186,9 @@ def main() -> int:
         raise ValueError("expert range must satisfy 0 <= start < end <= 256")
     if args.threads <= 0 or args.chunk_rows <= 0:
         raise ValueError("threads and chunk rows must be positive")
+    if args.local_alpha is not None and not 0.0 <= args.local_alpha <= 1.0:
+        raise ValueError("--local-alpha must be in [0,1]")
+    h13_construction = _fixed_alpha_construction(args.local_alpha)
 
     thread_count = str(args.threads)
     for variable in (
@@ -212,7 +249,7 @@ def main() -> int:
 
     # Keep production validation active while declaring the new experimental
     # construction honestly in every tensor manifest.
-    codec.PRODUCTION_H13_CONSTRUCTION = H13_CONSTRUCTION
+    codec.PRODUCTION_H13_CONSTRUCTION = h13_construction
 
     completed = 0
     skipped = 0
@@ -230,7 +267,7 @@ def main() -> int:
             dense_h = existing["tensor_manifests"][gate_id]["dense_h"]
             if (
                 existing.get("purpose") != "final_treatment"
-                or dense_h.get("construction") != H13_CONSTRUCTION
+                or dense_h.get("construction") != h13_construction
             ):
                 raise ValueError(f"expert {expert} resume artifact policy differs")
             alpha = float(
@@ -255,6 +292,8 @@ def main() -> int:
             canonical_sha256=canonical_sha256,
             tensor_sha256=tensor_sha256,
             DenseHessian=DenseHessian,
+            requested_local_alpha=args.local_alpha,
+            h13_construction=h13_construction,
         )
         permutation = _load_permutation(runtime, expert)
         gate_config = _config(
@@ -278,7 +317,11 @@ def main() -> int:
             gate_profile=gate_profile,
             down_profile=down_profile,
             cell_evidence={
-                "experiment": "expert_local_h13_oas_global_prior_r1",
+                "experiment": (
+                    "expert_local_h13_oas_global_prior_r1"
+                    if args.local_alpha is None
+                    else "expert_local_h13_fixed_alpha_ablation_r2"
+                ),
                 "selection_id": selection["selection_id"],
                 "selection_sha256": selection_sha256,
                 "selected_cell_id": selection["selected_cell_id"],
@@ -332,8 +375,9 @@ def main() -> int:
         "experts": args.end - args.start,
         "newly_encoded": completed,
         "resumed": skipped,
-        "h13_construction": H13_CONSTRUCTION,
-        "local_alpha_cap": LOCAL_ALPHA_CAP,
+        "h13_construction": h13_construction,
+        "requested_local_alpha": args.local_alpha,
+        "local_alpha_cap": OAS_LOCAL_ALPHA_CAP,
         "local_alpha_min": min(alphas),
         "local_alpha_mean": sum(alphas) / len(alphas),
         "local_alpha_max": max(alphas),
