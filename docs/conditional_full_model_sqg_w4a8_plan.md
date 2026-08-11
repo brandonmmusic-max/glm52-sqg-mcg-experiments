@@ -1,11 +1,10 @@
 # Conditional full-model SQG/W4A8 execution and serving plan
 
-Status: preregistered execution plan with Tests 8b and 8c-core now completed.
-The conditional GO criteria were **not met**, so the full-model encode and
-serving-stack migration are not authorized by the measured result.  The user
-authorized the full local build only if the late H13 evidence, Test 8b
-activation-quality result, and Test 8c serving-speed result satisfied the
-gates below.
+Status: active conditional execution plan. Tests 8b, 8c-core, and the isolated
+8c route-packed layer kernel are complete. The route-packed slowdown is
+repaired, but the integrated serving and down-path quality gates remain open.
+The full-model encode remains frozen so that it runs once, after those
+contracts are fixed.
 
 The target is not merely a second 3.5-bpw checkpoint.  The deliverable is a
 fully SQG, BMMLaw-calibrated GLM-5.2 model whose compact K3/K4 bytes can be
@@ -47,17 +46,24 @@ The conditional program is currently **NO-GO**:
   M=1 to 1.1310x at M=3,072 and 1.0684x at M=4,096, using the declared 0.31
   MoE fraction.  The latter two are below the 1.15x migration floor.  This
   compact result is not route-packed serving acceptance.
+- The later route-packed hybrid layer repaired the original kernel defect
+  without changing model bytes.  The M64xN256/K128 four-warp kernel reached
+  1.1812x A16/hybrid at M=3,072 and 1.1686x at M=4,096 and bit-matched the
+  original one-warp arithmetic.  At the declared 0.31 MoE fraction, however,
+  those ratios project to only 1.0499x and 1.0468x whole-prefill speedups.
+  The isolated layer kernel is green; the integrated serving gate remains
+  open and below threshold by projection.
 - The alpha panel selected 25% expert-local/75% layer-shared H13 among SQG
   candidates, but MCG remained the formal mean-NMSE winner.  The alpha-0.25
   holdout was 2.7705% worse in mean signed-top-8 NMSE and improved 39.0295% of
   positions.  No support-quartile or layerwise schedule displaced uniform
   alpha 0.25 or passed the MCG hard gates.
 
-Therefore no 75-layer encode, BF16 streaming download, fused serving port,
-Docker release, or Hugging Face model upload begins from this result.  A
-future GO requires a separately preregistered activation repair (most
-plausibly independent `act` scaling plus cross-term-aware exact-path down
-distillation) to pass Test 8b, followed by a route-packed kernel result above
+Therefore no 75-layer encode, Docker release, or Hugging Face model upload
+begins from this result. Immutable BF16 staging and already-running capture
+may be sealed because they do not commit quantized bytes. A future GO requires
+either a quality-accepted hybrid h-A8/down-A16 contract or a repaired full
+act-A8/down-W4A8 contract, plus an integrated route-packed serving result at
 the speed floor.
 
 ## Gate A: Test 8b, activation quality
@@ -156,6 +162,13 @@ long-prefill GLM regimes.
 - **Red:** the route-packed projection is below 1.15x, or the compact core is
   below the MoE speed required to make 1.15x possible.  Do not incur the full
   serving-stack migration for W4A8.
+
+Measured disposition: the isolated route-packed layer kernel is green against
+its dispatch-matched A16 layer control, but its 0.31-MoE Amdahl projection is
+red against the whole-prefill threshold. The original M64xN8 slowdown is no
+longer a blocker. The remaining Test 8c evidence must come from the integrated
+vLLM/DCP4 workload so the actual MoE share and non-MoE overlap replace the
+historical 0.31 assumption.
 
 ## Full-model construction contract after a GO
 

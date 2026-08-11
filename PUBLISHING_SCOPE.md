@@ -52,6 +52,10 @@ logs are preserved as historical provenance and refer to the original machine.
 - `published_evidence/w4a8_core/`: Test 8c benchmark/test/kernel byte snapshots,
   compact decision index, and hashes for intentionally omitted alpha-panel,
   Test 8b, and Test 8c raw arrays.
+- `docs/route_packed_w4a8_kernel_2026-08-11.md` and its compact JSON summarize
+  the later mixed-K3/K4 route-packed layer result. The actively developed
+  dirty B12X runtime tree is not vendored into this evidence repository; its
+  exact measured file hashes are recorded instead.
 - `published_evidence/late_h13_alpha_runs/`: byte-identical run seals and a
   SHA-256 manifest for all five alpha arms, including the selected alpha-0.25
   final seal and the four nonwinning alpha 0/0.5/0.75/1.0 seals.
