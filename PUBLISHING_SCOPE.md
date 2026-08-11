@@ -20,7 +20,10 @@ model-scale tensors or regenerated runtime caches:
 | `fresh-sqg-evaluation-absrms-r2` | 4,150,156,922 | per-boot runtime and Hugging Face caches | all non-cache KLD records, per-position tensors, summaries, receipts, and logs |
 | `KLC_CAPTURE_RUNS/contig-late-capture-r1` | about 12.5 GB | raw Test 10 hidden states and routing arrays | capture/layer manifests, frozen document plan, hashes, and compact status record |
 | `glm52_fresh_sqg_test/bf16_contiguous_late` | model shards for layers 74--77 | official BF16 payload shards | 15-shard manifest and BF16 source seal |
-| `fresh-sqg-contig-late-a025-r1` | prepared Hessians, per-expert permutations, and smoke tensor payload | Test 10 preparation payload | four preparation logs, smoke record, and preflight receipt |
+| `fresh-sqg-contig-late-a025-r1` | prepared Hessians, per-expert permutations, profile tensor payloads, and smoke tensor payload | Test 10 preparation/profile payload | preparation logs, profile preregistrations/selections, smoke record, and preflight receipt |
+| `fresh-sqg-contig-late-final-a025-r1` | 33,933,482,221 | 1,024 expert and four assembled SQG tensor payloads | run seal, materialization receipt, four layer assembly results, and compact logs |
+| `GLM-5.2-EXL3-TR3v4-3.5bpw-SQG-CONTIG-L74-77-A025-r1` | 343,053,788,830 | materialized candidate tensors and unchanged hard-linked model payload | candidate manifest, copied run seal, and verification marker |
+| `fresh-sqg-evaluation-contig-late-a025-r1/...candidate-kld-fp8-dcp4` | 830,711,425 | runtime/cache payload from rejected pre-inference attempt | run/preflight metadata, hash lists, failure log, zero-byte `runs.jsonl`, and explicit excluded-attempt status |
 
 The omitted tensors cannot be reconstructed from this Git repository alone.
 Their identities and the measurements derived from them remain auditable through
@@ -36,8 +39,9 @@ logs are preserved as historical provenance and refer to the original machine.
 - `published_evidence/historical_sqg_kld/`: the earlier four-layer candidate record.
 - `published_evidence/calibration/`: recovered capture manifest.
 - `published_evidence/model_manifest/`: final candidate model manifest and verification receipt.
-- `published_evidence/contiguous_late/`: Test 10 late-block capture and
-  preparation manifests at the current pre-encoding boundary.
+- `published_evidence/contiguous_late/`: Test 10 late-block capture,
+  preparation, profile selection, encoding seal, candidate manifest, and the
+  rejected first KLD-attempt record. It contains no accepted late-block KLD.
 
 Test 9 includes compact summary JSON/Markdown and the small final-KLD and trace
 NPZ arrays. Per-layer selection/holdout arrays are omitted because the summary

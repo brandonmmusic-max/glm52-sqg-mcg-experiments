@@ -1,0 +1,30 @@
+{
+  "accepted_record_count": 0,
+  "attempt": 1,
+  "disposition": "excluded_pre_inference_failure",
+  "error": "preserved R7 fused accounting differs: used=48/48 reserved=[] expected=[6, 28, 52]",
+  "failure_phase": "engine_initialization_before_inference",
+  "kld_value_produced": false,
+  "per_position_artifact_present": false,
+  "retry": {
+    "launched_by_publication_update": false,
+    "requires_empty_runs_jsonl": true,
+    "requires_existing_nonsymlink_output": true,
+    "requires_no_accepted_records": true,
+    "requires_no_summary": true,
+    "requires_resume_from_run": 1,
+    "same_output_directory_supported": true
+  },
+  "run1_log_sha256": "07d398cf6cf3abe623db1876692aab0ee0dd8961776b80aa583ced0400485593",
+  "runner_correction": {
+    "current_runner_sha256": "b66bf7e38e01fc9f48113684cf6ef0ad3af4c4f4366c603223564d0d233ae9dc",
+    "expected_reserved_layers_are_derived_from_treatment_layers": true,
+    "late_block_derived_value": "none",
+    "sealed_historical_runtime_otherwise_preserved": true
+  },
+  "runs_jsonl_bytes": 0,
+  "runs_jsonl_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "schema": "glm52-test10-rejected-kld-attempt-v1",
+  "selected_layers": [74, 75, 76, 77],
+  "summary_present": false
+}

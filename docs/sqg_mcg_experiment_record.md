@@ -2,8 +2,9 @@
 
 **Record status:** living audit, updated 2026-08-10. Tests 0–7b and Test 9 now
 have local artifacts. Test 8 remains unrun. Test 10 is preregistered; its late
-block capture and preparation are complete, while profile selection, alpha-0.25
-encoding, final-logit KLD, and propagation tracing are not yet complete.
+block capture, profile selection, alpha-0.25 encoding, sealing, and candidate
+materialization are complete. Its first KLD attempt failed before inference and
+is excluded; final-logit KLD and propagation tracing remain pending.
 
 This document reconstructs the SQG/MCG investigation in chronological and
 causal order.  It distinguishes accepted measurements from rejected pilots,
@@ -79,7 +80,7 @@ quantization is absent from the current A16 measurements.
 | 7b | Expert-local-H13 four-layer final-logit KLD | Completed; same-dispatch mean direction worse but repeat-noise inconclusive | Did not demonstrate that Test 7's isolated-expert gain lowers final-logit KLD on the one fixed prompt |
 | 8 | Direct E4M3 endpoint and full GLM W4A8 tests | Not run | Weight-endpoint advantage, A8 quality, and actual FP8-MMA speed |
 | 9 | Signed top-8, tail-constrained H13 blend ablation | Completed; proxy winner failed the final-logit tail gate | Alpha 0.25 is the best tested proxy blend, but is not a validated final-KLD winner |
-| 10 | Three four-layer contiguous-block propagation tests | Late capture and preparation complete; encoding/KLD pending | Whether routing, residual, and positive-tail errors compound across adjacent SQG layers |
+| 10 | Three four-layer contiguous-block propagation tests | Late candidate materialized; first KLD attempt rejected before inference; corrected retry pending | Whether routing, residual, and positive-tail errors compound across adjacent SQG layers |
 
 ---
 
@@ -1965,11 +1966,10 @@ shards and directly tests the neighborhood of the prior layer-77 sample.
 Middle and early follow under the same frozen rules.  W4A8 quality and speed
 remain a separate test after A16 block quality is understood.
 
-### Current execution status: late block
+### Late-block execution record
 
-As of this publication, the late-block capture and layer-preparation boundary
-is complete and independently reviewable. No late-block SQG quality result has
-yet been produced.
+The late block has crossed capture, profile selection, encoding, sealing, and
+materialization. No late-block SQG quality result has yet been produced.
 
 The sealed capture manifest reports `complete: true`, selected layers
 74--77, and exactly 253,863 rows per layer under the frozen 217-document plan.
@@ -1990,19 +1990,106 @@ The official-BF16 shard manifest covers the 15 shards required for layers
 The corresponding source seal has SHA256
 `151c2bc9615691a9a0246e32085afe2e917246ff0bf037382f9d1245a6d8e7d1`.
 
-Four parallel preparation passes then completed. Each reports 256 physical
+Four parallel preparation passes completed. Each reports 256 physical
 expert permutations, fit-only construction, `selection_data_used: false`,
 `holdout_data_used: false`, zero MCG inputs, and zero fallback. The real
 expert-0 absolute-scale smoke also completed. Compact manifests, logs, and
 receipts are published under
 [`published_evidence/contiguous_late/`](../published_evidence/contiguous_late/README.md).
 
-Profile-search preregistrations exist, but the profile workers have not yet
-produced completed search results. Therefore the alpha-0.25 block has not been
-encoded or materialized, no KLD boots have been run, and there is no result yet
-about contiguous error propagation. Publishing this boundary prevents a
-completed preparation stage from being mistaken for a completed quantization
-or validation stage.
+The smoke capture recorded full teacher-identity mode, while the intended full
+launcher requested metadata-fast identity. Rather than change already sealed
+smoke evidence, the full capture retained the original launcher bytes and used
+a process-local environment override that preserved full identity validation.
+This cost an extra teacher hash pass but kept the smoke-to-full code binding.
+Three preparation invocations then failed before encoding work: the first
+omitted the exact EXL3 runtime digest, the second mounted the wrong ExLlama
+package root, and the third supplied the SQG seal directory where its JSON path
+was required. Each was corrected in place without discarding completed work.
+
+Profile search encoded and scored all 16 preregistered cells per layer: four
+draws crossed with identity, quarter-RMS, inverse-quarter-RMS, and
+aggregate-RMS families. Holdout rows were not used. The frozen selections were:
+
+| Layer | Selected profile cell | Selection SHA256 |
+|---:|---|---|
+| 74 | `draw-00__identity` | `50b74b115cd657a1884a6b17841709826058489a175ac0a654046dfd9ea9ba08` |
+| 75 | `draw-00__identity` | `85825d7592cd78116d45c4f0b632b0e245a8921c6d64c8a59b4b9e58b82ac0f2` |
+| 76 | `draw-00__identity` | `d57a874c0bd858e824ec450da38bafc2a3523e78f663d9eb46a7741f9579ab06` |
+| 77 | `draw-03__identity` | `1f2104d2dc6803eabc0fd6ef1d5d28e33bdce2bb15dcd5eda9d76b465c426547` |
+
+Layers 74--76 retained the identity baseline because no nonbaseline cell passed
+the multiplicity-controlled paired-document improvement rule, even where a
+different cell had a lower point estimate. Layer 77 selected draw-03 identity
+under that rule.
+
+The fixed-alpha encode then produced 256 expert artifacts and 768 SQG tensors
+per layer. Here alpha 0.25 means exactly 25% expert-local H13 and 75%
+layer-global H13:
+
+```text
+H13_e = 0.75 * H13_layer + 0.25 * H13_local,e
+```
+
+Every expert manifest records `local_alpha=0.25`, `global_alpha=0.75`, and the
+fixed-alpha override. Candidate-specific down H2 was reconstructed from that
+expert's decoded SQG gate/up candidate. The first encode invocation had a
+mistyped bit-contract digest and failed during environment validation before
+loading a tensor or writing an expert artifact. The corrected invocation reused
+the empty output root and did not rerun profile search.
+
+The completed run seal has SHA256
+`567066231b882732d5bc82a093123002573a9cc8cf507ec763e2c2e7184606cf`.
+It proves 1,024 experts, 3,072 SQG tensors, 1,536 K3 plus 1,536 K4 tensors,
+zero other rates, and zero MCG tensors in layers 74--77. The materialized
+candidate manifest has SHA256
+`5720c1aba18af0917d142f1f755cd03a8311591a638c80cf53d4f410791f30b6`;
+the materialization receipt has SHA256
+`b9fd238a90370d4ea0fae4dfbb150390ae23f71e5ed11c0a3db1f54d9b35f3ca`.
+Unchanged files are hard links to the protected MCG checkpoint; the four
+treatment-layer payloads are independent copies of the sealed SQG assemblies.
+The protected source was not mutated.
+
+### Rejected first late-block KLD attempt and runner correction
+
+The first late-block KLD attempt is not an observation. It failed during engine
+initialization, before inference, because the sealed historical runtime
+arguments still supplied:
+
+```text
+VLLM_EXL3_R7_EXPECT_RESERVED_LAYERS=6,28,52
+```
+
+Those values describe the older separated treatment. The late treatment layers
+74--77 do not consume reservation slots inside the preserved 48-layer fused
+allowlist, so runtime accounting correctly observed `reserved=[]`; the stale
+expectation required `[6,28,52]` and raised:
+
+```text
+preserved R7 fused accounting differs: used=48/48 reserved=[] expected=[6, 28, 52]
+```
+
+The failed-run log SHA256 is
+`07d398cf6cf3abe623db1876692aab0ee0dd8961776b80aa583ced0400485593`.
+Its `runs.jsonl` is the zero-byte SHA256 empty file
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+There is no accepted record, summary, or per-position KLD artifact. The attempt
+is excluded from all means, tails, and conclusions.
+
+The runner now parses exactly four selected treatment layers, derives expected
+reserved layers from their intersection with the preserved fused allowlist,
+and appends that candidate-specific expectation after the sealed historical
+arguments. For layers 74--77 the derived value is `none`. The rest of the
+historical runtime remains sealed.
+
+It also supports a fail-closed same-directory retry of incomplete run 1. Retry
+requires an existing nonsymlink output directory, `RESUME_FROM_RUN=1`, no
+summary, no accepted-record files, and an empty `runs.jsonl`; otherwise it
+stops. The retry has not been launched by this publication update.
+
+Therefore no final-logit KLD, position-win fraction, positive-tail,
+propagation, or holdout conclusion exists for Test 10 yet. Publishing the
+failure and fix does not turn runtime readiness into a quality result.
 
 ## Cumulative findings
 
@@ -2066,10 +2153,11 @@ or validation stage.
     failed the final tail gate: p99 rose from 1.079668 to 1.206658 and
     worst-1% CVaR rose from 1.838379 to 1.904047. It is therefore the selected
     proxy blend, not a validated final-KLD winner.
-20. Test 10's late-block capture is sealed at 253,863 rows per layer and its
-    four layer-preparation passes are complete with 256 permutations per layer,
-    fit-only construction, zero MCG inputs, and zero fallback. This is pipeline
-    readiness evidence only; profile search, encoding, and KLD remain pending.
+20. Test 10's late-block capture, profile selection, alpha-0.25 encoding,
+    sealing, and materialization are complete. The seal covers 1,024 experts,
+    3,072 SQG tensors, 1,536 K3 plus 1,536 K4, and zero MCG tensors in the
+    treatment layers. The first KLD attempt failed before inference on a stale
+    reserved-layer assertion and contributes no KLD result.
 
 ### Findings that are not established
 
@@ -2087,26 +2175,25 @@ or validation stage.
 - SQG is not proven better or worse than MCG in controlled final-logit KLD.
 - The external 2.6–3.3% dispatch observation is not a completed local control.
 - Four separated layers do not predict full-model contiguous error propagation,
-  and Test 10 has not yet crossed the encoding/KLD boundary.
+  and Test 10 has not yet produced an accepted KLD boot or propagation trace.
 - SQG has not reduced model size at the frozen map.
 - MCG-to-E4M3 has not been shown locally to incur 3.859% error.
 - W4A8 has not yet shown a GLM KLD or speed win.
 
 ## Recommended experiment order from here
 
-1. Complete late-block profile selection and alpha-0.25 encoding under the
-   frozen Test 10 contract.
-2. Run repeated A16 KLD and per-layer routing/residual traces for layers 74--77,
+1. Retry late-block run 1 through the corrected fail-closed runner, then run
+   repeated A16 KLD and per-layer routing/residual traces for layers 74--77,
    retaining the final-logit positive-tail gate as a hard decision boundary.
-3. Repeat the same frozen procedure for middle layers 38--41 and early layers
+2. Repeat the same frozen procedure for middle layers 38--41 and early layers
    10--13 before extrapolating to a full conversion.
-4. If a block improves its center but worsens its tail, recapture downstream
+3. If a block improves its center but worsens its tail, recapture downstream
    layers from the partially converted candidate and test whether fixed-point
    calibration repairs the propagation defect.
-5. Run the direct MCG-versus-SQG E4M3 endpoint falsification and isolated decode
+4. Run the direct MCG-versus-SQG E4M3 endpoint falsification and isolated decode
    cost benchmark.
-6. Test exact-path W4A8 quality and speed separately for C1 decode and prefill.
-7. Attempt a full BF16 SQG quant only if contiguous A16 quality and the desired
+5. Test exact-path W4A8 quality and speed separately for C1 decode and prefill.
+6. Attempt a full BF16 SQG quant only if contiguous A16 quality and the desired
    W4A8 endpoint both pass their preregistered gates.
 
 ## Artifact and source index

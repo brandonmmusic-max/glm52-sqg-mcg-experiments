@@ -35,7 +35,42 @@ CAPTURE_SOURCE="$(realpath -e -- \
 SQG_EXTENSION_SOURCE="$(realpath -e -- \
   "${FRESH_SQG_EXTENSION_ROOT:-/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-extension-r33.p7n1IJ/sealed}")"
 MODELS_ROOT="$(realpath -e -- "$(dirname "$PRODUCTION_MODEL")")"
-BF16_LAYERS_CONTAINER=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/bf16_layers
+case "$TEACHER_RECEIPT" in
+  "$PROJECT_DIR"/*)
+    TEACHER_RECEIPT_CONTAINER="/work/${TEACHER_RECEIPT#"$PROJECT_DIR"/}"
+    ;;
+  *) die "TEACHER_RECEIPT must be below the project root for sealed validation" ;;
+esac
+case "$BIT_CONTRACT" in
+  "$PROJECT_DIR"/*)
+    BIT_CONTRACT_CONTAINER="/work/${BIT_CONTRACT#"$PROJECT_DIR"/}"
+    ;;
+  *) die "BIT_CONTRACT must be below the project root for sealed validation" ;;
+esac
+case "$RUN_SEAL" in
+  "$ARTIFACTS_ROOT"/*)
+    RUN_SEAL_CONTAINER="/output/${RUN_SEAL#"$ARTIFACTS_ROOT"/}"
+    ;;
+  *) die "FRESH_RUN_SEAL must be below FRESH_ARTIFACTS_ROOT" ;;
+esac
+VALIDATOR_DYNAMIC_ENV_ARGS=()
+for validator_path_env in FRESH_SQG_BF16_MANIFEST FRESH_SQG_PLAN_CONTRACT; do
+  validator_path="${!validator_path_env:-}"
+  [[ -n "$validator_path" ]] || continue
+  validator_path="$(realpath -e -- "$validator_path")"
+  case "$validator_path" in
+    "$PROJECT_DIR"/*)
+      validator_container_path="/work/${validator_path#"$PROJECT_DIR"/}"
+      ;;
+    *)
+      die "$validator_path_env must be below the project root for sealed validation"
+      ;;
+  esac
+  VALIDATOR_DYNAMIC_ENV_ARGS+=(
+    -e "$validator_path_env=$validator_container_path"
+  )
+done
+BF16_LAYERS_CONTAINER="$BF16_LAYERS_SOURCE"
 PURE_SQG_VALIDATOR_CONTAINER=/work/evaluation/validate_pure_sqg_candidate.py
 SQG_EXTENSION_CONTAINER=/sqg-extension/kquant_sqg_quantize_ext_v22.cpython-312-x86_64-linux-gnu.so
 SQG_EXTENSION_SHA256=c987778677653388f7766e66150850c4dda44bc6b055929ece34eaee87f3cda4
@@ -133,9 +168,33 @@ KLD_MAX_MODEL_LEN=2560
 KLD_UTIL="${KLD_UTIL:-0.90}"
 RUNS="${RUNS:-5}"
 [[ "$RUNS" =~ ^[1-9][0-9]*$ ]] || die "RUNS must be a positive integer"
+SQG_EVAL_LAYERS="${SQG_EVAL_LAYERS:-6,28,52,77}"
+[[ "$SQG_EVAL_LAYERS" =~ ^[1-9][0-9]*(,[1-9][0-9]*){3}$ ]] || \
+  die "SQG_EVAL_LAYERS must be exactly four comma-separated integers"
+IFS=, read -r -a SQG_EVAL_LAYER_ARRAY <<<"$SQG_EVAL_LAYERS"
+previous_eval_layer=-1
+for eval_layer in "${SQG_EVAL_LAYER_ARRAY[@]}"; do
+  (( eval_layer >= 3 && eval_layer <= 77 )) || \
+    die "SQG_EVAL_LAYERS entries must be routed layers in [3,77]"
+  (( eval_layer > previous_eval_layer )) || \
+    die "SQG_EVAL_LAYERS must contain four unique ascending layers"
+  previous_eval_layer="$eval_layer"
+done
+SQG_EVAL_LAYERS_JSON="[$SQG_EVAL_LAYERS]"
+SQG_EVAL_OVERRIDES_JSON="$(jq -cn \
+  --argjson layers "$SQG_EVAL_LAYERS_JSON" '
+  $layers | map({key:tostring,value:"sqg_xor_cheb_t12"}) | from_entries
+')"
+SQG_TAIL_TRACE="${SQG_TAIL_TRACE:-0}"
+[[ "$SQG_TAIL_TRACE" == 0 || "$SQG_TAIL_TRACE" == 1 ]] || \
+  die "SQG_TAIL_TRACE must be 0 or 1"
+SQG_TAIL_TRACE_LAYERS="${SQG_TAIL_TRACE_LAYERS:-$SQG_EVAL_LAYERS}"
 PREFLIGHT_ONLY="${PREFLIGHT_ONLY:-0}"
 [[ "$PREFLIGHT_ONLY" == 0 || "$PREFLIGHT_ONLY" == 1 ]] || \
   die "PREFLIGHT_ONLY must be 0 or 1"
+RETRY_INCOMPLETE_RUN1="${RETRY_INCOMPLETE_RUN1:-0}"
+[[ "$RETRY_INCOMPLETE_RUN1" == 0 || "$RETRY_INCOMPLETE_RUN1" == 1 ]] || \
+  die "RETRY_INCOMPLETE_RUN1 must be 0 or 1"
 DIRECTIONAL_TEST_FAST="${DIRECTIONAL_TEST_FAST:-0}"
 [[ "$DIRECTIONAL_TEST_FAST" == 0 || "$DIRECTIONAL_TEST_FAST" == 1 ]] || \
   die "DIRECTIONAL_TEST_FAST must be 0 or 1"
@@ -205,6 +264,9 @@ if [[ -n "$CANDIDATE_BOOT_CACHE_SEED" ]]; then
     .runtime_cache.receipt_sha256 == $receipt_sha256 and
     .runtime_cache.byte_hashing_skipped == true and
     .runtime_dispatch.sqg_dispatch_proved == true and
+    # This accepted record authenticates the historical compiled-code cache
+    # seed produced by the original four-layer arm. It is provenance for the
+    # cache source, not the treatment layers of the new evaluation.
     .runtime_dispatch.selected_layers == [6,28,52,77] and
     .per_position.positions == 2047 and
     .per_position.independently_validated == true
@@ -245,7 +307,18 @@ if [[ -n "$CANDIDATE_BOOT_CACHE_SEED" ]]; then
       ;;
   esac
 fi
-if [[ "$RESUME_MODE" == 1 ]]; then
+if [[ "$RETRY_INCOMPLETE_RUN1" == 1 ]]; then
+  [[ "$RESUME_FROM_RUN" == 1 ]] || \
+    die "incomplete run-1 retry requires RESUME_FROM_RUN=1"
+  [[ -d "$OUT" && ! -L "$OUT" ]] || \
+    die "incomplete run-1 retry output is absent or unsafe: $OUT"
+  [[ ! -e "$OUT/summary.json" && ! -L "$OUT/summary.json" ]] || \
+    die "refusing to retry a completed candidate output"
+  [[ "$(find "$OUT" -maxdepth 1 -name 'run*-record.accepted.json' | wc -l)" \
+      -eq 0 ]] || die "incomplete run-1 retry found accepted evidence"
+  [[ ! -s "$OUT/runs.jsonl" ]] || \
+    die "incomplete run-1 retry found nonempty runs.jsonl"
+elif [[ "$RESUME_MODE" == 1 ]]; then
   [[ -d "$OUT" && ! -L "$OUT" ]] || \
     die "candidate continuation output is absent or unsafe: $OUT"
   [[ ! -e "$OUT/summary.json" && ! -L "$OUT/summary.json" ]] || \
@@ -282,7 +355,7 @@ REFERENCE_TOKEN_IDS_U32LE_SHA256=ad0d213eb533e956bc8e40a585f4fcff61a89a0da4a09cc
 PROMPT_LOGPROB_SHA256=47f867c3ff81cc1778bae3f1a3189dd2ec90d6e469cf60f7d1e43a1c76989d6c
 LOGPROB_SHA256=21d98eea20b8c92e0a65a5badffc3782dfc5a77427470ecd5d9edcedc681a041
 FALLBACK="$EXPERIMENT_DIR/prefill_kld_paired.py"
-FALLBACK_SHA256=dd808b681cc3952c90fccf8adfa1fa7cb601be1323f06b24b4bfb1bb7ee44b31
+FALLBACK_SHA256=5b2dd2eed2d13d96c80370c0d3a86343dbc7900d9b6657cc0c164f8e2ebd7191
 PROMPT_LOGPROB="$ROOT/eval-overlay/vllm/v1/worker/gpu/sample/prompt_logprob.py"
 LOGPROB="$ROOT/eval-overlay/vllm/v1/worker/gpu/sample/logprob.py"
 
@@ -440,11 +513,36 @@ if [[ -n "${EXTRA_DOCKER_ARGS_FILE:-}" ]]; then
   done < "$extra_args_file"
 fi
 
+# The sealed r33 argument file records the original 6/28/52 reservation.
+# Append the candidate-specific expectation after that file: only selected
+# SQG layers inside the preserved 48-layer fused allowlist consume slots.
+SQG_EXPECTED_RESERVED_LAYERS=()
+for eval_layer in "${SQG_EVAL_LAYER_ARRAY[@]}"; do
+  if (( eval_layer == 6 || eval_layer == 7 || eval_layer == 8 ||
+        (eval_layer >= 10 && eval_layer <= 54) )); then
+    SQG_EXPECTED_RESERVED_LAYERS+=("$eval_layer")
+  fi
+done
+if [[ ${#SQG_EXPECTED_RESERVED_LAYERS[@]} -eq 0 ]]; then
+  SQG_EXPECTED_RESERVED_LAYERS_CSV=none
+else
+  SQG_EXPECTED_RESERVED_LAYERS_CSV="$(
+    IFS=,; printf '%s' "${SQG_EXPECTED_RESERVED_LAYERS[*]}"
+  )"
+fi
+RUNTIME_ARGS+=(
+  --env="VLLM_EXL3_R7_EXPECT_RESERVED_LAYERS=$SQG_EXPECTED_RESERVED_LAYERS_CSV"
+)
+
 [[ -n "$runtime_overlay" ]] || die "RUNTIME_OVERLAY is required for SQG"
 [[ -z "${EXL3_EXT_SO:-}" ]] || \
   die "EXL3_EXT_SO must not bypass the sealed exact-r33 SQG overlay"
 OVERLAY_MANIFEST="$runtime_overlay/SHA256SUMS.runtime-overlay"
-OVERLAY_MANIFEST_SHA256=1dc1b8439821ceecb459b42bf13a1efc3e44e376e8a2c5423e7b0a12ad5239d9
+if [[ "$SQG_TAIL_TRACE" == 1 ]]; then
+  OVERLAY_MANIFEST_SHA256=92a79104c06fd53046448b339a438fce199028e22c888e7a3fdff076337bbe0a
+else
+  OVERLAY_MANIFEST_SHA256=1dc1b8439821ceecb459b42bf13a1efc3e44e376e8a2c5423e7b0a12ad5239d9
+fi
 [[ -f "$OVERLAY_MANIFEST" ]] || die "runtime overlay manifest is missing"
 printf '%s  %s\n' "$OVERLAY_MANIFEST_SHA256" "$OVERLAY_MANIFEST" | \
   sha256sum -c -
@@ -511,17 +609,18 @@ elif [[ "$DIRECTIONAL_TEST_FAST" == 1 ]]; then
     --arg source "$PRODUCTION_MODEL" \
     --arg manifest_sha256 "$fast_candidate_manifest_sha256" \
     --arg run_seal_sha256 "$fast_run_seal_sha256" \
-    --arg bit_contract_sha256 "$fast_bit_contract_sha256" '
+    --arg bit_contract_sha256 "$fast_bit_contract_sha256" \
+    --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" \
+    --argjson selected_overrides "$SQG_EVAL_OVERRIDES_JSON" '
     .schema == "glm52-fresh-sqg-four-layer-candidate-v1" and
     .complete == true and
     (.manifest_id | test("^[0-9a-f]{64}$")) and
     .source.root == $source and
     .source.source_bytes_mutated == false and
-    .selected_layers == [6,28,52,77] and
+    .selected_layers == $selected_layers and
     .codebooks == {
       global_unselected:"mcg",
-      selected_overrides:{"6":"sqg_xor_cheb_t12","28":"sqg_xor_cheb_t12",
-        "52":"sqg_xor_cheb_t12","77":"sqg_xor_cheb_t12"},
+      selected_overrides:$selected_overrides,
       tensor_overrides:{}
     } and
     .run_seal.sha256 == $run_seal_sha256 and
@@ -536,6 +635,7 @@ elif [[ "$DIRECTIONAL_TEST_FAST" == 1 ]]; then
     --arg candidate_manifest_id "$(jq -er '.manifest_id' "$CANDIDATE/MANIFEST.json")" \
     --arg run_seal_sha256 "$fast_run_seal_sha256" \
     --arg run_seal_id "$(jq -er '.run_seal_id' "$RUN_SEAL")" \
+    --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" \
     --slurpfile manifest "$CANDIDATE/MANIFEST.json" '
     {
       schema:"glm52-pure-sqg-four-layer-preflight-v2",
@@ -547,7 +647,7 @@ elif [[ "$DIRECTIONAL_TEST_FAST" == 1 ]]; then
       run_seal_id:$run_seal_id,
       sanitized_bit_contract:$manifest[0].bit_contract,
       construction_exclusions:$manifest[0].construction_exclusions,
-      selected_layers:[6,28,52,77],
+      selected_layers:$selected_layers,
       global_unselected_layer_codebook:"mcg",
       selected_layer_codebook:"sqg_xor_cheb_t12",
       tensor_overrides:{},
@@ -581,20 +681,25 @@ else
     -e GIT_CONFIG_KEY_0=safe.directory \
     -e GIT_CONFIG_VALUE_0=/work/kquant \
     -e FRESH_SQG_RUNTIME_IMAGE_ID="$RUNTIME_BASELINE_IMAGE_ID" \
+    -e FRESH_SQG_SELECTED_LAYERS="$SQG_EVAL_LAYERS" \
+    -e FRESH_SQG_BIT_CONTRACT_SHA256="$(sha256sum "$BIT_CONTRACT" | awk '{print $1}')" \
+    "${VALIDATOR_DYNAMIC_ENV_ARGS[@]}" \
     -e KQUANT_SQG_REQUIRE_PREBUILT=1 \
     -e KQUANT_SQG_EXTENSION_PATH="$SQG_EXTENSION_CONTAINER" \
     -e KQUANT_SQG_EXTENSION_SHA256="$SQG_EXTENSION_SHA256" \
     "$IMAGE" "$PURE_SQG_VALIDATOR_CONTAINER" "$CANDIDATE" \
     --source "$PRODUCTION_MODEL" \
-    --teacher-receipt /work/evidence/teacher_model_identity.json \
-    --run-seal /output/run_seal.json \
+    --teacher-receipt "$TEACHER_RECEIPT_CONTAINER" \
+    --run-seal "$RUN_SEAL_CONTAINER" \
     --artifacts-root /output \
-    --bit-contract /work/contracts/frozen_bit_allocations.json \
+    --bit-contract "$BIT_CONTRACT_CONTAINER" \
     > "$OUT/candidate-pure-sqg-preflight.json"
-  jq -e --arg source "$PRODUCTION_MODEL" '
+  jq -e \
+    --arg source "$PRODUCTION_MODEL" \
+    --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" '
   .schema == "glm52-pure-sqg-four-layer-preflight-v2" and
   .protected_source == $source and
-  .selected_layers == [6,28,52,77] and
+  .selected_layers == $selected_layers and
   .global_unselected_layer_codebook == "mcg" and
   .selected_layer_codebook == "sqg_xor_cheb_t12" and
   .selected_trellis_tensors == 3072 and
@@ -685,7 +790,7 @@ fi
 
 SELECTED_TREATMENT_FILES=()
 SELECTED_TREATMENT_SHA256=()
-for sqg_layer in 6 28 52 77; do
+for sqg_layer in "${SQG_EVAL_LAYER_ARRAY[@]}"; do
   for selected_name in \
     "r7-experts-layer-$(printf '%03d' "$sqg_layer").safetensors" \
     "r7-experts-layer-$(printf '%03d' "$sqg_layer").json"; do
@@ -959,6 +1064,7 @@ jq -n \
   --argjson directional_test_fast "$DIRECTIONAL_TEST_FAST_JSON" \
   --argjson runs "$RUNS" \
   --argjson kld_util "$KLD_UTIL" \
+  --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" \
   '{
     schema: "glm52-fresh-sqg-candidate-kld-run-v2",
     directional_test_fast_mode: $directional_test_fast,
@@ -1053,7 +1159,7 @@ jq -n \
         "per-tensor K3/K4 assignment",
       legacy_mcg_payloads_transforms_scales_permutations_seeds: 0
     },
-    selected_sqg_layers: [6,28,52,77],
+    selected_sqg_layers: $selected_layers,
     selected_layer_payloads: {
       sqg: 3072,
       mcg: 0,
@@ -1096,11 +1202,12 @@ if [[ "$RESUME_MODE" == 1 ]]; then
     [[ -f "$previous_record" && ! -L "$previous_record" ]] || \
       die "candidate run $previous_run must be accepted before continuation"
     jq -e \
-      --arg external_seed "$CANDIDATE_BOOT_CACHE_SEED" '
+      --arg external_seed "$CANDIDATE_BOOT_CACHE_SEED" \
+      --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" '
       .docker_exit_status == 0 and
       .total_positions == 2047 and .mean_kld >= 0 and
       .runtime_dispatch.sqg_dispatch_proved == true and
-      .runtime_dispatch.selected_layers == [6,28,52,77] and
+      .runtime_dispatch.selected_layers == $selected_layers and
       .per_position.positions == 2047 and
       .per_position.independently_validated == true and
       .runtime_cache.isolated_per_run == true and
@@ -1288,6 +1395,9 @@ for run in $(seq 1 "$RUNS"); do
     -e FLASHINFER_DISABLE_VERSION_CHECK=1 \
     -e OMP_NUM_THREADS=16 \
     -e KLD_PYDEPS=/deps \
+    -e "SQG_TAIL_TRACE=$SQG_TAIL_TRACE" \
+    -e "SQG_TAIL_TRACE_LAYERS=$SQG_TAIL_TRACE_LAYERS" \
+    -e SQG_TAIL_TRACE_DIR=/results/tail-trace \
     -e HF_HOME=/root/.cache/huggingface \
     -e HF_DATASETS_CACHE=/hf-datasets \
     -e HF_HUB_OFFLINE=1 \
@@ -1369,33 +1479,30 @@ for run in $(seq 1 "$RUNS"); do
   ' "$raw_record" >/dev/null
   run_log="$OUT/run${run}.log"
   dispatch_proof="$OUT/run${run}-sqg-dispatch-proof.json"
-  dispatch_counts=()
-  for sqg_layer in 6 28 52 77; do
+  dispatch_records_json='[]'
+  for sqg_layer in "${SQG_EVAL_LAYER_ARRAY[@]}"; do
     dispatch_line="EXL3 SQG layer model.layers.${sqg_layer}.mlp.experts: retaining 768 per-projection native tensors"
     dispatch_count="$(grep -Fc "$dispatch_line" "$run_log" || true)"
     [[ "$dispatch_count" -ge 1 ]] || \
       die "candidate run $run did not prove SQG dispatch for layer $sqg_layer"
-    dispatch_counts+=( "$dispatch_count" )
+    dispatch_records_json="$(jq -cn \
+      --argjson records "$dispatch_records_json" \
+      --argjson layer "$sqg_layer" \
+      --argjson count "$dispatch_count" \
+      '$records + [{layer:$layer,count:$count}]')"
   done
   run_log_sha256="$(sha256sum "$run_log" | awk '{print $1}')"
   jq -n \
     --arg log "$run_log" \
     --arg log_sha256 "$run_log_sha256" \
-    --argjson count_6 "${dispatch_counts[0]}" \
-    --argjson count_28 "${dispatch_counts[1]}" \
-    --argjson count_52 "${dispatch_counts[2]}" \
-    --argjson count_77 "${dispatch_counts[3]}" '
+    --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" \
+    --argjson records "$dispatch_records_json" '
     {
       schema: "glm52-sqg-dispatch-proof-v1",
       log: $log,
       log_sha256: $log_sha256,
-      required_layers: [6,28,52,77],
-      records: [
-        {layer: 6, count: $count_6},
-        {layer: 28, count: $count_28},
-        {layer: 52, count: $count_52},
-        {layer: 77, count: $count_77}
-      ],
+      required_layers: $selected_layers,
+      records: $records,
       every_required_line_observed: true
     }
   ' > "$dispatch_proof"
@@ -1456,6 +1563,7 @@ for run in $(seq 1 "$RUNS"); do
     --arg run_log_sha256 "$run_log_sha256" \
     --arg dispatch_proof "$dispatch_proof" \
     --arg dispatch_proof_sha256 "$dispatch_proof_sha256" \
+    --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" \
     --slurpfile runtime_cache "$cache_receipt" '
     .raw_record_sha256 = $raw_record_sha256 |
     .docker_exit_status = 0 |
@@ -1468,7 +1576,7 @@ for run in $(seq 1 "$RUNS"); do
       log_sha256: $run_log_sha256,
       proof: $dispatch_proof,
       proof_sha256: $dispatch_proof_sha256,
-      selected_layers: [6,28,52,77],
+      selected_layers: $selected_layers,
       sqg_dispatch_proved: true
     } |
     .per_position += {
@@ -1547,7 +1655,8 @@ jq -s -e \
   --argjson baseline_runs "$RUNTIME_BASELINE_RUNS" \
   --argjson legacy_mean "$LEGACY_BASELINE_MEAN" \
   --argjson legacy_sd "$LEGACY_BASELINE_SD" \
-  --argjson expected_runs "$RUNS" '
+  --argjson expected_runs "$RUNS" \
+  --argjson selected_layers "$SQG_EVAL_LAYERS_JSON" '
   if length != $expected_runs then
     error("candidate run count mismatch")
   elif (all(.[].per_position;
@@ -1558,7 +1667,7 @@ jq -s -e \
     error("candidate per-position KLD evidence differs")
   elif (all(.[];
       .runtime_dispatch.sqg_dispatch_proved == true and
-      .runtime_dispatch.selected_layers == [6,28,52,77] and
+      .runtime_dispatch.selected_layers == $selected_layers and
       (.runtime_dispatch.log_sha256 | test("^[0-9a-f]{64}$")) and
       (.runtime_dispatch.proof_sha256 | test("^[0-9a-f]{64}$"))) | not) then
     error("candidate runtime SQG dispatch evidence differs")
@@ -1603,6 +1712,7 @@ jq -s -e \
       directional_test_fast_mode: $directional_test_fast,
       baseline_was_rerun: false,
       candidate: $candidate,
+      selected_sqg_layers: $selected_layers,
       reference_sha256: $reference_sha256,
       reference_token_ids_u32le_sha256: $reference_token_ids_u32le_sha256,
       selected_treatment_evidence: {
