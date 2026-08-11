@@ -20,7 +20,17 @@ def main() -> int:
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--layer", type=int, required=True)
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument(
+        "--local-alpha",
+        type=float,
+        default=None,
+        help="Exact fixed alpha for the blend ablation; omit for the original OAS run.",
+    )
     args = parser.parse_args()
+    if args.local_alpha is not None and not 0.0 <= args.local_alpha <= 1.0:
+        raise ValueError("--local-alpha must be in [0,1]")
+
+    from scripts.encode_expert_local_h13_shard import _fixed_alpha_construction
 
     from scripts.encode_final_shard import _open_fast_sealed_runtime
     from src.fresh_pipeline_artifacts import (
@@ -53,6 +63,10 @@ def main() -> int:
     else:
         destination_selection.write_bytes(source_bytes)
 
+    h13_construction = _fixed_alpha_construction(args.local_alpha)
+    import src.glm52_fresh_sqg.codec as codec
+
+    codec.PRODUCTION_H13_CONSTRUCTION = h13_construction
     manifest = assemble_layer_artifact(
         expert_dir,
         layer_root / "final",
@@ -62,11 +76,13 @@ def main() -> int:
         gate_up_profile=gate_profile,
         down_profile=down_profile,
         layer_evidence={
-            "experiment": "expert_local_h13_oas_global_prior_r1",
-            "h13_construction": (
-                "fit_gate_square_expert_local_weighted_oas_reliability_"
-                "layer_global_prior_cap_0p75_v1"
+            "experiment": (
+                "expert_local_h13_oas_global_prior_r1"
+                if args.local_alpha is None
+                else "expert_local_h13_fixed_alpha_ablation_r2"
             ),
+            "h13_construction": h13_construction,
+            "requested_local_alpha": args.local_alpha,
             "baseline_preflight_id": runtime.preflight["preflight_id"],
             "profile_selection_sha256": sha256_file(source_selection),
             "profile_selection_id": selection["selection_id"],

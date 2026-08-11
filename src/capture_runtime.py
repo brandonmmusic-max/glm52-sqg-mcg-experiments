@@ -24,6 +24,14 @@ RUNTIME_IMAGE_ID = (
 )
 RUNTIME_PYTHON = "/opt/venv/bin/python"
 IMAGE_DECLARATION_ENV = "FRESH_SQG_RUNTIME_IMAGE_ID"
+EXL3_RUNTIME_SHA256 = os.environ.get(
+    "FRESH_SQG_EXL3_RUNTIME_SHA256",
+    "1d6f141b123a243e76c3384727280bd2970cea1c1dc54f413a483b6acf3e34d2",
+)
+if len(EXL3_RUNTIME_SHA256) != 64 or any(
+    character not in "0123456789abcdef" for character in EXL3_RUNTIME_SHA256
+):
+    raise ValueError("FRESH_SQG_EXL3_RUNTIME_SHA256 must be a lowercase SHA256")
 
 # These are the exact read-only destinations and bytes inspected on the
 # serving container ``glm-r33-fixed``.  Hashing the destinations catches a
@@ -38,7 +46,7 @@ RUNTIME_FILES = {
     ),
     "/opt/venv/lib/python3.12/site-packages/vllm/model_executor/layers/"
     "quantization/exl3.py": (
-        "1d6f141b123a243e76c3384727280bd2970cea1c1dc54f413a483b6acf3e34d2"
+        EXL3_RUNTIME_SHA256
     ),
     "/opt/venv/lib/python3.12/site-packages/vllm/model_executor/model_loader/"
     "utils.py": (
@@ -119,7 +127,7 @@ RUNTIME_CLASS_SOURCES = {
             "quantization/exl3.py"
         ),
         "sha256": (
-            "1d6f141b123a243e76c3384727280bd2970cea1c1dc54f413a483b6acf3e34d2"
+            EXL3_RUNTIME_SHA256
         ),
     },
 }

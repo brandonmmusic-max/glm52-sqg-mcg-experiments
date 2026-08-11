@@ -1,0 +1,34 @@
+/opt/venv/lib/python3.12/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+{
+  "binding": {
+    "bit_contract_sha256": "b70773e4d11fb0495d74f4a6977d1e10a9417907d31efdc3ea5de0b243c32a09",
+    "capture_manifest_sha256": "d8eff2f48c205414a4c653efbe53df1de5ae6822259cf89184ea509d9c3297d6",
+    "kquant": {
+      "backend_sha256": "2352f06ec515c886ed896203df4be2374aa265a7c910fb06727095ba443f6254",
+      "dirty": true,
+      "revision": "104dd9233f850a3955f4991bea68b07dd34deeb8",
+      "root": "/work/kquant",
+      "status_sha256": "6204eaab3737d5858492d3b5d7ee8d96d57b41cb361720122b8ff639ac94f92d",
+      "tracked_diff_sha256": "8ba6746b722342a11f2944e7421258a3d0238b72dd785d49b7b49483476b4c2e",
+      "untracked_file_sha256": {}
+    },
+    "layer": 76,
+    "preflight_id": "49f2e979f9d0048bddaa06892e83f1873561eaafa9b84b682bb491c9fc9e02a3",
+    "run_id": "glm52-contiguous-74-77-alpha025-r1",
+    "sigma_reg": 0.025,
+    "source_seal_sha256": "151c2bc9615691a9a0246e32085afe2e917246ff0bf037382f9d1245a6d8e7d1"
+  },
+  "complete": true,
+  "fallback_count": 0,
+  "fit_only": true,
+  "h13_evidence_id": "50dcf78f5b3de095c37b44d99caf0228ea5fb513ee4ae7ee856f101e8a9c735e",
+  "h13_matrix_sha256": "7e799a0b46c5204cc100c8d84aae0a5e79632d6440d27f39855f2550384bed4f",
+  "holdout_data_used": false,
+  "mcg_inputs": 0,
+  "permutation_count": 256,
+  "permutation_policy": "fresh_glm_h2_reverse_16x128_v1",
+  "profile_scale_evidence_id": "da32ae94460a0f856909e06b8401e47ad317c510f1b327f7d37dd569121ed5c5",
+  "schema": "glm52-fresh-sqg-layer-preparation-v1",
+  "selection_data_used": false
+}
