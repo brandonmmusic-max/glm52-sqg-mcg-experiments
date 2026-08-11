@@ -1,0 +1,101 @@
+{
+  "kind": "glm52_sqg_route_packed_w4a8_v2_l077_final_r2_summary",
+  "schema_version": 1,
+  "status": "original_kernel_collapse_repaired_serving_gate_open",
+  "date": "2026-08-11",
+  "input": {
+    "layer": 77,
+    "layer_shard_sha256": "04b07b35282673a684315d23db11c48f954ea802a83135e44ae75604ec7c8341",
+    "layer_manifest_sha256": "9301807125afa2b21aa073ffc86e5815f6645748482094c8b799eebaf25b931d",
+    "capture_run_uuid": "fa5b5504-e695-4fdf-bc17-601352b8a295",
+    "rates": "independent_per_tensor_k3_k4",
+    "reencode": false,
+    "uniform_k3": false,
+    "dense_weight_materialization": false
+  },
+  "candidate": {
+    "gate_up": "native_sqg_w4a8",
+    "down": "compact_sqg_w4a16",
+    "tile": "m64n256k128",
+    "threads": 128,
+    "m16_blocks_per_cta": 4
+  },
+  "validation": {
+    "glm_tests_passed": 16,
+    "focused_tile_variants_passed": 2,
+    "bit_exact_to_one_warp": true,
+    "dense_decoded_oracle_passed": true,
+    "cuda_graph_bit_exact": true,
+    "signed_top8_closure_passed": true,
+    "all_finite": true
+  },
+  "results": {
+    "3072": {
+      "old_projection_ms": 55.612993240356445,
+      "new_projection_ms": 16.30627155303955,
+      "projection_speedup": 3.4105278487153594,
+      "old_hybrid_ms": 68.27706909179688,
+      "a16_median_ms": 32.043039321899414,
+      "new_hybrid_ms": 27.201119422912598,
+      "a16_over_new_hybrid": 1.1780044351743948,
+      "bootstrap_ci95": [1.176994758885548, 1.1789715245417371],
+      "projected_whole_prefill_speedup_at_moe_fraction_0_31": 1.0491452098345548
+    },
+    "4096": {
+      "old_projection_ms": 73.06505584716797,
+      "new_projection_ms": 19.55238437652588,
+      "projection_speedup": 3.7368872481296,
+      "old_hybrid_ms": 86.46810913085938,
+      "a16_median_ms": 39.41788673400879,
+      "new_hybrid_ms": 33.73318290710449,
+      "a16_over_new_hybrid": 1.168519639624847,
+      "bootstrap_ci95": [1.1676910762455552, 1.1693219010863487],
+      "projected_whole_prefill_speedup_at_moe_fraction_0_31": 1.0467993299888616,
+      "layer_nmse": 0.0002096047006458569,
+      "layer_cosine": 0.9998958985317091
+    }
+  },
+  "profiling": {
+    "registers_per_thread": 255,
+    "achieved_occupancy_percent": 16.02,
+    "local_spill_requests": 14957856,
+    "compute_utilization_percent": 48.87,
+    "memory_utilization_percent": 40.95,
+    "dram_utilization_percent": 14.03,
+    "eligible_warps_per_scheduler": 0.57,
+    "no_eligible_warp_cycles_percent": 56.16,
+    "interpretation": "register_spill_decode_and_access_scheduling_bound_not_hbm_bound"
+  },
+  "tile_width_ablation_m4096": {
+    "n256_a16_over_hybrid": 1.168519639624847,
+    "n128_a16_over_hybrid": 1.17139,
+    "n64_a16_over_hybrid": 1.123997,
+    "disposition": "tile_width_only_exhausted"
+  },
+  "gate": {
+    "original_two_x_slowdown": "repaired",
+    "isolated_layer_faster_than_a16": "pass",
+    "whole_prefill_threshold": 1.15,
+    "projected_whole_prefill": "fail",
+    "integrated_serving": "not_run",
+    "full_encode": "hold"
+  },
+  "source_identity": {
+    "runtime_base_commit": "7cecbb2c4819636ae7f05f8b116f2c45ee2cff7b",
+    "glm_trellis_w4a8_py_sha256": "56952fc75c92d41a1e3696d1b12b5de7a6d9bea84cea525e51647312cfc028d8",
+    "fc1_benchmark_sha256": "e3cdd85296f897364092ccffe46dcb9d3813b1c26a969acdb05a29b125ce0e21",
+    "hybrid_benchmark_sha256": "7ba5926d8387935265f5f4ac2ec4dcc3cf0aed49ea544513408ba707435e1dce",
+    "test_sha256": "9339d10fb886ff82ad07e76254753a3828adbec50cec6008ef8cc4bca2077889",
+    "diagnosis_sha256": "f4d0eea2033ad7314b4087a97ea503191059635e064e7dbc8c0bee7255e695ee"
+  },
+  "raw_result_sha256": {
+    "fc1_m3072_new": "e3a2b6cf4031427cef0d711b9642ee430a695db3dc9044edef939080dd5fd402",
+    "fc1_m3072_old": "9fd5f7b9f2e1b6a61bb77fcefdcaf855532bfca7c60c7e7065d6e667998246c2",
+    "fc1_m4096_new": "e6dbcad9cef99c78889710ffbea3e1dfd9d5d98ccd41efea51311eb762713423",
+    "fc1_m4096_old": "ef448cc6acddee0745b01ee323eea87ca9dfae526a657ba3c007e60f661c602e",
+    "hybrid_m3072_new": "782642dfa25357a67347fb0fed184af04e3341bfe8e369335c3cd7de1ada0c10",
+    "hybrid_m3072_old": "66d8b1b2ef6367bda9cf127450da2bcd2377ec6b8dc3708f13514be4462aea41",
+    "hybrid_m4096_new": "5d855ae8a3da25f96966769234cd7e50456b833c97622becbb8e8461254b7d15",
+    "hybrid_m4096_old": "e70be973f65dce7091dcf420b85ce74d8013ee7c663885130f827e6c9a4051cf"
+  }
+}
