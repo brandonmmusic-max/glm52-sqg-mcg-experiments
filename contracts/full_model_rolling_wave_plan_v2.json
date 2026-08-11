@@ -1,0 +1,322 @@
+{
+  "complete": true,
+  "plan_id": "b95c351e5d9af20e43a45e5d2318f2bd7ce934486480f8836bd0e2368e293c31",
+  "routed_layers": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77
+  ],
+  "schema": "glm52-sqg-full-model-rolling-wave-plan-v2",
+  "terminal_wave_policy": {
+    "layers": [
+      75,
+      76,
+      77
+    ],
+    "overlap_allowed": false,
+    "reason": "progressive fixed-point recapture requires a non-overlapping prefix, leaving one terminal three-layer wave"
+  },
+  "unique_routed_layer_count": 75,
+  "wave_count": 19,
+  "waves": [
+    {
+      "layers": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "3,4,5,6",
+      "wave": 1,
+      "wave_id": "wave-003-006"
+    },
+    {
+      "layers": [
+        7,
+        8,
+        9,
+        10
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "7,8,9,10",
+      "wave": 2,
+      "wave_id": "wave-007-010"
+    },
+    {
+      "layers": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "11,12,13,14",
+      "wave": 3,
+      "wave_id": "wave-011-014"
+    },
+    {
+      "layers": [
+        15,
+        16,
+        17,
+        18
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "15,16,17,18",
+      "wave": 4,
+      "wave_id": "wave-015-018"
+    },
+    {
+      "layers": [
+        19,
+        20,
+        21,
+        22
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "19,20,21,22",
+      "wave": 5,
+      "wave_id": "wave-019-022"
+    },
+    {
+      "layers": [
+        23,
+        24,
+        25,
+        26
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "23,24,25,26",
+      "wave": 6,
+      "wave_id": "wave-023-026"
+    },
+    {
+      "layers": [
+        27,
+        28,
+        29,
+        30
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "27,28,29,30",
+      "wave": 7,
+      "wave_id": "wave-027-030"
+    },
+    {
+      "layers": [
+        31,
+        32,
+        33,
+        34
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "31,32,33,34",
+      "wave": 8,
+      "wave_id": "wave-031-034"
+    },
+    {
+      "layers": [
+        35,
+        36,
+        37,
+        38
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "35,36,37,38",
+      "wave": 9,
+      "wave_id": "wave-035-038"
+    },
+    {
+      "layers": [
+        39,
+        40,
+        41,
+        42
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "39,40,41,42",
+      "wave": 10,
+      "wave_id": "wave-039-042"
+    },
+    {
+      "layers": [
+        43,
+        44,
+        45,
+        46
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "43,44,45,46",
+      "wave": 11,
+      "wave_id": "wave-043-046"
+    },
+    {
+      "layers": [
+        47,
+        48,
+        49,
+        50
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "47,48,49,50",
+      "wave": 12,
+      "wave_id": "wave-047-050"
+    },
+    {
+      "layers": [
+        51,
+        52,
+        53,
+        54
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "51,52,53,54",
+      "wave": 13,
+      "wave_id": "wave-051-054"
+    },
+    {
+      "layers": [
+        55,
+        56,
+        57,
+        58
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "55,56,57,58",
+      "wave": 14,
+      "wave_id": "wave-055-058"
+    },
+    {
+      "layers": [
+        59,
+        60,
+        61,
+        62
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "59,60,61,62",
+      "wave": 15,
+      "wave_id": "wave-059-062"
+    },
+    {
+      "layers": [
+        63,
+        64,
+        65,
+        66
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "63,64,65,66",
+      "wave": 16,
+      "wave_id": "wave-063-066"
+    },
+    {
+      "layers": [
+        67,
+        68,
+        69,
+        70
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "67,68,69,70",
+      "wave": 17,
+      "wave_id": "wave-067-070"
+    },
+    {
+      "layers": [
+        71,
+        72,
+        73,
+        74
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "71,72,73,74",
+      "wave": 18,
+      "wave_id": "wave-071-074"
+    },
+    {
+      "layers": [
+        75,
+        76,
+        77
+      ],
+      "overlap_layers": [],
+      "selected_layers_csv": "75,76,77",
+      "wave": 19,
+      "wave_id": "wave-075-077"
+    }
+  ]
+}
