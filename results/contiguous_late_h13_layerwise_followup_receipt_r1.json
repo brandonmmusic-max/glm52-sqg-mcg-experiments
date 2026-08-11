@@ -1,0 +1,28 @@
+{
+  "schema": "glm52-contiguous-late-all-sqg-layerwise-followup-v1",
+  "selection": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_layerwise_selection_r1.json",
+    "sha256": "9045cb8e9e8778b5dd2b1c9cf2a610b22b0fd6df384eb3cbd980dfd3702d3897",
+    "passed": false
+  },
+  "effective_support_selection": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_alpha_support_selection_r1.json",
+    "sha256": "38966bfcedbdfa652bc5c7724e0d27d7e9f402b53a5b12dedd621154a413fea8"
+  },
+  "holdout_scores": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_blend_holdout_full_r1.json",
+    "sha256": "0cdc7ca3d3ec9ae521234cc4b3b13b2ae0e064db539d2f816899193aeda0d0b4"
+  },
+  "effective_support_holdout": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_alpha_support_holdout_r1.json",
+    "sha256": "bf8073d70d84dcee1a94fb4e94a329f0262b3fa11c73e7244354db8693537279"
+  },
+  "frozen_mapping_holdout": {
+    "path": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_layerwise_holdout_r1.json",
+    "sha256": "61738564eab7447ba71c1afef2c1aee107dc781d55c7eba2c940cace824d3a8c",
+    "passed": false
+  },
+  "all_selected_layers_sqg_required": true,
+  "artifact_built": false,
+  "artifact_root": null
+}
