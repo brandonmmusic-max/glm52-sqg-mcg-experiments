@@ -24,11 +24,11 @@ diagnostic layers were 6, 28, 52, and 77; the first contiguous block is layers
 
 ## Bottom line
 
-The conditional program remains **NO-GO for full encoding**. The isolated
-route-packed hybrid kernel defect is now repaired, but integrated serving
-performance and the final down-path quality contract remain open. The current
-evidence therefore does **not** authorize a full 75-layer conversion or
-establish lower full-model KLD.
+The original conditional gate was **NO-GO**, but the owner has now explicitly
+authorized a full native-SQG W4A8 measurement build using the corrected
+encoder. Construction is active; release acceptance is not. No corrected
+full-model KLD, LAVD, Estonia, integrated serving result, or claim of lower KLD
+exists yet.
 
 | Measurement | Result | What it establishes |
 |---|---:|---|
@@ -41,20 +41,24 @@ establish lower full-model KLD.
 | Test 8b full W4A8 versus matched SQG A16 | `+22.9802%` selection NMSE; `+22.7790%` secondary-holdout NMSE | The current A8 policy is a replicated functional regression and fails the quality gate |
 | Test 8c compact-core speed | projected `1.1310x` at M=3,072 and `1.0684x` at M=4,096, assuming MoE fraction `0.31` | The native FP8 path is real, but the serial-core projection misses the `1.15x` long-prefill migration floor and is not serving acceptance |
 | Test 8c route-packed hybrid layer | final same-environment r2: `1.1780x` at M=3,072 and `1.1685x` at M=4,096 versus dispatch-matched A16 | The M64xN256/K128 kernel repairs the original slowdown without changing encoded bytes; 31%-MoE Amdahl projections are only `1.0491x`/`1.0468x`, so integrated serving remains unaccepted |
+| PR11 route-packed full W4A8 | `1.7550x` at M=3,072 and `1.8236x` at M=4,096; projected `1.1539x`/`1.1628x` end to end at declared MoE fraction `0.31` | The isolated long-prefill speed arm clears the preregistered floor; actual four-GPU workload fraction and integrated serving remain unmeasured |
 | Same-candidate-path 5v5 null | mean-delta p95 envelope `±0.0013867` | Ten reused boots provide a checkpoint/prompt-specific empirical reference, not independent experiments or a formal false-positive calibration |
 | Late paired trace versus one r33-r33 pair | MoE drift ratio `1.49–1.72x`; post-residual `1.04–1.29x` | Treatment-consistent but unreplicated mechanistic evidence; not a causal estimate or proof that compounding is absent |
 | Winner-native layer-77 profile | `-1.5202%` selection and `-0.8131%` untouched holdout versus the frozen profile | Repeating profile search under alpha 0.25 fixes a measurable home-field mismatch on the 16-expert panel |
 | Exact h-A8 `(H,B)` down re-encode | `+0.9885%` holdout NMSE despite `-25.08%` cross-expert error | The floating refit does not survive K3/K4 trellis re-encoding; reject the full-strength target |
 | Unary-bounded retained-profile selection | `-0.4684%` holdout NMSE; bootstrap crosses zero | Favorable expert-private profile signal; `93.32%` of selection gain is unary, not cancellation |
+| Coordinate-corrected full-W4A8 `(H,B)` down repair | `-9.5762%` selection and `-9.3043%` secondary-holdout signed top-8 NMSE versus base full W4A8 | Correct caller coordinates plus exact dual-scale anchoring recover about half of Test 8b's activation damage; repaired W4A8 remains `+10.22%`/`+10.86%` versus SQG A16 |
+| Fit-only full-W4A8 beta panel | selected `beta=0.0625`; `-0.3344%` SSE versus beta 0; beta 1 NMSE `0.04367` versus winner `0.01270` | Full-strength candidate conditioning is rejected; the selected beta now governs exact triplet allocation and final encoding |
 
 The direct E4M3 result strengthens SQG's W4A8 architecture thesis, but its full
 `16.8964%` SQG-versus-MCG E4M3 NMSE gap is not solely an endpoint benefit:
-SQG was already `13.1439%` better at A16. The completed GLM tests then exposed
-two independent blockers: heavy damage from the current activation policy,
-especially at `act = SiLU(gate) * up`, and inadequate long-prefill scaling in
-the dense compact core. The late block remains a scalar no-catastrophe screen;
-the `25%` local / `75%` shared `H13` blend is not a fleet-wide MCG-beating
-calibration answer.
+SQG was already `13.1439%` better at A16. The completed GLM tests exposed heavy
+damage from `act = SiLU(gate) * up` and a poor initial kernel schedule. PR11
+repairs the isolated large-M speed path, and corrected candidate-path `(H,B)`
+down calibration recovers roughly half of the activation penalty. Neither
+result establishes model-level quality: the late block remains a scalar
+no-catastrophe screen, and the old `25%` local / `75%` shared `H13` result is
+not frozen as the fleet-wide answer.
 
 ## Current late-block and W4A8 status
 
@@ -79,7 +83,10 @@ early/middle/late blocks.
 | Support-conditioned alpha analysis | Complete: alpha 0.25 won all four effective-support quartiles; the association is diagnostic and does not justify per-expert alpha selection |
 | Exploratory layerwise alpha search | Complete: 0 of 625 all-SQG mappings passed MCG hard gates; the frozen uniform alpha-0.25 mapping also failed holdout |
 | Test 8b activation quality | **Red**: full W4A8 was `22.9802%`/`22.7790%` worse than matched SQG A16 on selection/secondary holdout |
-| Test 8c route-packed speed | **Original collapse fixed, deployment open**: final same-environment r2 M64xN256 hybrid is `1.1780x`/`1.1685x` faster than A16 at M=3,072/4,096, but the 31%-MoE whole-prefill projections are only `1.0491x`/`1.0468x` |
+| Test 8c route-packed speed | **Isolated speed gate green, integrated serving open**: PR11 full W4A8 is `1.7550x`/`1.8236x` faster than A16 at M=3,072/4,096 and projects to `1.1539x`/`1.1628x` at the declared 31% MoE fraction |
+| Corrected full-W4A8 down calibration | Complete on all layer-77 experts: `9.5762%`/`9.3043%` better than base full W4A8 on selection/secondary holdout, but still `10.22%`/`10.86%` worse than SQG A16 |
+| Fit-only beta selection | Complete: `beta=0.0625`; all 16 receipts validated; selection and holdout unused; beta 1 rejected |
+| Full native-W4A8 build | Active: full-corpus layers 3--6 prepared; W4A8-native profile search, realized mixed-rate allocation, selected-only encode, progressive recapture, and final acceptance remain |
 
 The initial failure remains excluded. A later run-3 validator rejection exposed
 a float32-roundoff floor that was smaller than one machine epsilon; the saved
@@ -88,12 +95,11 @@ changing model, logits, or tensor bytes. Five accepted boots then completed.
 
 Test 10 establishes scalar KLD parity/no obvious scalar catastrophe for one
 late four-layer A16 block; it is not a general SQG quality win. The completed
-alpha panel makes alpha 0.25 a reproducible SQG prior while retaining MCG as
-the formal winner. Test 8b still fails the full-W4A8 quality case. The repaired
-route-packed hybrid layer removes the original kernel blocker, but it does not
-pass the preregistered whole-prefill migration floor. Middle/early preparation
-and the full quant remain frozen pending integrated serving measurement and a
-frozen hybrid-versus-full-W4A8 down-path quality contract.
+alpha panel makes alpha 0.25 a reproducible historical SQG prior while
+retaining MCG as the formal winner. The corrected down objective substantially
+repairs but does not erase Test 8b's W4A8 quality gap. The full quant is now
+being built under the selected fit-only beta and a W4A8-native profile/rate
+process; integrated serving and final quality remain acceptance gates.
 
 The late null does not numerically clear Test 9's separated-layer tail failure:
 it is not a matched-checkpoint null for Test 9, and those harmful-tail metrics
@@ -127,6 +133,8 @@ exceed even the late p95 reference.
 - [Winner-native profile result](results/glm52_alpha025_winner_native_profile_l077_r1.md)
 - [Exact h-A8 `(H,B)` down re-encode](results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
 - [Unary-bounded retained-profile co-routing](results/glm52_retained_profile_corouting_l077_r1.md)
+- [Coordinate-corrected full-W4A8 down repair](results/glm52_full_w4a8_xterm_coordinate_fixed_l077_r2.md)
+- [Fit-only full-W4A8 beta selection](results/glm52_full_w4a8_beta_selection_l077_r1.md)
 - [Conditional full-model plan and NO-GO decision](docs/conditional_full_model_sqg_w4a8_plan.md)
 - [W4A8 code identity and omitted-evidence receipt](published_evidence/w4a8_core/README.md)
 - [QSRT/Kimi K3 K1 feasibility audit](docs/qsrt_kimi_k3_k1_feasibility.md)
@@ -173,9 +181,8 @@ provenance](kquant/LOCAL_PROVENANCE.md) and
   regenerated caches. Their manifests, hashes, receipts, and compact logs are
   preserved in `published_evidence/`.
 - Direct MCG-versus-SQG E4M3 weight-endpoint distortion, GLM W4A8 activation
-  quality, compact-core speed, and route-packed hybrid layer speed have been
-  measured. A repaired full-W4A8 activation path, exact-path `H2_A8`,
-  integrated DCP4 serving speed, final-logit W4A8 KLD, and full-model quality
-  remain unmeasured.
+  quality, compact-core and route-packed speed, and a corrected exact-path
+  `(H,B)` down repair have been measured. Full-model DCP4 serving, final-logit
+  W4A8 KLD, LAVD, Estonia, and release quality remain unmeasured.
 
 No inference service or GPU process is started by this repository.

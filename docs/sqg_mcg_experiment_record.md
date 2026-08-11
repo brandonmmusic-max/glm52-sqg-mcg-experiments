@@ -2756,6 +2756,103 @@ Full encoding remains frozen until this runtime gate and the hybrid-versus-
 full-W4A8 down-path quality contract close. Full details and source/result
 identities are in `docs/route_packed_w4a8_kernel_2026-08-11.md`.
 
+## Test 15 — corrected full-W4A8 down objective and fit-only beta selection
+
+### Hypothesis and methodology
+
+Test 8b localized most remaining full-W4A8 damage to the heavy-tailed
+`act = SiLU(gate) * up` operand. The next hypothesis was that the down encoder
+could recover part of that damage by fitting the exact candidate-path normal
+equations rather than treating the original BF16 down matrix as the only
+target:
+
+```text
+H = Q_eff^T Q_eff
+B = Q_eff^T Y_BF16
+```
+
+The first beta-1 implementation was rejected before use because it supplied an
+already transformed Hessian to KQuant, whose finalizer then applied the
+Hadamard/sign congruence again, and because the re-encoded private down `suh`
+could differ from the scale used to construct the target. The corrected run:
+
+- used the native direct-E4M3 gate/up path and both K32 UE8M0/E4M3 activation
+  quantization points;
+- executed exact GLM `SiLU(gate) * up`, FP16 projection boundaries, and FP32
+  accumulation;
+- built canonical `(H,B)` from `Q_eff`, while giving KQuant
+  `q_pre = q_label H128 D` so its internal finalization recovered the intended
+  label-coordinate covariance;
+- anchored both the private down `suh` and shared down `svh` exactly; and
+- used fit routes only for construction, with selection and secondary holdout
+  reported independently.
+
+No MCG codebook, payload, transform, or scale entered the corrected treatment.
+
+### Corrected beta-1 construction result
+
+On all 256 layer-77 experts, the coordinate-corrected beta-1 down repair
+reduced signed top-8 NMSE versus the matched base full-W4A8 path by `9.5762%`
+on selection and `9.3043%` on secondary holdout. Paired-document 95%
+improvement intervals excluded zero. Absolute-error maxima and worst-1% CVaR
+also improved by about 30%.
+
+The repaired W4A8 result remained `10.22%`/`10.86%` worse than the matched SQG
+A16 proxy and improved only `28.84%`/`29.91%` of positions. This promoted the
+corrected objective, not beta 1 or a claim of W4A8 quality parity.
+
+### Fit-only beta panel
+
+Beta was then selected without using selection or holdout. Sixteen experts
+spanning equal-count strata of fit/calibration gate-square mass were assigned
+a balanced mixed-rate panel in which every gate/up/down K3/K4 triplet appeared
+twice. Across the 48 panel tensors this was exactly 24 K3 and 24 K4 tensors,
+or 3.5 bpw. Uniform K3 was not an arm.
+
+`fit/calibration` built H13, native upstream candidates, the private down
+anchor, and canonical H/B. `fit/allocation` scored complete-expert raw SSE for
+the frozen beta grid. Smaller beta was the tie-break.
+
+| Beta | Fit/allocation NMSE | Fit/allocation SSE | Expert wins |
+|---:|---:|---:|---:|
+| 0 | 0.012742601916 | 21,986.448510 | 5 |
+| 0.03125 | 0.012716441926 | 21,941.311318 | 3 |
+| **0.0625** | **0.012699989438** | **21,912.923727** | 4 |
+| 0.125 | 0.012714802383 | 21,938.482404 | 2 |
+| 0.25 | 0.012747242951 | 21,994.456285 | 2 |
+| 0.5 | 0.012885581781 | 22,233.150045 | 0 |
+| 1 | 0.043671878309 | 75,352.703485 | 0 |
+
+The selected `beta=0.0625` improves aggregate SSE by `0.3344%` versus beta 0.
+Beta 1 is catastrophically worse on the frozen fit-only panel and is excluded
+from production allocation. An all-triplet beta-1 reference run was therefore
+stopped after 73 expert records; the records remain preserved but are not
+eligible for final bytes.
+
+### Errors discovered and validation
+
+Two beta-worker attempts failed before accepting any expert record. The first
+exposed an uninitialized preliminary-down H2 codec contract; the second exposed
+a pretty-JSON versus compact-canonical execution-contract hash mismatch.
+Neither rewrote the prepared panel or H13. Both were repaired explicitly and
+covered by regression tests. The final panel validated all 16 expert receipts;
+23 focused tests passed, with Ruff and shell syntax clean.
+
+The selected-beta manifest is
+`results/glm52_full_w4a8_beta_selection_l077_r1.md` in this publication and the
+sealed local JSON has selection ID
+`5b0d1f37868a3b04a0d6b632e0f025ee250bf66a5d924802f10da26c965fe3ee`.
+
+### Next hypothesis and active construction
+
+The exact all-eight-triplet layer-77 scorer and 384-K4 dynamic program now use
+`beta=0.0625`. The first full-model wave, layers 3--6, is prepared on the full
+4,497-document capture and will run W4A8-native profile selection, realized
+mixed-rate allocation, selected-only re-encoding, and a zero-MCG census. The
+full build is an authorized measurement program, not an accepted release;
+multi-prompt KLD, LAVD, Estonia, integrated DCP4/MTP/long-context serving, and
+publication remain downstream gates.
+
 ## Cumulative findings
 
 ### Accepted findings
