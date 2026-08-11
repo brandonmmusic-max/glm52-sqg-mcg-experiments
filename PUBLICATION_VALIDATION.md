@@ -12,6 +12,7 @@ measurement did use an SM120 GPU and is separately identified below.
 | New retained-profile co-routing unit tests | 2 passed |
 | Route-packed M64xN256 bit-exact kernel test, external runtime tree | 2 passed in 14.96s |
 | Corrected full-W4A8 beta/down focused source-workspace tests | 23 passed |
+| Same-rate batching structural tests | 3 passed; real-CUDA equivalence rejected |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
@@ -28,6 +29,11 @@ workspace after the preliminary-H2 initialization and canonical-contract hash
 repairs. It covers the beta panel, selected encoder, and derived-target
 binding; it is recorded here as source-workspace evidence, not as a test run
 from this publication-only checkout.
+
+The same-rate structural tests establish coordinator wiring only. They are not
+evidence of CUDA arithmetic equality: real layer-77 K4 and K3 candidates both
+changed bytes under batching, so the optimization is rejected and production
+encoding remains singleton.
 
 The BMM Law directory retains its historical local name
 `bmmlaw_r7_encoder`, while its tests import `r7_encoder`. The validation run
