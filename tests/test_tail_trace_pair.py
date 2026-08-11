@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 from safetensors.torch import save_file
 import torch
@@ -10,6 +12,9 @@ from scripts.analyze_tail_trace_pair import (
     _routing_metrics,
     _row_relative_delta,
 )
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_routing_metrics_align_weights_by_expert_id_not_slot() -> None:
@@ -93,3 +98,20 @@ def test_trace_loader_selects_complete_invocation_and_proves_dcp_replicas(
     assert len(selected) == 4
     assert {item["invocation"] for item in selected} == {3}
     assert all(item["dcp_rank_replica_exact"] for item in selected)
+
+
+def test_late_trace_runner_keeps_r33_diagnostic_distinct_from_control() -> None:
+    source = (ROOT / "evaluation/run_r33_trace_once.sh").read_text()
+    assert "One diagnostic trace" in source
+    assert "SQG_TAIL_TRACE_LAYERS:-74,75,76,77" in source
+    assert "r33_overlay_historical.args" in source
+    assert "VLLM_EXL3_R7_EXPECT_RESERVED_LAYERS=none" in source
+    assert "run_native_mcg_control.sh" not in source
+
+
+def test_late_trace_pair_uses_exact_four_layer_candidate_contract() -> None:
+    source = (ROOT / "scripts/run_contiguous_late_trace_pair.sh").read_text()
+    assert "SQG_EVAL_LAYERS=74,75,76,77" in source
+    assert "SQG_TAIL_TRACE_LAYERS=74,75,76,77" in source
+    assert "RUNS=1" in source
+    assert "analyze_tail_trace_pair.py" in source

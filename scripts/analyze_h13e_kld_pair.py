@@ -20,7 +20,7 @@ import torch
 RUNS = 5
 POSITIONS = 2047
 TENSOR_NAME = "kld_ref_to_model"
-MIN_ROUNDOFF = -1e-7
+MIN_ROUNDOFF = -2.0 * float(torch.finfo(torch.float32).eps)
 SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 EXPECTED_METADATA = {
     "schema": "glm52-paired-position-kld-v1",

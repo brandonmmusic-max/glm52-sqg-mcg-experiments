@@ -1,9 +1,13 @@
 # Test 10 late-block evidence boundary
 
 This directory publishes compact evidence through the current Test 10
-boundary. Capture, profile selection, alpha-0.25 SQG encoding, sealing, and
-candidate materialization are complete. It does not contain an accepted KLD
-boot, propagation result, or speed result.
+boundary. Capture, profile selection, alpha-0.25 SQG encoding, sealing,
+candidate materialization, five accepted A16 KLD boots, and a second five-boot
+set using the same candidate path, treatment manifest, and runtime identity are
+complete. Its identity record does not independently bind full-checkpoint
+bytes. Compact trace/null analyses live
+under [`results/`](../../results/). It contains no GLM W4A8 speed result and no
+result from the active late-specific alpha panel.
 
 ## Completed stages
 
@@ -24,22 +28,44 @@ boot, propagation result, or speed result.
   reports 1,024 experts, 3,072 SQG tensors, 1,536 K3, 1,536 K4, and zero MCG
   tensors in treatment layers 74--77.
 - The candidate is materialized separately with no protected-source mutation.
+- Five accepted A16 KLD boots have mean `0.06242648405198083` and sample SD
+  `0.001090293791630798`, versus r33 mean `0.0624498626218156`. The difference
+  is `-0.037436%` and repeat-noise inconclusive.
+- A second five-boot set using the same candidate path, selected-treatment
+  manifest, and runtime identity completed. All ten position vectors and
+  acceptance records are included, together with the summary and evidence
+  manifests. The second set's identity record has null candidate-manifest and
+  run-seal hashes, so it is an empirical reference rather than an independent
+  proof of byte-identical full checkpoints.
+- Run 3's single `-1.112351455e-7` position was retained and independently
+  revalidated under a pinned two-float32-epsilon cancellation floor. It was
+  not clamped, and no model, logit, or position-vector bytes were changed.
+- The signed top-8 holdout and paired trace/null analyses are complete. They
+  show an adverse alpha-0.25 proxy and one treatment-consistent but
+  unreplicated cross-arm trace pair. The trace is not a causal estimate and
+  cannot prove that adverse compounding is absent.
 
-## Pending stages
+## Active and pending stages
 
-- repeated final-logit KLD and signed per-position tail analysis; and
-- layer-by-layer routing, signed top-8 output, hidden-state, and residual trace.
+- A resumable late-specific alpha `0`, `0.5`, `0.75`, and `1.0` encode panel is
+  active and incomplete. The sealed alpha-0.25 arm is reused as its fixed
+  comparison. No panel selection or holdout output exists yet, so no blend
+  result is claimed.
+- Middle and early contiguous blocks remain pending.
+- Exact-path GLM W4A8 activation-quality, KLD, and speed tests remain pending.
 
 The first KLD attempt failed during engine initialization, before inference,
 because sealed historical arguments expected reserved layers `6,28,52` while
 the dynamic late treatment correctly produced no reserved layer. `runs.jsonl`
 is empty and no accepted record, summary, per-position tensor, or KLD value was
-produced. That attempt is excluded. The runner now derives the expectation from
-the treatment layers and allows a fail-closed same-directory retry, but the
-retry was not launched by this publication update.
+produced. That attempt remains excluded. The corrected runner derived the
+expectation from the treatment layers and subsequently produced the five
+accepted boots published under `kld_accepted_a025/`.
 
-No conclusion about contiguous error propagation follows from the completed
-construction stages or the rejected pre-inference attempt.
+The accepted block result found scalar parity and no obvious scalar
+catastrophe; its matched per-position tail gate remains unclosed. It is not
+evidence that SQG lowers full-model KLD. Four treated layers provide
+insufficient power for the expected small codebook effect.
 
 ## Published hashes
 
@@ -66,6 +92,8 @@ construction stages or the rejected pre-inference attempt.
 | `candidate/MANIFEST.json` | `5720c1aba18af0917d142f1f755cd03a8311591a638c80cf53d4f410791f30b6` |
 | `kld_failed_run1/run1.log` | `07d398cf6cf3abe623db1876692aab0ee0dd8961776b80aa583ced0400485593` |
 | `kld_failed_run1/runs.jsonl` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `kld_accepted_a025/summary.json` | `50648c13e4b52bfb873e45aee0bba87e8956d53e57bf725dc23b438fccfb279b` |
+| `kld_accepted_a025/per-position-evidence.sha256` | `0bc54087a0583accbe26477aff04e0f850fd021dfc025b921678745b71a0772e` |
 
 The repository-wide [`SHA256SUMS`](../../SHA256SUMS) binds these files again
 after publication assembly.
@@ -75,6 +103,8 @@ after publication assembly.
 The capture's BF16 hidden-state binaries, routing arrays, BF16 source shards,
 prepared Hessian tensors, per-expert permutation records, 1,024 expert tensor
 payloads/manifests, assembled model tensors, unchanged model hard links, runtime
-caches, and all other model-scale payloads remain local. The compact profile
-decisions, layer assembly results, seals, candidate manifest, failure log, and
-hash lists preserve the review boundary.
+caches, raw 4.6-GiB trace buffers, analysis NPZ payloads, active alpha-arm
+encodes, and all other model-scale payloads remain local. The compact profile
+decisions, layer assembly results, seals, candidate manifest, accepted KLD
+vectors/records, result JSON/Markdown, and hash lists preserve the review
+boundary.

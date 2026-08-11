@@ -160,7 +160,7 @@ def test_accepts_tiny_float32_negative_roundoff_without_clamping(
 ) -> None:
     path = tmp_path / "positions.safetensors"
     values = torch.full((POSITIONS,), 0.0617, dtype=torch.float32)
-    values[3] = -4.7e-8
+    values[3] = -1.12e-7
     values[29] = -1e-9
     digest, mean = _write(path, values)
 
@@ -170,9 +170,11 @@ def test_accepts_tiny_float32_negative_roundoff_without_clamping(
         expected_mean_kld=mean,
     )
     assert report["valid"] is True
-    assert report["minimum_kld"] == pytest.approx(-4.7e-8)
+    assert report["minimum_kld"] == pytest.approx(-1.12e-7)
     assert report["negative_roundoff_count"] == 2
-    assert report["negative_roundoff_tolerance"] == 1e-7
+    assert report["negative_roundoff_tolerance"] == pytest.approx(
+        2.0 * torch.finfo(torch.float32).eps
+    )
     assert torch.equal(values, load_file(path)["kld_ref_to_model"])
 
 

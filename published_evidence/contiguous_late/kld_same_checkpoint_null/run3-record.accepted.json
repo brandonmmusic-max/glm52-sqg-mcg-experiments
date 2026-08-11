@@ -1,0 +1,54 @@
+{
+  "elapsed_sec": 56.22440528869629,
+  "mean_kld": 0.06423503730530725,
+  "per_position": {
+    "path": "/results/run3-position-kld.safetensors",
+    "positions": 2047,
+    "sha256": "a101e9850dd8efe378ca43e39a512efcf3450a01b2dad6785d7c5c677efb6525",
+    "tensor": "kld_ref_to_model",
+    "host_path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+    "validation_report": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run3-position-kld.validation.json",
+    "validation_report_sha256": "befa76e12553bb5dc223687c52ae6f7d5f0fddd6ee423dc757f1286772c05035",
+    "independently_validated": true
+  },
+  "token_ids_u32le_sha256": "ad0d213eb533e956bc8e40a585f4fcff61a89a0da4a09cc5d750b46ba6d05c56",
+  "total_positions": 2047,
+  "raw_record_sha256": "f4b2d9a0b03f5231f4cf54eb888dc20034660f742345e2c9027063c03339e46b",
+  "docker_exit_status": 0,
+  "runtime_cache": {
+    "schema": "glm52-runtime-cache-seed-receipt-v1",
+    "source": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-candidate-runtime-cache",
+    "destination": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run3-candidate-runtime-cache",
+    "copy_request": "cp -a --reflink=auto",
+    "source_file_count": 13684,
+    "destination_file_count_before_boot": 13684,
+    "byte_hashing_skipped": true,
+    "cache_semantics": "compiled executable code only; no model, logits, KV, RNG, or process state",
+    "independently_mutable_destination": true,
+    "source_arm": "rejected_sqg_candidate_compiled_code_cache",
+    "source_receipt": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-runtime-cache-receipt.json",
+    "source_receipt_sha256": "e71af3a67335996bcdc41aedfdfeb7c21f6e36b09dd95260fbe86a2b3f93612d",
+    "source_accepted_record": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-r1/candidate/fresh-sqg4-r1-candidate-kld-fp8-dcp4/run1-record.accepted.json",
+    "source_accepted_record_sha256": "77bcdb94502abbc43b6258ebe586bff8e38ef75c5cff6d238cd055570871f600",
+    "started_empty": false,
+    "seeded_snapshot": true,
+    "isolated_per_run": true,
+    "fresh_container_python_engine_workers_model_load": true,
+    "destination_file_count_after_boot": 14316,
+    "receipt": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run3-runtime-cache-receipt.json",
+    "receipt_sha256": "efaf5af0c8b411a55e0973f5c2feb76f33e0dd873e47af8c6752dab10de146e9"
+  },
+  "runtime_dispatch": {
+    "log": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run3.log",
+    "log_sha256": "d1f10a39ede2702132289810c23069f11d3908c54b6a4eaa35038a15976953a7",
+    "proof": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run3-sqg-dispatch-proof.json",
+    "proof_sha256": "cd335b3ea142e25cb450d523cc1caf12761b0bf74a8df1ddd7d959bbd75badcc",
+    "selected_layers": [
+      74,
+      75,
+      76,
+      77
+    ],
+    "sqg_dispatch_proved": true
+  }
+}

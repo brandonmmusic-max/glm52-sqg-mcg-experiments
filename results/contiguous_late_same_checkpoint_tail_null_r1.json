@@ -1,0 +1,404 @@
+{
+  "balanced_partition_null_envelopes": {
+    "delta_p99": {
+      "maximum": 0.17158968484401643,
+      "minimum": 0.07393956431746478,
+      "p05": 0.08737982039302586,
+      "p50": 0.11552126902341832,
+      "p90": 0.13837635362148284,
+      "p95": 0.14460577124506221,
+      "p99": 0.15624575211673974
+    },
+    "delta_p99_5": {
+      "maximum": 0.2581588004492214,
+      "minimum": 0.10130882303416724,
+      "p05": 0.1301030578315258,
+      "p50": 0.16930016757361577,
+      "p90": 0.21275034704506368,
+      "p95": 0.22420423738147666,
+      "p99": 0.23906795794237354
+    },
+    "fraction_equal": {
+      "maximum": 0.016609672691744015,
+      "minimum": 0.006839276990718124,
+      "p05": 0.006839276990718124,
+      "p50": 0.016609672691744015,
+      "p90": 0.016609672691744015,
+      "p95": 0.016609672691744015,
+      "p99": 0.016609672691744015
+    },
+    "fraction_left_lower": {
+      "maximum": 0.5192965315095261,
+      "minimum": 0.4689789936492428,
+      "p05": 0.47608695652173916,
+      "p50": 0.4943820224719101,
+      "p90": 0.5070835368832438,
+      "p95": 0.5100146555935515,
+      "p99": 0.514162188568637
+    },
+    "left_absolute_kld_cvar_1pct": {
+      "maximum": 1.8807741023245312,
+      "minimum": 1.8045391622043792,
+      "p05": 1.8147129702284224,
+      "p50": 1.8383509556452433,
+      "p90": 1.8607887253874824,
+      "p95": 1.8658940485545565,
+      "p99": 1.8735896563246137
+    },
+    "left_absolute_kld_p99": {
+      "maximum": 1.123559339761734,
+      "minimum": 0.9180302248001091,
+      "p05": 0.954703588032721,
+      "p50": 1.0221547172069525,
+      "p90": 1.085496693229674,
+      "p95": 1.0924094692945467,
+      "p99": 1.1146483175349227
+    },
+    "maximum_regression": {
+      "maximum": 1.1737607717514038,
+      "minimum": 0.27518570125103,
+      "p05": 0.3245103059709072,
+      "p50": 0.4986136488616467,
+      "p90": 0.7432675302028656,
+      "p95": 0.8139115023612976,
+      "p99": 1.0168920631408693
+    },
+    "mean_delta": {
+      "maximum": 0.0021578890621931895,
+      "minimum": -0.0021578890621931895,
+      "p05": -0.0013866980858675815,
+      "p50": 0.0,
+      "p90": 0.0010964961936630387,
+      "p95": 0.0013866980858675815,
+      "p99": 0.0018412390900964836
+    },
+    "negative_delta_mass": {
+      "maximum": 12.977398217016303,
+      "minimum": 7.661991821189632,
+      "p05": 8.388190602093362,
+      "p50": 10.148628491072756,
+      "p90": 11.705348365434332,
+      "p95": 12.039556399548482,
+      "p99": 12.518906459211959
+    },
+    "positive_delta_cvar_1pct": {
+      "maximum": 0.2917211344984155,
+      "minimum": 0.14056346820933474,
+      "p05": 0.16360720274171658,
+      "p50": 0.20825110210238823,
+      "p90": 0.25041033210007724,
+      "p95": 0.2609664082737479,
+      "p99": 0.27317985478630347
+    },
+    "positive_delta_mass": {
+      "maximum": 12.977398217016303,
+      "minimum": 7.661991821189632,
+      "p05": 8.388190602093362,
+      "p50": 10.148628491072756,
+      "p90": 11.705348365434332,
+      "p95": 12.039556399548482,
+      "p99": 12.518906459211959
+    },
+    "positive_delta_p99": {
+      "maximum": 0.17158968484401643,
+      "minimum": 0.07393956431746478,
+      "p05": 0.08737982039302586,
+      "p50": 0.11552126902341832,
+      "p90": 0.13837635362148284,
+      "p95": 0.14460577124506221,
+      "p99": 0.15624575211673974
+    },
+    "worst_1pct_jaccard": {
+      "maximum": 0.9090909090909091,
+      "minimum": 0.75,
+      "p05": 0.75,
+      "p50": 0.8260869565217391,
+      "p90": 0.9090909090909091,
+      "p95": 0.9090909090909091,
+      "p99": 0.9090909090909091
+    },
+    "worst_1pct_overlap_count": {
+      "maximum": 20.0,
+      "minimum": 18.0,
+      "p05": 18.0,
+      "p50": 19.0,
+      "p90": 20.0,
+      "p95": 20.0,
+      "p99": 20.0
+    }
+  },
+  "input_a": {
+    "float32_mean_closure_atol": 1.488363362597962e-08,
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/summary.json",
+    "scalar_minus_vectors_mean": 2.541279964241028e-10,
+    "sha256": "50648c13e4b52bfb873e45aee0bba87e8956d53e57bf725dc23b438fccfb279b",
+    "stored_vectors_mean": 0.06242648379785283,
+    "summary_scalar_mean": 0.06242648405198083,
+    "vectors": [
+      {
+        "float32_mean_closure_atol": 1.476205222323676e-08,
+        "mean": 0.06191653444916558,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -5.912327694090891e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run1-container-output/run1-position-kld.safetensors",
+        "run": 1,
+        "scalar_minus_vector_mean": 2.3896525036537497e-10,
+        "sha256": "ac6dd6ec3063fa497a9423d288d2feb86823f0b495749b065aff5677d799bae7",
+        "stored_vector_mean": 0.06191653444916558,
+        "summary_scalar_mean": 0.06191653468813083
+      },
+      {
+        "float32_mean_closure_atol": 1.492268301459507e-08,
+        "mean": 0.06259026869987544,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -4.615145243747065e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run2-container-output/run2-position-kld.safetensors",
+        "run": 2,
+        "scalar_minus_vector_mean": 3.589727265440601e-10,
+        "sha256": "e1aa9b22bfc8960b439ad32b3fa07dcbed74763722a1044dd9755cc09df76d61",
+        "stored_vector_mean": 0.06259026869987544,
+        "summary_scalar_mean": 0.06259026905884817
+      },
+      {
+        "float32_mean_closure_atol": 1.4915711698789056e-08,
+        "mean": 0.0625610280406736,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -1.1123514553901259e-07,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+        "run": 3,
+        "scalar_minus_vector_mean": 1.200404137202682e-09,
+        "sha256": "4ec9a3457dc13ff90d0115b0cb8b0170e6f0167f5860fc91c50f3d68fb7f7236",
+        "stored_vector_mean": 0.0625610280406736,
+        "summary_scalar_mean": 0.06256102924107773
+      },
+      {
+        "float32_mean_closure_atol": 1.45541216127212e-08,
+        "mean": 0.0610444104419343,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -3.1187262550247397e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run4-container-output/run4-position-kld.safetensors",
+        "run": 4,
+        "scalar_minus_vector_mean": -2.9978484278325723e-10,
+        "sha256": "4e2399daaf41b8d87b0b6f7a8d7f51835263ee8446b9fec6a00ee10dc1c8ab53",
+        "stored_vector_mean": 0.0610444104419343,
+        "summary_scalar_mean": 0.06104441014214946
+      },
+      {
+        "float32_mean_closure_atol": 1.526359975133463e-08,
+        "mean": 0.06402017735761521,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -4.1717139964703165e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run5-container-output/run5-position-kld.safetensors",
+        "run": 5,
+        "scalar_minus_vector_mean": -2.2791728226945196e-10,
+        "sha256": "b4627e6d6f8dfbfdf64084756294fb08dce7eab272088b250f7da5aad691c447",
+        "stored_vector_mean": 0.06402017735761521,
+        "summary_scalar_mean": 0.06402017712969793
+      }
+    ]
+  },
+  "input_b": {
+    "float32_mean_closure_atol": 1.4809341531715177e-08,
+    "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/summary.json",
+    "scalar_minus_vectors_mean": 5.021809426630774e-10,
+    "sha256": "72ae5b906299f57aa9ac672ec281da8c24fa28835a2e0908e6e5a18f9ff9bc37",
+    "stored_vectors_mean": 0.06211487992165815,
+    "summary_scalar_mean": 0.06211488042383909,
+    "vectors": [
+      {
+        "float32_mean_closure_atol": 1.5101819460488063e-08,
+        "mean": 0.06334162134304122,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -7.851028271943505e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run1-container-output/run1-position-kld.safetensors",
+        "run": 1,
+        "scalar_minus_vector_mean": 4.273617015826403e-10,
+        "sha256": "269185ff9db0ee2a00ebabbb8d34b3a9c9f767dd1784990c3664c28e72be51b0",
+        "stored_vector_mean": 0.06334162134304122,
+        "summary_scalar_mean": 0.06334162177040292
+      },
+      {
+        "float32_mean_closure_atol": 1.4459880130916739e-08,
+        "mean": 0.06064913296242058,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -4.258008701185645e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run2-container-output/run2-position-kld.safetensors",
+        "run": 2,
+        "scalar_minus_vector_mean": 1.1020401952110959e-10,
+        "sha256": "b0cbc86db563f69d16a971b2a6a679a9df3e1c1397705178764227574830058f",
+        "stored_vector_mean": 0.06064913296242058,
+        "summary_scalar_mean": 0.0606491330726246
+      },
+      {
+        "float32_mean_closure_atol": 1.5314826322867214e-08,
+        "mean": 0.06423503651305494,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -2.6707233757861104e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run3-container-output/run3-position-kld.safetensors",
+        "run": 3,
+        "scalar_minus_vector_mean": 7.922523054260111e-10,
+        "sha256": "a101e9850dd8efe378ca43e39a512efcf3450a01b2dad6785d7c5c677efb6525",
+        "stored_vector_mean": 0.06423503651305494,
+        "summary_scalar_mean": 0.06423503730530725
+      },
+      {
+        "float32_mean_closure_atol": 1.4699968330116127e-08,
+        "mean": 0.061656135594803124,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -7.653987665889872e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run4-container-output/run4-position-kld.safetensors",
+        "run": 4,
+        "scalar_minus_vector_mean": 3.720762656311827e-10,
+        "sha256": "fc4102cfd7d5cd454efb4f9bfd96ad893094096f6b067c6ea198a39a33459b7c",
+        "stored_vector_mean": 0.061656135594803124,
+        "summary_scalar_mean": 0.06165613596687939
+      },
+      {
+        "float32_mean_closure_atol": 1.4470213414187744e-08,
+        "mean": 0.060692473194970877,
+        "metadata": {
+          "direction": "KL(ref||model)",
+          "positions": "2047",
+          "schema": "glm52-paired-position-kld-v1"
+        },
+        "minimum": -8.102399817744299e-08,
+        "path": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-null-r1/candidate/fresh-sqg-contig-late-a025-null-r1-candidate-kld-fp8-dcp4/run5-container-output/run5-position-kld.safetensors",
+        "run": 5,
+        "scalar_minus_vector_mean": 8.090104350322314e-10,
+        "sha256": "c6a8f2cee059f8a838fba728ac7873ba74aa6f5b3685d1ee137f7f49a02fb6eb",
+        "stored_vector_mean": 0.060692473194970877,
+        "summary_scalar_mean": 0.06069247400398131
+      }
+    ]
+  },
+  "limitations": [
+    "The envelope describes fresh-boot variation for one checkpoint, prompt, and FP8-KV runtime regime.",
+    "Balanced partitions reuse ten observed boots and are not independent experiments.",
+    "This calibration does not increase the statistical power of a four-layer treatment comparison."
+  ],
+  "method": {
+    "checkpoint_groups": "two independent five-boot sets of the exact same candidate",
+    "directional_partition_orientations": 252,
+    "pooled_boots": 10,
+    "positions": 2047,
+    "purpose": "empirical null envelope for KLD tail gates; not a treatment effect",
+    "roundoff_floor": -2.384185791015625e-07,
+    "tail_fraction": 0.01,
+    "unique_unoriented_balanced_partitions": 126
+  },
+  "observed_arbitrary_group_comparison": {
+    "a_minus_b": {
+      "delta_p99": 0.1011682138741016,
+      "delta_p99_5": 0.15059155490994441,
+      "fraction_equal": 0.006839276990718124,
+      "fraction_left_lower": 0.495847581827064,
+      "left_absolute_kld_cvar_1pct": 1.8462004258519127,
+      "left_absolute_kld_p99": 1.0600237505435912,
+      "maximum_regression": 0.5451440572738644,
+      "mean_delta": 0.0003116038761946772,
+      "negative_delta_mass": 8.844864494099077,
+      "positive_delta_cvar_1pct": 0.1926079072058201,
+      "positive_delta_mass": 9.482717628669583,
+      "positive_delta_p99": 0.1011682138741016,
+      "worst_1pct_jaccard": 0.8260869565217391,
+      "worst_1pct_overlap_count": 19.0
+    },
+    "b_minus_a": {
+      "delta_p99": 0.10435266131907701,
+      "delta_p99_5": 0.13773958849906917,
+      "fraction_equal": 0.006839276990718124,
+      "fraction_left_lower": 0.49731314118221787,
+      "left_absolute_kld_cvar_1pct": 1.8258077559017,
+      "left_absolute_kld_p99": 1.0296199891567224,
+      "maximum_regression": 0.3544337272644045,
+      "mean_delta": -0.0003116038761946772,
+      "negative_delta_mass": 9.482717628669583,
+      "positive_delta_cvar_1pct": 0.15184580674838455,
+      "positive_delta_mass": 8.844864494099077,
+      "positive_delta_p99": 0.10435266131907701,
+      "worst_1pct_jaccard": 0.8260869565217391,
+      "worst_1pct_overlap_count": 19.0
+    },
+    "warning": "A/B direction is arbitrary because both groups use the same checkpoint"
+  },
+  "recommended_gate_calibration": {
+    "directional_harm_metrics": {
+      "delta_p99": 0.14460577124506221,
+      "delta_p99_5": 0.22420423738147666,
+      "maximum_regression": 0.8139115023612976,
+      "positive_delta_cvar_1pct": 0.2609664082737479,
+      "positive_delta_mass": 12.039556399548482,
+      "positive_delta_p99": 0.14460577124506221
+    },
+    "rule": "A future treatment fails a tail metric only when its directional harm exceeds the corresponding same-checkpoint p95 null envelope; retain raw preregistered values alongside the null-calibrated verdict.",
+    "two_sided_mean_absolute_95": 0.0013866980858675815,
+    "win_fraction_null_95_interval": [
+      0.47608695652173916,
+      0.5100146555935515
+    ]
+  },
+  "same_checkpoint_identity": {
+    "baseline_identity": {
+      "mean_kld": 0.0624498626218156,
+      "runs": 5,
+      "sample_sd_kld": 0.0015327574926078513,
+      "summary": "/home/brandonmusic/klc-linux/release-gg-sparkinfer-20260721/results/20260809T194958Z-kld-fp8-dcp4/summary.json"
+    },
+    "candidate": "/home/brandonmusic/models/GLM-5.2-EXL3-TR3v4-3.5bpw-SQG-CONTIG-L74-77-A025-r1",
+    "candidate_manifest_sha256": null,
+    "dcp_comm_backend": "a2a",
+    "dcp_kv_cache_interleave_size": 64,
+    "decode_context_parallel_size": 4,
+    "exact_runtime_args_sha256": "8ffce18aa541c5af26d20512aacaadf00898cd32d4d4a957454630a9d94d918a",
+    "kv_cache_dtype": "fp8",
+    "reference_sha256": "87f992a689c054a0548a4b3863da6c809f9239beacd5786d0401e45904fec063",
+    "reference_token_ids_u32le_sha256": "ad0d213eb533e956bc8e40a585f4fcff61a89a0da4a09cc5d750b46ba6d05c56",
+    "run_seal_sha256": null,
+    "runtime_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "runtime_overlay_sha256": "1dc1b8439821ceecb459b42bf13a1efc3e44e376e8a2c5423e7b0a12ad5239d9",
+    "selected_sqg_layers": [
+      74,
+      75,
+      76,
+      77
+    ],
+    "selected_treatment_manifest_sha256": "b13d9f91f808ee0b9d4e8014864f0e54b6cfdfaf261cb818a08a69d86b419a04"
+  },
+  "schema": "glm52-same-checkpoint-tail-null-v1"
+}
