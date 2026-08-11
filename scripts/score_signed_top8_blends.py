@@ -25,6 +25,7 @@ from typing import Any
 import numpy as np
 import torch
 import torch.nn.functional as F
+from safetensors import safe_open
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -48,9 +49,27 @@ from scripts.compare_recalibrated_sqg import (  # noqa: E402
     PROJECTIONS,
     ROLES,
     TOPK,
+    _decode_mcg,
+    _mcg_lut,
     _decode_sqg,
     _route_indices,
 )
+
+
+def _parse_layers(raw: str) -> tuple[int, int, int, int]:
+    try:
+        layers = tuple(int(value) for value in raw.split(","))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("layers must be comma-separated integers") from exc
+    if (
+        len(layers) != 4
+        or tuple(sorted(set(layers))) != layers
+        or any(layer < 3 or layer > 77 for layer in layers)
+    ):
+        raise argparse.ArgumentTypeError(
+            "layers must be four unique ascending routed layers in [3,77]"
+        )
+    return layers
 
 
 def _sha256_array(values: np.ndarray) -> str:
@@ -198,6 +217,7 @@ def _score_layer(
     project_root_raw: str,
     chunk_rows: int,
     output_root_raw: str,
+    mcg_baseline_label: str | None,
 ) -> dict[str, Any]:
     torch.set_num_threads(4)
     torch.set_num_interop_threads(1)
@@ -205,7 +225,10 @@ def _score_layer(
     torch.set_float32_matmul_precision("highest")
     device = torch.device(f"cuda:{gpu}")
     candidates = {label: Path(path) for label, path in candidates_raw.items()}
-    reference_root = candidates[baseline_label]
+    reference_root = next(iter(candidates.values()))
+    labels = list(candidates)
+    if mcg_baseline_label is not None:
+        labels.append(mcg_baseline_label)
     mcg_root = Path(mcg_root_raw)
     bf16_root = Path(bf16_root_raw)
     capture_root = Path(capture_root_raw)
@@ -244,13 +267,25 @@ def _score_layer(
     reference_sum = torch.zeros((nrows, HIDDEN), dtype=torch.float32, device=device)
     delta_sums = {
         label: torch.zeros((nrows, HIDDEN), dtype=torch.float32, device=device)
-        for label in candidates
+        for label in labels
     }
-    individual_sse = {label: 0.0 for label in candidates}
-    per_expert_sse = {label: np.zeros(256, dtype=np.float64) for label in candidates}
+    individual_sse = {label: 0.0 for label in labels}
+    per_expert_sse = {label: np.zeros(256, dtype=np.float64) for label in labels}
     route_count = 0
+    mcg_lut = _mcg_lut().to(device) if mcg_baseline_label is not None else None
+    mcg_context = (
+        safe_open(
+            mcg_root / f"r7-experts-layer-{layer:03d}.safetensors",
+            framework="pt",
+            device="cpu",
+        )
+        if mcg_baseline_label is not None
+        else None
+    )
+    mcg_payload = mcg_context.__enter__() if mcg_context is not None else None
 
-    with torch.inference_mode():
+    try:
+      with torch.inference_mode():
         for expert in range(256):
             rows, slots = route_indices[role][expert]
             if rows.size == 0:
@@ -282,6 +317,19 @@ def _score_layer(
                 )
                 for label, root in candidates.items()
             }
+            if mcg_baseline_label is not None:
+                if mcg_payload is None or mcg_lut is None:
+                    raise RuntimeError("MCG baseline decoder was not initialized")
+                weights[mcg_baseline_label] = _decode_mcg(
+                    layer=layer,
+                    expert=expert,
+                    sidecar=sidecar,
+                    handle=mcg_payload,
+                    device=device,
+                    lut=mcg_lut,
+                    decode_exl3_weight=decode_exl3_weight,
+                    unpack_trellis_states=unpack_trellis_states,
+                )
 
             for begin in range(0, rows.size, chunk_rows):
                 end = min(rows.size, begin + chunk_rows)
@@ -292,7 +340,7 @@ def _score_layer(
                 source_up = hidden @ source["up_proj"]
                 source_output = (F.silu(source_gate) * source_up) @ source["down_proj"]
                 reference_sum.index_add_(0, indices, source_output * gate)
-                for label in candidates:
+                for label in labels:
                     gate_output = hidden @ weights[label]["gate_proj"]
                     up_output = hidden @ weights[label]["up_proj"]
                     candidate_output = (
@@ -315,11 +363,14 @@ def _score_layer(
                     f"layer {layer} {role}: {expert + 1}/256 experts",
                     flush=True,
                 )
+    finally:
+        if mcg_context is not None:
+            mcg_context.__exit__(None, None, None)
 
     reference_energy, errors = _reduce_rows(reference_sum, delta_sums)
     baseline_error = errors[baseline_label]
     metrics: dict[str, Any] = {}
-    for label in candidates:
+    for label in labels:
         summed_sse = float(errors[label].sum(dtype=np.float64))
         denominator = float(reference_energy.sum(dtype=np.float64))
         metrics[label] = {
@@ -377,6 +428,7 @@ def _score_layer(
 
 def _aggregate(
     layer_results: dict[int, dict[str, Any]],
+    layers: tuple[int, int, int, int],
     labels: list[str],
     baseline_label: str,
     role: str,
@@ -385,7 +437,7 @@ def _aggregate(
     aggregate_errors: dict[str, np.ndarray] = {}
     aggregate_individual = {label: 0.0 for label in labels}
     identity: tuple[np.ndarray, np.ndarray] | None = None
-    for layer in LAYERS:
+    for layer in layers:
         result = layer_results[layer]
         with np.load(result["row_output"]) as payload:
             docs = payload["doc_epochs"]
@@ -490,7 +542,7 @@ def _aggregate(
 
     return {
         "role": role,
-        "layers": list(LAYERS),
+        "layers": list(layers),
         "positions": int(aggregate_reference.size),
         "baseline_label": baseline_label,
         "selection_policy": {
@@ -567,6 +619,16 @@ def main() -> int:
         metavar="LABEL=/ABSOLUTE/PATH",
     )
     parser.add_argument("--baseline-label", required=True)
+    parser.add_argument(
+        "--mcg-baseline-label",
+        help="Decode the protected MCG checkpoint as this additional arm.",
+    )
+    parser.add_argument(
+        "--layers",
+        type=_parse_layers,
+        default=tuple(LAYERS),
+        help="Exactly four ascending routed layers (default: 6,28,52,77).",
+    )
     parser.add_argument("--role", choices=("selection", "holdout"), required=True)
     parser.add_argument("--mcg-root", type=Path, default=DEFAULT_MCG_ROOT)
     parser.add_argument("--bf16-root", type=Path, default=DEFAULT_BF16_ROOT)
@@ -579,7 +641,12 @@ def main() -> int:
     candidates = dict(args.candidate)
     if len(candidates) != len(args.candidate):
         raise ValueError("candidate labels must be unique")
-    if args.baseline_label not in candidates:
+    if args.mcg_baseline_label is not None:
+        if args.mcg_baseline_label in candidates:
+            raise ValueError("MCG baseline label duplicates an SQG candidate label")
+        if args.baseline_label != args.mcg_baseline_label:
+            raise ValueError("MCG baseline label must also be --baseline-label")
+    elif args.baseline_label not in candidates:
         raise ValueError("baseline label is not among candidates")
     for label, path in candidates.items():
         if not path.is_dir():
@@ -606,23 +673,31 @@ def main() -> int:
                 str(PROJECT_ROOT),
                 args.chunk_rows,
                 str(layer_output_root),
+                args.mcg_baseline_label,
             ): layer
-            for gpu, layer in enumerate(LAYERS)
+            for gpu, layer in enumerate(args.layers)
         }
         for future in as_completed(futures):
             layer = futures[future]
             layer_results[layer] = future.result()
             print(f"layer {layer}: signed top-8 scoring complete", flush=True)
 
+    labels = list(candidates)
+    if args.mcg_baseline_label is not None:
+        labels.append(args.mcg_baseline_label)
     aggregate = _aggregate(
         layer_results,
-        list(candidates),
+        args.layers,
+        labels,
         args.baseline_label,
         args.role,
     )
+    candidate_paths = {label: str(path.resolve()) for label, path in candidates.items()}
+    if args.mcg_baseline_label is not None:
+        candidate_paths[args.mcg_baseline_label] = str(args.mcg_root.resolve())
     result = {
         "schema": "glm52-signed-top8-h13-blend-score-v1",
-        "candidates": {label: str(path.resolve()) for label, path in candidates.items()},
+        "candidates": candidate_paths,
         "baseline_label": args.baseline_label,
         "role": args.role,
         "method": {
@@ -630,6 +705,8 @@ def main() -> int:
             "exact_captured_top8_ids_and_applied_gates": True,
             "bf16_reference_expert_functions": True,
             "candidate_packed_bytes_decoded": True,
+            "mcg_packed_bytes_decoded": args.mcg_baseline_label is not None,
+            "layers": list(args.layers),
             "tail_control_precedes_win_rate": True,
             "fit_rows_used": False,
             "selection_rows_used": args.role == "selection",

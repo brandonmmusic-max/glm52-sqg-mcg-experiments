@@ -1,0 +1,15 @@
+{
+  "bit_histogram": {
+    "3": 384,
+    "4": 384
+  },
+  "complete": true,
+  "layer": 76,
+  "layer_manifest": "/candidate/layer_076/final/fresh-sqg-layer-076.json",
+  "layer_manifest_sha256": "4d12f51c058703a6684a6aea4ff9645e66e7b2a818cf8bf5b63eaa0dc0c565c1",
+  "layer_shard_sha256": "5283866a051ddbf3a0373738b4aa18d16dedcd8bfdab8b6158823c555ff6512b",
+  "mcg_tensors": 0,
+  "selection_id": "e93307ee8d3b9a3d4cc3d484f24559f57670b1167b196809c26707882ddcd684",
+  "selection_sha256": "d57a874c0bd858e824ec450da38bafc2a3523e78f663d9eb46a7741f9579ab06",
+  "sqg_tensors": 768
+}

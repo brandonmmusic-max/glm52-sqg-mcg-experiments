@@ -1,0 +1,43 @@
+{
+  "schema": "glm52-pure-sqg-four-layer-preflight-v2",
+  "directional_test_fast_identity_only": true,
+  "protected_source": "/home/brandonmusic/models/GLM-5.2-EXL3-TR3v4-3.5bpw-CORRECTED",
+  "candidate_manifest_sha256": "5720c1aba18af0917d142f1f755cd03a8311591a638c80cf53d4f410791f30b6",
+  "candidate_manifest_id": "d74abc5e94ae9c3f05ceb7600fb0b602161c4c70249934178b83bef42fd119f4",
+  "run_seal_sha256": "567066231b882732d5bc82a093123002573a9cc8cf507ec763e2c2e7184606cf",
+  "run_seal_id": "45bd96310da349fe55bc70205000db528c620dc62f5fcde3567e5b7c2c29b56d",
+  "sanitized_bit_contract": {
+    "only_inherited_quantization_control": "per-tensor K3/K4 assignment",
+    "path": "/work/contracts/contiguous_late_bit_allocations_r1.json",
+    "schema": "glm52-fresh-sqg-frozen-per-tensor-bit-allocation-v1",
+    "sha256": "b70773e4d11fb0495d74f4a6977d1e10a9417907d31efdc3ea5de0b243c32a09"
+  },
+  "construction_exclusions": {
+    "mcg_decoded_weight_reads": 0,
+    "mcg_encoder_seeds": 0,
+    "mcg_payload_bytes": 0,
+    "mcg_permutations": 0,
+    "mcg_scale_vectors": 0,
+    "mcg_transform_vectors": 0,
+    "stale_per_tensor_shared_side_scales": 0
+  },
+  "selected_layers": [
+    74,
+    75,
+    76,
+    77
+  ],
+  "global_unselected_layer_codebook": "mcg",
+  "selected_layer_codebook": "sqg_xor_cheb_t12",
+  "tensor_overrides": {},
+  "selected_trellis_tensors": 3072,
+  "selected_sqg_markers": 3072,
+  "selected_mcg_markers": 0,
+  "sqg_markers_outside_selected_layers": 0,
+  "marker_payloads_verified": false,
+  "selected_payload_hashes_verified": false,
+  "selected_legacy_inodes_reused": 0,
+  "source_bytes_mutated": false,
+  "verified_marker_present": true,
+  "layers": []
+}

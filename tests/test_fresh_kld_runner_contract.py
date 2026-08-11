@@ -23,6 +23,41 @@ def test_fresh_kld_runner_has_valid_shell_syntax() -> None:
     subprocess.run(["bash", "-n", str(RUNNER)], check=True)
 
 
+def test_incomplete_run1_retry_is_fail_closed() -> None:
+    source = RUNNER.read_text(encoding="utf-8")
+    assert 'RETRY_INCOMPLETE_RUN1="${RETRY_INCOMPLETE_RUN1:-0}"' in source
+    assert "incomplete run-1 retry found accepted evidence" in source
+    assert "incomplete run-1 retry found nonempty runs.jsonl" in source
+    assert "refusing to retry a completed candidate output" in source
+
+
+def test_fresh_kld_runner_binds_every_treatment_check_to_exact_eval_layers() -> None:
+    source = RUNNER.read_text(encoding="utf-8")
+    assert 'SQG_EVAL_LAYERS="${SQG_EVAL_LAYERS:-6,28,52,77}"' in source
+    assert "SQG_EVAL_LAYERS must be exactly four comma-separated integers" in source
+    assert "SQG_EVAL_LAYERS must contain four unique ascending layers" in source
+    assert 'SQG_EVAL_LAYERS_JSON="[$SQG_EVAL_LAYERS]"' in source
+    assert source.count(
+        'for sqg_layer in "${SQG_EVAL_LAYER_ARRAY[@]}"; do'
+    ) == 2
+    assert '-e FRESH_SQG_SELECTED_LAYERS="$SQG_EVAL_LAYERS"' in source
+    assert 'SQG_TAIL_TRACE_LAYERS="${SQG_TAIL_TRACE_LAYERS:-$SQG_EVAL_LAYERS}"' in source
+    assert "selected_overrides:$selected_overrides" in source
+    assert "selected_sqg_layers: $selected_layers" in source
+    assert "required_layers: $selected_layers" in source
+    assert "records: $records" in source
+    assert "selected_layers: $selected_layers" in source
+    # The literal remains only as the backwards-compatible default and as the
+    # provenance check for the original compiled-code cache seed.
+    assert source.count("6,28,52,77") == 2
+    assert "historical compiled-code cache" in source
+    assert "SQG_EXPECTED_RESERVED_LAYERS_CSV=none" in source
+    assert (
+        "VLLM_EXL3_R7_EXPECT_RESERVED_LAYERS="
+        "$SQG_EXPECTED_RESERVED_LAYERS_CSV" in source
+    )
+
+
 def test_fresh_kld_runner_is_bound_to_sealed_candidate_abi() -> None:
     source = RUNNER.read_text(encoding="utf-8")
     invocation = source.index(
@@ -32,10 +67,10 @@ def test_fresh_kld_runner_is_bound_to_sealed_candidate_abi() -> None:
     validation_block = source[invocation:manifest]
     for required in (
         '--source "$PRODUCTION_MODEL"',
-        '--teacher-receipt /work/evidence/teacher_model_identity.json',
-        '--run-seal /output/run_seal.json',
+        '--teacher-receipt "$TEACHER_RECEIPT_CONTAINER"',
+        '--run-seal "$RUN_SEAL_CONTAINER"',
         '--artifacts-root /output',
-        '--bit-contract /work/contracts/frozen_bit_allocations.json',
+        '--bit-contract "$BIT_CONTRACT_CONTAINER"',
     ):
         assert required in validation_block
     for required_mount in (
@@ -65,6 +100,13 @@ def test_fresh_kld_runner_is_bound_to_sealed_candidate_abi() -> None:
     assert 'reject_result_overlap "candidate" "$CANDIDATE"' in source
     assert 'reject_result_overlap "production model" "$PRODUCTION_MODEL"' in source
     assert 'reject_result_overlap "fresh artifact tree" "$ARTIFACTS_ROOT"' in source
+    assert 'BF16_LAYERS_CONTAINER="$BF16_LAYERS_SOURCE"' in source
+    assert '-e FRESH_SQG_BIT_CONTRACT_SHA256=' in validation_block
+    assert (
+        "for validator_path_env in FRESH_SQG_BF16_MANIFEST "
+        "FRESH_SQG_PLAN_CONTRACT; do" in source
+    )
+    assert '"${VALIDATOR_DYNAMIC_ENV_ARGS[@]}"' in validation_block
 
 
 def test_every_accepted_run_requires_hashed_per_position_kld() -> None:

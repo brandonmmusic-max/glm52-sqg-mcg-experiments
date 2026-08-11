@@ -7,8 +7,9 @@ top-8, tail-constrained `H13` blend ablation, the preregistered contiguous-block
 follow-up, and a separate QSRT/Kimi K3 K1 feasibility audit.
 
 The experiment kept the production topology and the per-tensor K3/K4 bit
-assignment fixed. Bits were **not** reallocated per expert. The tested layers
-were 6, 28, 52, and 77, with 256 experts and three expert projections per layer.
+assignment fixed. Bits were **not** reallocated per expert. The initial
+diagnostic layers were 6, 28, 52, and 77; the first contiguous block is layers
+74--77. Every selected layer has 256 experts and three expert projections.
 
 ## Bottom line
 
@@ -49,12 +50,21 @@ early/middle/late blocks.
 | 217-document plan | Sealed: 253,863 whole-document rows per layer; 150,368 fit, 51,232 selection, 52,263 holdout |
 | Routed capture | Complete and sealed for layers 74-77 |
 | Four-GPU layer preparation | Complete: 256 permutations/layer, fit-only, zero MCG inputs, zero fallback |
-| Profile search | Not yet complete |
-| Alpha-0.25 encoding/materialization | Not yet complete |
-| Final-logit KLD and propagation trace | Not yet run |
+| Profile search | Complete: all 16 preregistered cells/layer; selected identity draw 0 for layers 74-76 and identity draw 3 for layer 77 |
+| Alpha-0.25 encoding | Complete: alpha is 25% expert-local/75% layer-global; 1,024 experts and 3,072 SQG tensors |
+| Rate/codebook census | Complete: 1,536 K3 + 1,536 K4; zero MCG tensors in treatment layers |
+| Candidate materialization | Complete and separately sealed without mutating the protected source model |
+| First KLD attempt | Excluded: failed before inference on a stale historical reserved-layer assertion; zero accepted records and no KLD result |
+| Corrected KLD runner | Ready for a fail-closed retry of incomplete run 1 in the same output directory; retry not launched by this publication update |
+| Final-logit KLD and propagation trace | Pending |
 
-There is consequently no Test 10 quality conclusion yet. Middle layers 38-41,
-early layers 10-13, and all W4A8 quality/speed endpoints remain pending.
+The failure was a runner/runtime-contract mismatch: the sealed historical
+arguments expected reserved layers `6,28,52`, while the late candidate uses
+layers 74-77 and therefore reserves none of those slots. The runner now derives
+the expected reservation dynamically from the selected treatment layers.
+
+There is still no Test 10 quality conclusion. Middle layers 38-41, early layers
+10-13, and all W4A8 quality/speed endpoints remain pending.
 
 ## Start here
 
