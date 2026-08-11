@@ -6,6 +6,11 @@ trellis representation with KQuant-style SQG. It now includes the signed
 top-8, tail-constrained `H13` blend ablation, the preregistered contiguous-block
 follow-up, and a separate QSRT/Kimi K3 K1 feasibility audit.
 
+The [current-QSRT snapshot and history
+review](docs/qsrt_current_update_review_2026-08-10.md) covers the new coupled
+K3 Hadamard path, allocation evidence, W4A8 implications, and attribution
+history without treating QSRT fixtures as GLM quality results.
+
 The experiment kept the production topology and the per-tensor K3/K4 bit
 assignment fixed. Bits were **not** reallocated per expert. The initial
 diagnostic layers were 6, 28, 52, and 77; the first contiguous block is layers
