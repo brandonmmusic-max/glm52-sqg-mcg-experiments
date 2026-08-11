@@ -36,6 +36,16 @@ for candidate in "$@"; do
   candidate_args+=(--candidate "$candidate")
 done
 
+dynamic_args=(
+  --layers "${SQG_SCORE_LAYERS:-6,28,52,77}"
+  --mcg-root "${FRESH_SQG_MCG_ROOT:-$MODELS_ROOT/GLM-5.2-EXL3-TR3v4-3.5bpw-CORRECTED}"
+  --bf16-root "${FRESH_SQG_BF16_ROOT:-$PROJECT_ROOT/bf16_layers}"
+  --capture-root "${FRESH_SQG_CAPTURE_ROOT:-$WORKSPACE_ROOT/fresh-sqg-full2.GPlzPL/fresh-sqg-calibration-r1}"
+)
+if [[ -n "${SQG_SCORE_MCG_BASELINE_LABEL:-}" ]]; then
+  dynamic_args+=(--mcg-baseline-label "$SQG_SCORE_MCG_BASELINE_LABEL")
+fi
+
 docker run --rm --network none --gpus all --shm-size 64g \
   --user "$(id -u):$(id -g)" \
   --tmpfs /tmp:rw,nosuid,nodev,size=32g \
@@ -52,6 +62,7 @@ docker run --rm --network none --gpus all --shm-size 64g \
   --entrypoint /opt/venv/bin/python -w "$PROJECT_ROOT" "$IMAGE" \
   scripts/score_signed_top8_blends.py \
     --role "$ROLE" --baseline-label "$BASELINE_LABEL" \
-    --chunk-rows 1024 --output "$OUTPUT" "${candidate_args[@]}"
+    --chunk-rows 1024 --output "$OUTPUT" \
+    "${dynamic_args[@]}" "${candidate_args[@]}"
 
 printf 'Signed top-8 %s score complete: %s\n' "$ROLE" "$OUTPUT"

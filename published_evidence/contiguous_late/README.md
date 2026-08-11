@@ -1,8 +1,9 @@
 # Test 10 late-block evidence boundary
 
-This directory publishes the compact evidence available at the current Test 10
-boundary. It does not contain a completed profile search, SQG encoding, model
-candidate, KLD run, or speed result.
+This directory publishes compact evidence through the current Test 10
+boundary. Capture, profile selection, alpha-0.25 SQG encoding, sealing, and
+candidate materialization are complete. It does not contain an accepted KLD
+boot, propagation result, or speed result.
 
 ## Completed stages
 
@@ -16,17 +17,29 @@ candidate, KLD run, or speed result.
 - The real layer-74/expert-0 scale and candidate-H2 smoke reports
   `complete: true`; it is explicitly marked ineligible for profile selection
   and final materialization, as a smoke artifact should be.
+- All 16 preregistered profile cells per layer were encoded and scored. The
+  frozen selections are draw-00 identity for layers 74--76 and draw-03 identity
+  for layer 77.
+- Alpha 0.25 means 25% expert-local H13 and 75% layer-global H13. The run seal
+  reports 1,024 experts, 3,072 SQG tensors, 1,536 K3, 1,536 K4, and zero MCG
+  tensors in treatment layers 74--77.
+- The candidate is materialized separately with no protected-source mutation.
 
 ## Pending stages
 
-- completion and selection of the layer profile search;
-- full alpha-0.25 SQG encoding of all 3,072 block tensors;
-- zero-MCG payload validation and candidate materialization;
 - repeated final-logit KLD and signed per-position tail analysis; and
 - layer-by-layer routing, signed top-8 output, hidden-state, and residual trace.
 
+The first KLD attempt failed during engine initialization, before inference,
+because sealed historical arguments expected reserved layers `6,28,52` while
+the dynamic late treatment correctly produced no reserved layer. `runs.jsonl`
+is empty and no accepted record, summary, per-position tensor, or KLD value was
+produced. That attempt is excluded. The runner now derives the expectation from
+the treatment layers and allows a fail-closed same-directory retry, but the
+retry was not launched by this publication update.
+
 No conclusion about contiguous error propagation follows from the completed
-capture and preparation stages alone.
+construction stages or the rejected pre-inference attempt.
 
 ## Published hashes
 
@@ -44,6 +57,15 @@ capture and preparation stages alone.
 | `preparation/absolute_gate_scale_smoke.json` | `1db17bea6a75d68f57b1f1259a065e358a2e2f6f364908c6ac88494007bb0279` |
 | `preparation/absolute-scale-smoke.log` | `cc7be09307a4d6a9bc257bf3c9615760fefdad37cfeafd7986d6f2159043bb0d` |
 | `preparation/successor_preflight_receipt.json` | `b4f81bf57d457fb160259fad35eaa95b2ac3c375050136cc927b63011eec37ea` |
+| `profile_search/layer_074/selection.json` | `50b74b115cd657a1884a6b17841709826058489a175ac0a654046dfd9ea9ba08` |
+| `profile_search/layer_075/selection.json` | `85825d7592cd78116d45c4f0b632b0e245a8921c6d64c8a59b4b9e58b82ac0f2` |
+| `profile_search/layer_076/selection.json` | `d57a874c0bd858e824ec450da38bafc2a3523e78f663d9eb46a7741f9579ab06` |
+| `profile_search/layer_077/selection.json` | `1f2104d2dc6803eabc0fd6ef1d5d28e33bdce2bb15dcd5eda9d76b465c426547` |
+| `encoding/run_seal.json` | `567066231b882732d5bc82a093123002573a9cc8cf507ec763e2c2e7184606cf` |
+| `encoding/materialize-receipt.json` | `b9fd238a90370d4ea0fae4dfbb150390ae23f71e5ed11c0a3db1f54d9b35f3ca` |
+| `candidate/MANIFEST.json` | `5720c1aba18af0917d142f1f755cd03a8311591a638c80cf53d4f410791f30b6` |
+| `kld_failed_run1/run1.log` | `07d398cf6cf3abe623db1876692aab0ee0dd8961776b80aa583ced0400485593` |
+| `kld_failed_run1/runs.jsonl` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 
 The repository-wide [`SHA256SUMS`](../../SHA256SUMS) binds these files again
 after publication assembly.
@@ -51,7 +73,8 @@ after publication assembly.
 ## Excluded payloads
 
 The capture's BF16 hidden-state binaries, routing arrays, BF16 source shards,
-prepared Hessian tensors, per-expert permutation records, smoke tensor payload,
-and all model payloads remain local. The in-progress profile-worker logs are
-also intentionally excluded so that an incomplete worker launch is not
-mistaken for a completed search result.
+prepared Hessian tensors, per-expert permutation records, 1,024 expert tensor
+payloads/manifests, assembled model tensors, unchanged model hard links, runtime
+caches, and all other model-scale payloads remain local. The compact profile
+decisions, layer assembly results, seals, candidate manifest, failure log, and
+hash lists preserve the review boundary.

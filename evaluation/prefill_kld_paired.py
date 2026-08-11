@@ -144,6 +144,11 @@ def main() -> None:
                     ),
                     "B12X_MOE_FORCE_A16": os.getenv("B12X_MOE_FORCE_A16"),
                     "B12X_W4A16_TC_DECODE": os.getenv("B12X_W4A16_TC_DECODE"),
+                    "SQG_TAIL_TRACE": os.getenv("SQG_TAIL_TRACE"),
+                    "SQG_TAIL_TRACE_LAYERS": os.getenv(
+                        "SQG_TAIL_TRACE_LAYERS"
+                    ),
+                    "SQG_TAIL_TRACE_DIR": os.getenv("SQG_TAIL_TRACE_DIR"),
                 },
             },
             sort_keys=True,
