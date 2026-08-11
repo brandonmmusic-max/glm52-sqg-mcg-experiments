@@ -138,6 +138,7 @@ exceed even the late p95 reference.
 - [Test 8c route-packed final r2 machine-readable summary](results/glm52_sqg_route_packed_w4a8_v2_l077_r2.json)
 - [Route-packed kernel r2 raw artifacts and source snapshot](evaluation/w4a8_route_packed_kernel_r2/README.md)
 - [Route-packed kernel r3 combined result and full-W4A8 speed arm](results/glm52_sqg_route_packed_kernel_r3.md)
+- [Build acceleration and selective-down proposal](docs/build_acceleration_and_selective_down_proposal_2026-08-11.md)
 - [Test 8c route-packed machine-readable summary](results/glm52_sqg_route_packed_w4a8_v2_l077_r1.json)
 - [Winner-native profile result](results/glm52_alpha025_winner_native_profile_l077_r1.md)
 - [Exact h-A8 `(H,B)` down re-encode](results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
