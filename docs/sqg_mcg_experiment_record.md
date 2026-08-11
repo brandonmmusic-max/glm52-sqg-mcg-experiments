@@ -2578,6 +2578,99 @@ from these results.  Those release deliverables remain defined in the
 conditional plan and become active only after a repaired activation path and
 route-packed kernel pass their respective gates.
 
+## Test 12 — alpha-0.25 winner-native profile search
+
+### Method and holdout
+
+The earlier profile grid had been selected under a different H13 geometry.
+Test 12 re-encoded all 16 draw/scale cells under the frozen alpha-0.25
+construction, `0.75 H_layer + 0.25 H_local,e`, for the preregistered 16 layer-
+77 panel experts. Every cell rebuilt candidate-conditioned H2 and re-encoded
+down at the unchanged tensor K3/K4 rate. The signed, gate-weighted routed
+outputs were summed before squaring. Selection compared all 15 alternatives
+against frozen `draw-03__identity` with a paired document bootstrap at
+`1 - 0.05/15`; the chosen candidate was frozen before holdout.
+
+### Result and validation
+
+`draw-00__identity` won:
+
+| Split | Frozen profile | Winner-native profile | Change |
+|---|---:|---:|---:|
+| Selection | `0.001910524055` | `0.001881479481` | `-1.5202%` |
+| Untouched holdout | `0.002443549285` | `0.002423681864` | `-0.8131%` |
+
+Both selection's familywise-adjusted lower bound and the separately evaluated
+45-document holdout lower bound were above zero. The result repairs a real
+profile home-field mismatch on this panel. It does not establish a full-layer
+or final-logit KLD win.
+
+## Test 13 — exact h-A8 `(H,B)` down target and realized encode
+
+### Method, assumptions, and decisive endpoint
+
+All 256 layer-77 experts reused the complete winner-native gate/up bytes. Fit
+rows replayed the exact h-A8 upstream path—stored `suh`, activation H128,
+MXFP8 h, native-E4M3 SQG gate/up, FP32 accumulation, stored output transforms,
+and exact `SiLU(gate) * up`. Per-expert gate-square-weighted `(H,B)` normal
+equations fitted a down target against BF16 expert output. Selection and
+holdout were excluded. The target was then actually encoded with dense-H
+BlockLDLQ at each down tensor's unchanged K3 or K4 rate. Act remained A16.
+
+The floating target improved fit SSE for every expert, with a `53.2637%`
+median improvement. That was only an oracle check. Realized bytes were scored
+by summing all 256 signed top-8 contributions before squaring.
+
+### Result, error discovered, and disposition
+
+| Split | Base h-A8 | Realized `(H,B)` bytes | Change |
+|---|---:|---:|---:|
+| Selection | `0.003787687545` | `0.003829293437` | `+1.098451%` |
+| Untouched holdout | `0.003891270008` | `0.003929733740` | `+0.988462%` |
+
+The regression was significant on both document splits. Holdout individual-
+expert SSE rose `1.1136%`, although the cross-expert term improved `25.0816%`.
+The quantized target damaged unary expert quality more than cancellation could
+recover. The full-strength refit target is rejected; a floating solution must
+not be reported as an encoded gain.
+
+## Test 14 — unary-bounded retained-profile co-routing
+
+### Method and safeguards
+
+Test 14 changed no bytes. It used the four retained identity-profile draws for
+the Test-12 panel and optimized exact 6,144-dimensional signed top-8 error on
+selection documents. Four preregistered arms allowed `0%`, `0.25%`, `0.5%`,
+or `1%` individual-expert unary slack. Each arm used deterministic coordinate
+descent from the unary solution and each uniform candidate start. The four
+comparisons used a Bonferroni paired-document gate. Only the frozen selection
+winner was evaluated on untouched holdout.
+
+### Result and decomposition
+
+All four arms improved selection by about `0.1025–0.1027%`. The rule selected
+the `1%` arm. It assigned five experts to draw 1, four to draw 0, four to draw
+3, and three to draw 2.
+
+| Endpoint | Layer-shared draw 0 | Expert-private assignment | Change |
+|---|---:|---:|---:|
+| Selection NMSE | `0.001881479481` | `0.001879547687` | `-0.102674%` |
+| Holdout NMSE | `0.002423681864` | `0.002412329518` | `-0.468393%` |
+
+The holdout mean direction was favorable, but its 95% document interval
+`[-8.96502e-07, 1.77375e-05]` crossed zero. Of the selection SSE gain,
+`93.32%` came from lower individual-expert error and `6.68%` from improved
+cross terms. Among holdout positions touched by the panel, `50.9640%`
+improved. Mean error fell, while p99 rose `0.1926%`, upper-CVaR-1% rose
+`0.1073%`, and the maximum rose `13.5931%`.
+
+### Next hypothesis
+
+Expert-private profile selection is the primary useful signal. Co-routing can
+remain a tie-breaker inside a strict unary band, but this panel does not
+justify a cancellation-oriented runtime policy. A tail-aware rule requires a
+fresh document corpus because the existing holdout has now been inspected.
+
 ## Cumulative findings
 
 ### Accepted findings
@@ -2771,6 +2864,9 @@ route-packed kernel pass their respective gates.
 - [GLM Test 8b activation-quality JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_w4a8_activation_quality_l077_r1.json)
 - [GLM Test 8c compact-core report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
 - [GLM Test 8c compact-core JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_w4a8_core_benchmark_l077_r1.json)
+- [Winner-native profile report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_alpha025_winner_native_profile_l077_r1.md)
+- [Exact h-A8 `(H,B)` down report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
+- [Unary-bounded co-routing report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_retained_profile_corouting_l077_r1.md)
 
 ### Protocol and implementation
 
