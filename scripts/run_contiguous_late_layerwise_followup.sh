@@ -15,7 +15,9 @@ BF16_ROOT="$PROJECT_ROOT/bf16_contiguous_late"
 PERMUTATION_ROOT="$WORKSPACE/fresh-sqg-contig-late-a025-r1"
 SELECTION_SCORES="$PROJECT_ROOT/results/contiguous_late_h13_blend_selection_r1.json"
 LAYERWISE_SELECTION="$PROJECT_ROOT/results/contiguous_late_h13_layerwise_selection_r1.json"
+SUPPORT_SELECTION="$PROJECT_ROOT/results/contiguous_late_h13_alpha_support_selection_r1.json"
 HOLDOUT_SCORES="$PROJECT_ROOT/results/contiguous_late_h13_blend_holdout_full_r1.json"
+SUPPORT_HOLDOUT="$PROJECT_ROOT/results/contiguous_late_h13_alpha_support_holdout_r1.json"
 LAYERWISE_HOLDOUT="$PROJECT_ROOT/results/contiguous_late_h13_layerwise_holdout_r1.json"
 RECEIPT="$PROJECT_ROOT/results/contiguous_late_h13_layerwise_followup_receipt_r1.json"
 OUTPUT_ROOT="$WORKSPACE/fresh-sqg-contig-late-layerwise-r1"
@@ -35,16 +37,33 @@ for label in sqg_a000 sqg_a025 sqg_a050 sqg_a075 sqg_a100; do
   [[ -d "$root" && ! -L "$root" && -f "$root/run_seal.json" ]] || \
     die "sealed alpha root is absent: $label=$root"
 done
-for output in "$LAYERWISE_SELECTION" "$HOLDOUT_SCORES" \
+for output in "$LAYERWISE_SELECTION" "$HOLDOUT_SCORES" "$SUPPORT_HOLDOUT" \
   "$LAYERWISE_HOLDOUT" "$RECEIPT"; do
   [[ ! -e "$output" && ! -L "$output" ]] || die "output exists: $output"
 done
+if [[ -e "$SUPPORT_SELECTION" || -L "$SUPPORT_SELECTION" ]]; then
+  [[ -f "$SUPPORT_SELECTION" && ! -L "$SUPPORT_SELECTION" ]] || \
+    die "existing support-selection result is not a regular file: $SUPPORT_SELECTION"
+  jq -e '.schema == "glm52-h13-alpha-effective-support-analysis-v1" and
+    .analysis_role == "selection" and .experts == 1024' \
+    "$SUPPORT_SELECTION" >/dev/null || \
+    die "existing support-selection result failed schema/split validation"
+fi
 [[ ! -e "$OUTPUT_ROOT" && ! -L "$OUTPUT_ROOT" ]] || \
   die "combined output root exists: $OUTPUT_ROOT"
 
 python3 "$PROJECT_ROOT/scripts/select_layerwise_h13_blend.py" \
   --input "$SELECTION_SCORES" --baseline-label mcg \
   --require-all-nonbaseline --output "$LAYERWISE_SELECTION"
+
+if [[ ! -e "$SUPPORT_SELECTION" ]]; then
+  python3 "$PROJECT_ROOT/scripts/analyze_h13_alpha_by_effective_support.py" \
+    --scores "$SELECTION_SCORES" \
+    --support-root "${ROOTS[sqg_a000]}" --baseline-label mcg \
+    --alpha sqg_a000=0 --alpha sqg_a025=0.25 --alpha sqg_a050=0.5 \
+    --alpha sqg_a075=0.75 --alpha sqg_a100=1 \
+    --output "$SUPPORT_SELECTION"
+fi
 
 SQG_SCORE_LAYERS=74,75,76,77 \
 SQG_SCORE_MCG_BASELINE_LABEL=mcg \
@@ -58,6 +77,13 @@ FRESH_SQG_PERMUTATION_ROOT="$PERMUTATION_ROOT" \
     "sqg_a050=${ROOTS[sqg_a050]}" \
     "sqg_a075=${ROOTS[sqg_a075]}" \
     "sqg_a100=${ROOTS[sqg_a100]}"
+
+python3 "$PROJECT_ROOT/scripts/analyze_h13_alpha_by_effective_support.py" \
+  --scores "$HOLDOUT_SCORES" \
+  --support-root "${ROOTS[sqg_a000]}" --baseline-label mcg \
+  --alpha sqg_a000=0 --alpha sqg_a025=0.25 --alpha sqg_a050=0.5 \
+  --alpha sqg_a075=0.75 --alpha sqg_a100=1 \
+  --output "$SUPPORT_HOLDOUT"
 
 python3 "$PROJECT_ROOT/scripts/evaluate_layerwise_h13_mapping.py" \
   --scores "$HOLDOUT_SCORES" --selection "$LAYERWISE_SELECTION" \
@@ -82,8 +108,12 @@ fi
 jq -n \
   --arg selection "$LAYERWISE_SELECTION" \
   --arg selection_sha256 "$(sha256sum "$LAYERWISE_SELECTION" | awk '{print $1}')" \
+  --arg support_selection "$SUPPORT_SELECTION" \
+  --arg support_selection_sha256 "$(sha256sum "$SUPPORT_SELECTION" | awk '{print $1}')" \
   --arg holdout_scores "$HOLDOUT_SCORES" \
   --arg holdout_scores_sha256 "$(sha256sum "$HOLDOUT_SCORES" | awk '{print $1}')" \
+  --arg support_holdout "$SUPPORT_HOLDOUT" \
+  --arg support_holdout_sha256 "$(sha256sum "$SUPPORT_HOLDOUT" | awk '{print $1}')" \
   --arg holdout "$LAYERWISE_HOLDOUT" \
   --arg holdout_sha256 "$(sha256sum "$LAYERWISE_HOLDOUT" | awk '{print $1}')" \
   --argjson selection_passed "$selection_passed" \
@@ -93,7 +123,9 @@ jq -n \
   '{
     schema:"glm52-contiguous-late-all-sqg-layerwise-followup-v1",
     selection:{path:$selection,sha256:$selection_sha256,passed:$selection_passed},
+    effective_support_selection:{path:$support_selection,sha256:$support_selection_sha256},
     holdout_scores:{path:$holdout_scores,sha256:$holdout_scores_sha256},
+    effective_support_holdout:{path:$support_holdout,sha256:$support_holdout_sha256},
     frozen_mapping_holdout:{path:$holdout,sha256:$holdout_sha256,passed:$holdout_passed},
     all_selected_layers_sqg_required:true,
     artifact_built:$artifact_built,

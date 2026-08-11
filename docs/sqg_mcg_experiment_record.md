@@ -1173,9 +1173,9 @@ per-position analysis was sealed.  The sample-mean direction was worse for
 H13e, but it was small relative to repeat variation and the test did not
 establish a directional KLD difference.
 
-The preregistered hypothesis was that the 5.9847% reduction in the
-document-disjoint, encoder-unseen but analysis-seen secondary-holdout isolated
-complete-expert NMSE from Test 7 would survive the effects absent from that
+The preregistered hypothesis was that the 5.9847% reduction in
+untouched-holdout isolated complete-expert NMSE from Test 7 would survive the
+effects absent from that
 proxy: router-weighted summation of the top-8 experts, cross-expert error
 cancellation or reinforcement, downstream routing, propagation through the
 rest of the model, and final-logit projection.
@@ -2193,6 +2193,16 @@ quant.  The signed-top-8 JSON/Markdown hashes are
 `a56837b4cd619b8eed8aa3f69e34b5e6b7c5caf2bbef4aee2c6a3486f76d3839`
 and `9c45a4930d0b8ca05887a42e7baa04dafe7754fe69026538bf28d7d6eac6b2a8`.
 
+Before the late grid produced a selection result, a support-adaptive follow-up
+was preregistered.  For every layer/expert it relates the per-expert routed SSE
+of all five alpha arms to the fit-only gate-squared effective sample size
+already sealed in the expert manifest,
+`n_eff = (sum w)^2 / sum(w^2)`.  It reports per-expert winning-alpha counts,
+Spearman support-versus-alpha/gain associations, and equal-count support
+quartiles on selection and the frozen secondary holdout.  This is a
+diagnostic association, not an expert-private alpha selector; profiles and
+permutations remain frozen from the layer-global search.
+
 ### Statistical power and the role of four-layer blocks
 
 Four of 75 routed MoE layers are 5.33% of the treatment surface.  Using the
@@ -2312,6 +2322,262 @@ matched.  Middle layers 38--41 are expected to fall inside the fused baseline
 region; their preregistration must include a block-specific native-MCG dispatch
 control before interpreting an SQG comparison.
 
+## Test 11 — completed late-block H13 alpha, support, and layerwise panel
+
+### Question and independent variable
+
+Test 11 completed the late-block calibration question left open by Test 10:
+whether SQG gate/up calibration should be entirely layer-shared, entirely
+expert-local, or a fixed shrinkage blend.  For each expert,
+
+```text
+H13(alpha) = (1 - alpha) H13_layer + alpha H13_local,e
+```
+
+was tested at `alpha in {0, 0.25, 0.50, 0.75, 1.0}` on layers 74--77.  Thus
+`alpha=0.25` is 75% layer-shared and 25% expert-local.  The rates remained
+topology-neutral and per tensor, with exactly 1,536 K3 and 1,536 K4 tensors
+over the four layers.  Every treatment arm contained 1,024 experts, 3,072 SQG
+tensors, and zero MCG tensors.  Candidate-conditioned down H2 was rebuilt for
+each arm.  The comparison did not retain MCG transforms, scales, or payloads
+inside an SQG arm.
+
+The nonzero-alpha arms reused the profile/rotation family selected before the
+alpha panel.  Consequently this is a controlled H13 ablation, not a final
+alpha-native profile/rotation search.  That deliberate hold-fixed choice
+isolates covariance shrinkage but is a limitation on fleet-wide construction.
+
+### Selection and secondary holdout
+
+Selection used the signed router-weighted top-8 sum before squaring.  MCG was
+the preregistered comparator.  Selection had not been used for the tensor
+encoder, but it selected the blend.  The document-disjoint holdout was unseen
+by the encoder but had already been inspected elsewhere in the program; it is
+secondary confirmation, not a new blind corpus.
+
+| Arm | Selection NMSE delta vs MCG | Selection positions improved | Holdout NMSE delta vs MCG | Holdout positions improved |
+|---|---:|---:|---:|---:|
+| alpha 0 | +8.5315% | 16.070% | +7.3046% | 24.281% |
+| alpha 0.25 | **+4.3937%** | **25.570%** | **+2.7705%** | **39.0295%** |
+| alpha 0.50 | +5.5424% | 22.865% | +3.9270% | 34.615% |
+| alpha 0.75 | +9.5616% | 14.647% | +7.7241% | 21.470% |
+| alpha 1.00 | +28.0260% | 3.437% | +25.9113% | 5.0265% |
+
+On selection, alpha 0.25 reduced absolute-error p99 by 9.09% and absolute
+worst-1% CVaR by 11.21% relative to MCG, but it failed the mean gate.  On
+holdout it increased absolute p99 by 1.9667% while reducing absolute worst-1%
+CVaR by 9.1213%; relative-error p99/CVaR changed by +2.1045%/-0.3459%.
+These mixed tails do not override the preregistered mean failure.
+
+MCG is therefore the formal winner.  Alpha 0.25 is the stable diagnostic SQG
+winner, not evidence that SQG beats MCG.
+
+### Support-conditioned and layerwise follow-ups
+
+Effective expert support was evaluated without changing the sealed alpha
+bytes.  Alpha 0.25 won all four support quartiles on both roles.  On holdout,
+the numbers of experts whose best SQG alpha was 0/0.25/0.50/0.75/1.0 were
+142/790/90/2/0, and Spearman correlation between support and preferred alpha
+was only 0.2552.  Alpha-0.25 per-expert SSE ratios versus MCG rose from
+0.97934 and 0.99628 in the first two support quartiles to 1.00991 and 1.02622
+in the upper two.  There was no stable rule that justified assigning a
+different alpha to low-support experts.
+
+An exploratory 625-combination layerwise search over the five alpha choices
+for four layers found no combination that passed all MCG gates.  Its nominal
+mapping (`0.25/0.25/0.25/0.50`) did not materially improve on uniform 0.25 and
+failed holdout confirmation.  No layerwise artifact was promoted.
+
+### Error found and in-place repair
+
+The layerwise follow-up runner initially attempted to recreate an already
+complete support-selection artifact.  Its output contract was corrected to
+reuse and validate the existing sealed artifact.  The encode was not
+restarted, no candidate bytes changed, and shell/schema checks passed after
+the repair.
+
+The full holdout, support-holdout, selection-layerwise, holdout-layerwise, and
+follow-up receipt SHA256 values are respectively
+`0cdc7ca3d3ec9ae521234cc4b3b13b2ae0e064db539d2f816899193aeda0d0b4`,
+`bf8073d70d84dcee1a94fb4e94a329f0262b3fa11c73e7244354db8693537279`,
+`9045cb8e9e8778b5dd2b1c9cf2a610b22b0fd6df384eb3cbd980dfd3702d3897`,
+`61738564eab7447ba71c1afef2c1aee107dc781d55c7eba2c940cace824d3a8c`,
+and `dd24c02f50388cb6a29a3e0ef526b4ce7c44907ad36643dc2a18968944cd009b`.
+The selection and original two-arm holdout result hashes are
+`b0e3e81a5d74adbaaa2304d919d11a9fd437bed46522ea31798ff9bae925c657`
+and `2b431a2db868892e1d7dd8341a545af99332fb90206289673ae1d4116a3dcfc7`.
+
+### Resulting hypothesis
+
+The late data reject both pure layer-shared and pure expert-local calibration
+for this fixed profile family.  They support 75% layer-shared/25% expert-local
+as the SQG prior, while also showing that H13 blending alone does not make the
+late SQG block beat MCG.  A full quant therefore required a separate W4A8
+benefit to justify the change.
+
+## Test 8b — completed GLM W4A8 activation-quality falsification
+
+### Methodology and holdouts
+
+The admissible run evaluated every one of layer 77's 256 experts and all 768
+frozen per-tensor K3/K4 assignments.  It decoded native SQG labels directly
+on their finite E4M3 grid and evaluated four otherwise-identical arms:
+
+1. SQG A16;
+2. A8 only at post-LayerNorm `h`;
+3. A8 only at `act = SiLU(gate) * up`; and
+4. A8 at both sites (full W4A8).
+
+The operand order was the serving order: FP16 boundary, input-side `suh`,
+activation-side normalized H128, per-K32 UE8M0/E4M3 QDQ where enabled, native
+E4M3 weight labels, FP32 GEMM accumulation, FP16 output boundary, output H128
+and `svh`, then SwiGLU between FC1 and down.  Gate/up and down retained the
+same expert-private permutation basis.  No Hadamard was folded into weights.
+
+Selection and holdout were scored separately with the exact captured top-8
+IDs and applied router weights.  The sealed MCG A16 scalar was cross-harness
+context only because this direct-label oracle did not have a matched MCG
+per-position arm.  The holdout was unseen by the encoder but analysis-seen,
+so its replication is secondary rather than newly blind.
+
+The preregistered green/amber/red mean thresholds were <=1%, 1--3%, and >3%
+incremental functional NMSE versus matched SQG A16, with separate tail gates.
+
+### Result
+
+| Arm | Selection delta vs SQG A16 | Holdout delta vs SQG A16 | Selection positions improved | Holdout positions improved |
+|---|---:|---:|---:|---:|
+| h-A8 | +3.9183% | +4.0036% | 0.8120% | 0.7673% |
+| act-A8 | +19.1831% | +18.8584% | 0.0117% | 0.0000% |
+| full W4A8 | **+22.9802%** | **+22.7790%** | **0.0293%** | **0.0153%** |
+
+Full W4A8 relative-error p99 increased 5.8496%/5.8198% on
+selection/holdout, and squared-error worst-1% CVaR increased
+42.7243%/44.7741%.  The `act`-only arm was already responsible for about 19%
+mean damage and worsened essentially every position.  This is not a few-tail-
+positions artifact.
+
+Operand QDQ NMSE itself was `6.99e-4` for `h` and about `8.4e-4` for `act`,
+with no pre-clamp overflow.  H128 reduced `h` maximum magnitude from 0.0830
+after `suh` to about 0.035, and reduced the extreme `act` maximum from about
+20.7 after `suh` to about 2.95.  The transform worked as intended; the
+remaining E4M3 activation noise was nevertheless amplified by the routed
+expert function, especially down.
+
+The admissible JSON SHA256 is
+`57cd42e406f85e0febd9b6de711793a94d2badaeae5ca4d78c2c3217771f7205`.
+The program hash and all 768 source bindings are recorded in its receipt.  A
+one-expert GPU smoke was diagnostic only and did not contribute to the
+decision.
+
+### Decision and next falsification
+
+Test 8b is red.  It blocks the conditional full-model W4A8 quant.  The raw
+operand NMSE is already near the ordinary E4M3 mantissa-noise floor, and power-
+of-two exponent shifts mostly preserve the same normalized grid.  Therefore
+clipping alone is unlikely to recover the roughly 95% incremental-error
+reduction required by the original 1% gate.
+
+The cheap scale falsification is nevertheless useful: on fit rows, search a
+per-K32 oracle over `eceil + {-2,-1,0,+1}` plus hardware-compatible global
+phases `g = 2^(j/16)`, then freeze the selected deployable rule for
+selection/holdout.  If even this oracle leaves more than 10% functional
+excess, close the bad-amax-policy hypothesis.
+
+The substantive rescue must be cross-term aware.  Let `Q` be the down operand
+from the complete upstream W4A8 candidate, including `h` A8, native-E4M3 SQG
+gate/up, output transforms, SwiGLU, down `suh/H128`, and `act` A8.  Merely
+using `H2_A8 = Q^T Q` while targeting the original weight minimizes
+`||Q(W_hat-W)||^2` and ignores upstream residual.  The correct fit-only
+distillation objective is:
+
+```text
+minimize ||Q W_hat - Y_BF16||^2 over compact SQG W_hat
+H = Q^T Q
+B = Q^T Y_BF16
+```
+
+with `Y_BF16` in matching transformed output coordinates, gate-square route
+weighting, and support shrinkage.  The next three down-only arms are the
+existing A16-conditioned down, ordinary covariance-only H2_A8, and this
+cross-term-aware `(H,B)` target, with gate/up bytes, rates, transforms, and
+profiles frozen.  Before changing payloads, an output-diagonal `svh`
+correction can be fit as a cheaper no-label-change arm.
+
+For this separately preregistered rescue, <=5% functional excess on both
+roles, <=5% relative p99/CVaR damage, and recovery of at least 75--80% of the
+current incremental SSE is sufficient to proceed to a contiguous W4A8 block;
+5--10% is amber; >10% after cross-term-aware down encoding terminates the
+W4A8 branch.  An oracle-only policy may not be reported as deployable unless
+its rule can run in the kernel without hidden dense state or prohibitive
+inner-loop cost.
+
+## Test 8c-core — completed GLM compact SQG W4A8 speed falsification
+
+### Methodology
+
+Test 8c-core used the same sealed layer-77 alpha-0.25 SQG bytes and exact
+384-K3/384-K4 per-tensor census in both arms.  BF16 capture rows crossed the
+same FP16 boundary used by the deployed GLM trellis path.  W4A16 used compact
+SQG decode and FP16 MMA; W4A8 used input transform, per-K32 MXFP8 activation,
+direct compact SQG decode to E4M3 registers, FP8 MMA, and output transform.
+No dense weight was materialized.
+
+The 126 cases covered gate/up K=6144,N=2048 and down K=2048,N=6144 at K3 and
+K4, global M in {1,128,512,1024,2048,3072,4096}, and p50/p90/max actual
+per-expert route counts.  Each arm used caller-owned fixed workspace, 20
+warmups, CUDA graphs, and 200 balanced ABBA timing samples.  Every eager/graph
+pair was bit-exact.
+
+This is a dense compact-core benchmark.  Its route-histogram projection sums
+per-expert calls serially; it does not model route-packed fusion or constitute
+serving acceptance.
+
+### Errors found and excluded attempts
+
+Three setup attempts were excluded before any accepted result:
+
+1. missing worktree `PYTHONPATH` at import;
+2. BF16 benchmark buffers inherited from the capture rather than GLM's actual
+   FP16 trellis boundary, leading to A16 compile failure; and
+3. an existing `exllamav3_ext.had_r_128` module not exposed to the process.
+
+The dtype was corrected in place, CPU buffer tests passed, and the sealed
+existing extension was added to the module path.  No model or codec bytes
+changed, and none of the failed attempts produced an accepted result file.
+
+### Result
+
+| Global M | MoE-core speedup | Amdahl projection at f=0.31 |
+|---:|---:|---:|
+| 1 | 3.8321x | 1.2972x |
+| 128 | 3.7662x | 1.2948x |
+| 512 | 3.4135x | 1.2807x |
+| 1,024 | 2.9157x | 1.2558x |
+| 2,048 | 2.0146x | 1.1850x |
+| 3,072 | 1.5966x | 1.1310x |
+| 4,096 | 1.2601x | 1.0684x |
+
+The native W4A8 core is real and fast on short tiles, but its current tiling
+does not scale to the largest routed experts.  At global M=3,072, 10/18 cases
+were individually slower than A16; at M=4,096, 12/18 were slower.  The
+central long-prefill projection is below the preregistered 1.15x migration
+floor.  A route-packed implementation could change that result, but the
+current core does not establish the required serving win.
+
+The completed JSON SHA256 is
+`6740f8be4480a9272866b03055ea0f2dee3e5ed8d4453a8e1d4f5d757f64bb58`.
+
+### Combined conditional decision
+
+The alpha panel did not beat MCG, Test 8b is red, and Test 8c-core is below the
+long-prefill migration floor at M=3,072/4,096.  Therefore the conditional
+authorization does not trigger: no 75-layer encode, BF16 stream, fused kernel
+port, Docker image, Compose/serve release, or Hugging Face model upload begins
+from these results.  Those release deliverables remain defined in the
+conditional plan and become active only after a repaired activation path and
+route-packed kernel pass their respective gates.
+
 ## Cumulative findings
 
 ### Accepted findings
@@ -2390,6 +2656,23 @@ control before interpreting an SQG comparison.
     treatment-consistent 1.49--1.72x MoE-output drift relative to one r33-r33
     pair and no residual blowup in that pair; it is not a causal estimate or
     proof that adverse compounding is absent.
+23. The completed late five-alpha panel selected 25% expert-local/75%
+    layer-shared H13 among SQG arms, including all four support quartiles, but
+    MCG remained the formal winner.  Alpha 0.25 was 2.7705% worse in holdout
+    signed-top-8 NMSE and improved 39.0295% of positions; no layerwise or
+    support-adaptive schedule passed all MCG gates.
+24. Exact-path Test 8b is a replicated W4A8 quality rejection for the current
+    max-scaled MXFP8 policy.  Full W4A8 increased layer-77 signed-top-8 NMSE by
+    22.9802% on selection and 22.7790% on holdout relative to SQG A16.  The
+    heavy-tailed `act` quantization point contributed about 19% by itself.
+25. Test 8c-core executed 126 real GLM K3/K4 cases with bit-exact eager/graph
+    replay.  Native W4A8 was much faster on short tiles, but the serial-core
+    end-to-end projection fell to 1.1310x at M=3,072 and 1.0684x at M=4,096,
+    below the preregistered long-prefill migration floor.  This is not a
+    route-packed serving measurement.
+26. The combined conditional GO criteria were not met.  No full 75-layer SQG
+    encode, serving migration, Docker/Hugging Face release, or production
+    restart follows from the current evidence.
 
 ### Findings that are not established
 
@@ -2410,7 +2693,11 @@ control before interpreting an SQG comparison.
 - SQG has not reduced model size at the frozen map.
 - Test 8a does not show that the exact 4.51545% MCG endpoint energy increase
   transfers to Hessian-weighted error or model KLD.
-- W4A8 has not yet shown a GLM activation-quality, KLD, or speed win.
+- A repaired W4A8 path has not shown a GLM activation-quality or final-logit
+  KLD result.  The current max-scaled K32 MXFP8 path failed Test 8b.
+- Route-packed GLM W4A8 serving speed remains unmeasured.  The completed
+  compact-core result is below the long-prefill migration floor at the largest
+  tested route counts and cannot establish a fused-kernel result.
 - The alpha-0.25 blend selected on separated layers is not established as the
   correct late-block blend; its late signed-top-8 holdout result is adverse.
 - The completed same-checkpoint null is an empirical reference from 252
@@ -2422,24 +2709,21 @@ control before interpreting an SQG comparison.
 
 ## Recommended experiment order from here
 
-1. Finish the active late-specific H13 blend ablation under the signed summed
-   top-8 objective, with exact MCG comparison.  Rebuild candidate-conditioned
-   down H2 for every blend and keep every treatment layer fully SQG.
-2. Freeze the selected mapping on the document-disjoint, encoder-unseen but
-   analysis-seen secondary holdout, then rerun profile/rotation search natively
-   for the selected blend and require a genuinely new corpus for blind
-   confirmation.
-3. If a late blend reverses the broad proxy regression without crossing the
-   null-calibrated tail envelope, repeat the contiguous screen on middle and
-   early blocks.  Otherwise try downstream fixed-point recapture before
-   spending on more blocks.
-4. Scale the treatment to roughly half the routed layers before asking whether
-   SQG lowers KLD; four-layer five-boot endpoints are catastrophe screens.
-5. Benchmark K3/K4 MCG and SQG decoder cost, then run exact-path W4A8 with
-   separate `h` and heavy-tailed `act` activation calibration and H2 captured
-   from the true upstream A8 path.
-6. Greenlight a full BF16 SQG quant only if scaled A16 quality holds and the
-   W4A8 prefill quality/speed result justifies a deployable runtime.
+1. Run a cheap activation-policy oracle over hardware-representable per-K32
+   UE8M0 exponent/clipping choices, separately for `h` and `act`, to determine
+   whether Test 8b has recoverable headroom.  Keep weights, rates, transforms,
+   routing, and profiles fixed.
+2. Only if that oracle has sufficient margin, implement its deployable rule,
+   recapture exact-path `H2_A8`, re-encode down only, and repeat full-expert
+   Test 8b on selection and secondary holdout.  Require a new blind corpus
+   before final construction.
+3. If repaired Test 8b passes, implement and benchmark route-packed GLM W4A8
+   with independent gate/up/down K3/K4 descriptors at M=3,072 and larger.
+4. If quality and speed both pass, rerun profile/rotation search natively for
+   alpha 0.25, screen middle/early contiguous blocks, and scale to roughly half
+   the routed layers before asking whether SQG lowers final-logit KLD.
+5. Greenlight the full BF16 SQG quant, fused runtime, evaluations, and release
+   artifacts only after those gates close.
 
 ## Artifact and source index
 
@@ -2480,6 +2764,13 @@ control before interpreting an SQG comparison.
 - [Late cross-arm trace JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_tail_trace_a025_r1.json)
 - [Late r33-r33 trace-null report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_same_checkpoint_tail_trace_null_r1.md)
 - [Late r33-r33 trace-null JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_same_checkpoint_tail_trace_null_r1.json)
+- [Full late H13 alpha holdout JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_blend_holdout_full_r1.json)
+- [Late H13 support holdout JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_alpha_support_holdout_r1.json)
+- [Late H13 layerwise holdout JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/contiguous_late_h13_layerwise_holdout_r1.json)
+- [GLM Test 8b activation-quality report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_w4a8_activation_quality_l077_r1.md)
+- [GLM Test 8b activation-quality JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_w4a8_activation_quality_l077_r1.json)
+- [GLM Test 8c compact-core report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
+- [GLM Test 8c compact-core JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_w4a8_core_benchmark_l077_r1.json)
 
 ### Protocol and implementation
 
@@ -2492,6 +2783,7 @@ control before interpreting an SQG comparison.
 - [Expert-local packed comparison](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/compare_recalibrated_sqg.py)
 - [H13e/current-SQG KLD analyzer](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/analyze_h13e_kld_pair.py)
 - [Same-checkpoint tail-null analyzer](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/analyze_same_checkpoint_tail_null.py)
+- [GLM Test 8b activation-quality scorer](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/score_glm52_w4a8_activation_quality.py)
 - [Late paired trace launcher](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/scripts/run_contiguous_late_trace_pair.sh)
 - [Protected r33 one-boot trace diagnostic](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/evaluation/run_r33_trace_once.sh)
 - [KQuant technical brief](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/kquant/docs/qsrt-technical-brief.md)

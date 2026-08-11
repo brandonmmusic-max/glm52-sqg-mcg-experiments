@@ -4,7 +4,8 @@ This repository preserves the code, methodology, compact evidence, and audited
 results from the GLM-5.2 3.5-bpw experiments comparing the existing MCG
 trellis representation with KQuant-style SQG. It now includes the signed
 top-8, tail-constrained `H13` blend ablation, the preregistered contiguous-block
-follow-up, and a separate QSRT/Kimi K3 K1 feasibility audit.
+follow-up, the completed Test 8b/8c W4A8 falsifications, and a separate
+QSRT/Kimi K3 K1 feasibility audit.
 
 The [current-QSRT snapshot and history
 review](docs/qsrt_current_update_review_2026-08-10.md) covers the new coupled
@@ -18,8 +19,10 @@ diagnostic layers were 6, 28, 52, and 77; the first contiguous block is layers
 
 ## Bottom line
 
-The evidence supports continuing SQG development, but still does **not**
-justify a full 75-layer conversion or establish lower full-model KLD.
+The conditional program is currently **NO-GO**. The evidence supports a
+targeted activation-policy repair and route-packed-kernel research, but does
+**not** authorize a full 75-layer conversion or establish lower full-model
+KLD.
 
 | Measurement | Result | What it establishes |
 |---|---:|---|
@@ -28,17 +31,22 @@ justify a full 75-layer conversion or establish lower full-model KLD.
 | Direct E4M3 label endpoint, 3,072 late-block tensors | RNE-rounding regularized MCG LUT labels before Hadamard/scales increased error `4.515%`; SQG label-conversion SSE was zero | The final reconstructed MCG tensor was not rounded; this is not a W4A8 model result |
 | Late 74--77 five-boot A16 KLD | `0.0624264841` vs r33 `0.0624498626` | `-0.03744%`, far inside repeat noise; no obvious scalar catastrophe and no demonstrated KLD win |
 | Late alpha-0.25 signed top-8 holdout | `2.7705%` worse than MCG; `39.0295%` of positions improved | The separated-layer blend does not transfer cleanly to the late block |
+| Late 74--77 all-arm H13 panel | MCG retained every formal hard-gate decision; alpha 0.25 was the stable SQG diagnostic | 25% expert-local/75% layer-shared is the SQG prior, not an MCG-beating result |
+| Test 8b full W4A8 versus matched SQG A16 | `+22.9802%` selection NMSE; `+22.7790%` secondary-holdout NMSE | The current A8 policy is a replicated functional regression and fails the quality gate |
+| Test 8c compact-core speed | projected `1.1310x` at M=3,072 and `1.0684x` at M=4,096, assuming MoE fraction `0.31` | The native FP8 path is real, but the serial-core projection misses the `1.15x` long-prefill migration floor and is not serving acceptance |
 | Same-candidate-path 5v5 null | mean-delta p95 envelope `±0.0013867` | Ten reused boots provide a checkpoint/prompt-specific empirical reference, not independent experiments or a formal false-positive calibration |
 | Late paired trace versus one r33-r33 pair | MoE drift ratio `1.49–1.72x`; post-residual `1.04–1.29x` | Treatment-consistent but unreplicated mechanistic evidence; not a causal estimate or proof that compounding is absent |
 
 The direct E4M3 result strengthens SQG's W4A8 architecture thesis, but its full
 `16.8964%` SQG-versus-MCG E4M3 NMSE gap is not solely an endpoint benefit:
-SQG was already `13.1439%` better at A16. No GLM A8 quality or tensor-core
-speed result exists yet. The late block is a scalar no-catastrophe screen,
-while its adverse frozen-hidden-state proxy shows that the `25%` local / `75%`
-shared `H13` blend is not a fleet-wide calibration answer.
+SQG was already `13.1439%` better at A16. The completed GLM tests then exposed
+two independent blockers: heavy damage from the current activation policy,
+especially at `act = SiLU(gate) * up`, and inadequate long-prefill scaling in
+the dense compact core. The late block remains a scalar no-catastrophe screen;
+the `25%` local / `75%` shared `H13` blend is not a fleet-wide MCG-beating
+calibration answer.
 
-## Current Test 10 status
+## Current late-block and W4A8 status
 
 The late contiguous block, layers 74-77, is the first of the preregistered
 early/middle/late blocks.
@@ -57,7 +65,11 @@ early/middle/late blocks.
 | Same-candidate-path null | Complete: a second five-boot set and all balanced 5v5 partitions provide a prompt/runtime empirical reference; the identity record does not independently bind full checkpoint bytes |
 | Routing/residual trace | Complete with one unchanged-r33 pair; treatment-consistent but unreplicated, with no causal compounding conclusion |
 | Late signed top-8 holdout | Complete: alpha 0.25 was `2.7705%` worse than MCG; `97.7397%` of the regression was individual-expert SSE |
-| Late-specific alpha panel | **Active and incomplete**: alpha `0`, `0.5`, `0.75`, and `1.0` arms are being encoded/resumed; no selection or holdout result exists yet |
+| Late-specific alpha panel | Complete: MCG retained the formal hard-gate win; alpha 0.25 was the best SQG diagnostic at `+4.3937%` selection and `+2.7705%` secondary-holdout mean NMSE versus MCG |
+| Support-conditioned alpha analysis | Complete: alpha 0.25 won all four effective-support quartiles; the association is diagnostic and does not justify per-expert alpha selection |
+| Exploratory layerwise alpha search | Complete: 0 of 625 all-SQG mappings passed MCG hard gates; the frozen uniform alpha-0.25 mapping also failed holdout |
+| Test 8b activation quality | **Red**: full W4A8 was `22.9802%`/`22.7790%` worse than matched SQG A16 on selection/secondary holdout |
+| Test 8c-core speed | Complete compact-core result: short tiles were fast, but M=3,072/4,096 projections fell below `1.15x`; route-packed Test 8c-layer was not run |
 
 The initial failure remains excluded. A later run-3 validator rejection exposed
 a float32-roundoff floor that was smaller than one machine epsilon; the saved
@@ -65,10 +77,11 @@ position vector was revalidated under a pinned two-epsilon floor without
 changing model, logits, or tensor bytes. Five accepted boots then completed.
 
 Test 10 establishes scalar KLD parity/no obvious scalar catastrophe for one
-late four-layer A16 block; its matched per-position tail gate remains unclosed,
-and this is not a general SQG quality win. The active late-specific alpha panel
-must complete before a calibration choice is made. Middle layers 38--41, early
-layers 10--13, and all W4A8 quality/speed endpoints remain pending.
+late four-layer A16 block; it is not a general SQG quality win. The completed
+alpha panel makes alpha 0.25 a reproducible SQG prior while retaining MCG as
+the formal winner. Test 8b and Test 8c-core then fail the conditional quality
+and long-prefill speed case, so middle/early block conversion and the full
+quant do not begin from this result.
 
 The late null does not numerically clear Test 9's separated-layer tail failure:
 it is not a matched-checkpoint null for Test 9, and those harmful-tail metrics
@@ -93,6 +106,12 @@ exceed even the late p95 reference.
 - [Same-checkpoint KLD null](results/contiguous_late_same_checkpoint_tail_null_r1.md)
 - [Late trace analysis](results/contiguous_late_tail_trace_a025_r1.md)
 - [Same-checkpoint trace null](results/contiguous_late_same_checkpoint_tail_trace_null_r1.md)
+- [Late all-arm H13 selection](results/contiguous_late_h13_blend_selection_r1.md)
+- [Late all-arm H13 holdout](results/contiguous_late_h13_blend_holdout_full_r1.md)
+- [Test 8b activation-quality result](results/glm52_w4a8_activation_quality_l077_r1.md)
+- [Test 8c compact-core speed result](results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
+- [Conditional full-model plan and NO-GO decision](docs/conditional_full_model_sqg_w4a8_plan.md)
+- [W4A8 code identity and omitted-evidence receipt](published_evidence/w4a8_core/README.md)
 - [QSRT/Kimi K3 K1 feasibility audit](docs/qsrt_kimi_k3_k1_feasibility.md)
 - [Fast parallel encoding notes](docs/fast_parallel_sqg_encoding.md)
 - [Publication scope and excluded payloads](PUBLISHING_SCOPE.md)
@@ -121,6 +140,12 @@ provenance](kquant/LOCAL_PROVENANCE.md) and
   per arm. It does not estimate document-level or task-level generalization.
 - Test 9's holdout was encoder-unseen but had already been inspected during
   Test 7, so it is not a globally blind confirmation set.
+- Test 8b is a deterministic layer-77 routed-function oracle, not final-logit
+  KLD. Its holdout is encoder-unseen but analysis-seen, so it is secondary
+  replication rather than a newly blind confirmation corpus.
+- Test 8c-core measures dense compact per-tensor calls and a serial route-
+  histogram projection. It is not a fused route-packed layer or end-to-end
+  serving benchmark.
 - The earlier four selected layers were separated; the new 74--77 block is
   contiguous but covers only 5.33% of the 75 routed layers.
 - The MCG baseline and SQG candidate did not share the same selected-layer
@@ -129,7 +154,9 @@ provenance](kquant/LOCAL_PROVENANCE.md) and
 - This Git repository intentionally excludes model-scale tensor payloads and
   regenerated caches. Their manifests, hashes, receipts, and compact logs are
   preserved in `published_evidence/`.
-- Direct MCG-versus-SQG E4M3 weight-endpoint distortion has been measured, but
-  real GLM W4A8 activation quality and speed have not.
+- Direct MCG-versus-SQG E4M3 weight-endpoint distortion, GLM W4A8 activation
+  quality, and compact-core speed have been measured. A repaired activation
+  path, exact-path `H2_A8`, route-packed layer speed, final-logit W4A8 KLD, and
+  full-model quality remain unmeasured.
 
 No inference service or GPU process is started by this repository.
