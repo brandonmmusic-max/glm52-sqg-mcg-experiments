@@ -2578,6 +2578,13 @@ from these results.  Those release deliverables remain defined in the
 conditional plan and become active only after a repaired activation path and
 route-packed kernel pass their respective gates.
 
+This was the decision at completion of 8c-core. The later 8c-layer result
+repairs the isolated route-packed kernel defect, but does not retroactively
+authorize the full encode: its whole-prefill projection remains below the
+migration threshold and integrated DCP4 serving is still unmeasured. Immutable
+BF16 staging and capture were later permitted because they do not commit
+quantized model bytes.
+
 ## Test 12 — alpha-0.25 winner-native profile search
 
 ### Method and holdout
@@ -2670,6 +2677,76 @@ Expert-private profile selection is the primary useful signal. Co-routing can
 remain a tie-breaker inside a strict unary band, but this panel does not
 justify a cancellation-oriented runtime policy. A tail-aware rule requires a
 fresh document corpus because the existing holdout has now been inspected.
+
+## Test 8c-layer — repaired route-packed hybrid kernel
+
+### Hypothesis and frozen variables
+
+Nsight showed that the original approximately 2x W4A8 slowdown came from the
+M64xN8 one-warp schedule rather than SQG labels or FP8 MMA: 195,584 CTAs per
+projection at M=4,096, 7.385x ideal L2-sector traffic, 4.21% tensor-pipe
+utilization, and only 3.56% DRAM utilization. The replacement hypothesis was
+that wider-N activation reuse would reverse the slowdown without changing any
+encoded byte.
+
+The sealed layer-77 shard, independent gate/up/down K3/K4 maps, labels,
+transforms, scales, routing, exact `silu(gate) * up`, and signed top-8 reduction
+were frozen. No re-encode, uniform-K3 substitution, dense weight
+materialization, or transform folding was allowed.
+
+### Methodology
+
+The replacement launch uses M64xN256, four warps, and K128 A staging. It
+decodes the expert's compact native K3 or K4 trellis payload directly into
+E4M3 MMA operands. Two and four M16 blocks per CTA were measured as separate
+arms; four blocks were selected.
+
+Correctness was required before timing. Both CTA configurations had to:
+
+- bit-match the original one-warp route-packed kernel;
+- agree with a dense reconstructed SQG oracle; and
+- remain bit-equal under CUDA-graph replay.
+
+The full layer benchmark additionally checked finite output, eager/graph
+equality, compact-down oracles for one K3 and one K4 expert, and signed weighted
+top-8 closure. M=3,072 and M=4,096 each used 20 warmups and 200 balanced ABBA
+samples per arm; 95% intervals used 10,000 bootstrap replicates. The control
+was compact W4A16 gate/up/down under the identical route-packed schedule. The
+candidate used W4A8 gate/up and compact W4A16 down.
+
+### Results and validation
+
+```text
+                    M=3072                 M=4096
+A16 median          31.897568 ms           39.493376 ms
+hybrid median       27.003600 ms           33.796177 ms
+A16 / hybrid         1.181233895            1.168575247
+95% CI               1.180526--1.181949     1.167744--1.169290
+layer NMSE           0.0002545059            0.0002096047
+layer cosine         0.9998730585            0.9998958985
+```
+
+The focused correctness test passed both parameters (`2 passed in 14.96s`).
+The candidate-versus-A16 distortions exactly reproduced the original
+one-warp benchmark values, providing an additional guard that scheduling did
+not change arithmetic. The two-block negative control was slower than A16 at
+M=4,096 (`0.870585x`); it was rejected.
+
+### Disposition and next hypothesis
+
+The isolated kernel defect is repaired: unchanged SQG bytes now run the
+hybrid layer 1.17--1.18x faster than matched A16 instead of approximately 2x
+slower. This is not an end-to-end serving pass. At the preregistered 31% MoE
+share, the ratios project to only 1.04994x and 1.04681x whole-prefill speedups,
+below the 1.15x migration floor.
+
+The next test is integrated, workload-weighted vLLM/DCP4 serving using the
+actual brief and long-prefill distributions. It must measure the real MoE
+share, collectives, route packing, graph behavior, and non-MoE overlap rather
+than promoting the layer Amdahl estimate into a serving claim. Full encoding
+remains frozen until this runtime gate and the hybrid-versus-full-W4A8
+down-path quality contract close. Full details and source/result identities
+are in `docs/route_packed_w4a8_kernel_2026-08-11.md`.
 
 ## Cumulative findings
 
@@ -2766,6 +2843,14 @@ fresh document corpus because the existing holdout has now been inspected.
 26. The combined conditional GO criteria were not met.  No full 75-layer SQG
     encode, serving migration, Docker/Hugging Face release, or production
     restart follows from the current evidence.
+27. A replacement route-packed hybrid kernel was then tested on the unchanged
+    sealed layer-77 bytes.  Its M64xN256, four-warp, K128-staged launch is
+    bit-exact with the original one-warp kernel, agrees with a dense decoded
+    oracle, and is stable under CUDA graphs.  It reached 1.1812x A16/hybrid at
+    M=3,072 and 1.1686x at M=4,096.  This repairs the isolated kernel defect,
+    but with the preregistered 31% MoE share it projects to only 1.0499x and
+    1.0468x whole-prefill speedups, below the 1.15x deployment gate.  No model
+    byte or K3/K4 assignment changed and no re-encode was run.
 
 ### Findings that are not established
 
@@ -2788,9 +2873,10 @@ fresh document corpus because the existing holdout has now been inspected.
   transfers to Hessian-weighted error or model KLD.
 - A repaired W4A8 path has not shown a GLM activation-quality or final-logit
   KLD result.  The current max-scaled K32 MXFP8 path failed Test 8b.
-- Route-packed GLM W4A8 serving speed remains unmeasured.  The completed
-  compact-core result is below the long-prefill migration floor at the largest
-  tested route counts and cannot establish a fused-kernel result.
+- Route-packed GLM hybrid layer speed is now measured and faster than the
+  dispatch-matched A16 layer.  Integrated vLLM/DCP4 serving speed remains
+  unmeasured, and the 31%-MoE Amdahl projection remains below the long-prefill
+  migration floor.
 - The alpha-0.25 blend selected on separated layers is not established as the
   correct late-block blend; its late signed-top-8 holdout result is adverse.
 - The completed same-checkpoint null is an empirical reference from 252
@@ -2810,9 +2896,10 @@ fresh document corpus because the existing holdout has now been inspected.
    recapture exact-path `H2_A8`, re-encode down only, and repeat full-expert
    Test 8b on selection and secondary holdout.  Require a new blind corpus
    before final construction.
-3. If repaired Test 8b passes, implement and benchmark route-packed GLM W4A8
-   with independent gate/up/down K3/K4 descriptors at M=3,072 and larger.
-4. If quality and speed both pass, rerun profile/rotation search natively for
+3. Integrate the measured M64xN256 route-packed hybrid path into the actual
+   DCP4 serving stack and run the workload-weighted long-prefill benchmark.
+   Preserve the sealed independent K3/K4 labels, scales, and transforms.
+4. If quality and integrated speed both pass, rerun profile/rotation search natively for
    alpha 0.25, screen middle/early contiguous blocks, and scale to roughly half
    the routed layers before asking whether SQG lowers final-logit KLD.
 5. Greenlight the full BF16 SQG quant, fused runtime, evaluations, and release
@@ -2864,6 +2951,7 @@ fresh document corpus because the existing holdout has now been inspected.
 - [GLM Test 8b activation-quality JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_w4a8_activation_quality_l077_r1.json)
 - [GLM Test 8c compact-core report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
 - [GLM Test 8c compact-core JSON](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_w4a8_core_benchmark_l077_r1.json)
+- [GLM route-packed hybrid kernel result](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_sqg_route_packed_w4a8_v2_l077_kernel_result.md)
 - [Winner-native profile report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_alpha025_winner_native_profile_l077_r1.md)
 - [Exact h-A8 `(H,B)` down report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
 - [Unary-bounded co-routing report](/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_test/results/glm52_retained_profile_corouting_l077_r1.md)
