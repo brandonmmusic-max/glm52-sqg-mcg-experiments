@@ -2568,11 +2568,91 @@ current core does not establish the required serving win.
 The completed JSON SHA256 is
 `6740f8be4480a9272866b03055ea0f2dee3e5ed8d4453a8e1d4f5d757f64bb58`.
 
+## Test 8c-layer — route-packed GLM W4A8 kernel: r1 collapse, r2 correction
+
+### r1: the first route-packed hybrid collapsed
+
+The first route-packed hybrid measurement on the sealed winner-native
+layer-77 candidate was a large regression, not a win: at M=3,072 the A16 full
+MoE layer took 40.089 ms against 81.490 ms hybrid (A16/hybrid `0.49195`), and
+at M=4,096, 50.380 ms against 105.411 ms (`0.47794`).  Component profiling at
+M=4,096 localized ~86 ms in the mixed-rate gate/up route-packed FP8
+projection; route packing, input transform, MXFP8 quantization (~0.125 ms)
+and output transform plus exact SwiGLU (~0.814 ms) were immaterial.
+
+The diagnosed defect was the one-warp M64xN8 projection schedule, not FP8
+arithmetic: each CTA covered 8 of 2,048 output columns yet read the full
+M64xK6144 quantized-A slice from global memory with no shared-memory staging
+(~256x read amplification, ~60 GB per projection at M=4,096), a single warp
+had no latency cover, and trellis fragments were re-decoded per CTA.
+
+### r2: corrected M64xN256 tile kernel
+
+The corrected launch keeps the packed-route workspace, decode primitives,
+rate independence, and entry contract unchanged and fixes the schedule: one
+CTA covers M64xN256 with 128 threads; A and its UE8M0 row scales are cp.async
+double-buffered through xor-swizzled shared memory using the fused-pipeline
+staging discipline; each warp owns eight n8 strips and decodes B fragments
+register-resident with the unchanged warp trellis primitive, so each decoded
+fragment feeds four M16 MMAs; the expert's K3 or K4 pool is resolved once per
+CTA.  Compact trellis payloads remain the only weight representation.  The
+accumulation order is identical to the one-warp kernel; the added unit test
+asserts bit-identical outputs (`torch.equal`) against the one-warp kernel,
+dense-reference closure, and CUDA-graph capture/replay equality for 4- and
+2-block CTA variants.  Kernel selection is a runtime environment variable;
+the one-warp kernel remains available as the before/after control, and
+sub-N256 shapes fall back to it.
+
+### Measured r2 result (20 warmups, 200 balanced ABBA samples per arm)
+
+The r2 environment first reproduced the r1 collapse with the unchanged
+kernel (A16/hybrid `0.4820` at M=3,072, `0.4642` at M=4,096), then measured
+the corrected kernel in the same runs:
+
+| Median | M=3,072 | M=4,096 |
+|---|---:|---:|
+| gate/up projection, one-warp | 55.613 ms | 73.065 ms |
+| gate/up projection, tile | 16.306 ms | 19.552 ms |
+| hybrid layer, one-warp | 68.277 ms | 86.468 ms |
+| hybrid layer, tile | 27.201 ms | 33.733 ms |
+| A16/hybrid, tile | `1.1780` [1.1770, 1.1790] | `1.1685` [1.1677, 1.1693] |
+| Amdahl end-to-end at MoE fraction 0.31 | `1.0491` | `1.0468` |
+
+Accepted-run validation: independent K3/K4 census intact, dense per-rate
+oracle passed, signed top-8 routed sum passed, eager/CUDA-graph bit-exact in
+both arms, all outputs finite; hybrid-versus-A16 layer-output NMSE
+`2.0960e-4` (cosine `0.9998959`) — the h-A8 quantization difference,
+unchanged from the one-warp arm by bit-identity.
+
+### What Test 8c-layer establishes
+
+The route-packed collapse was an implementation failure and is fixed: the
+quality-qualified hybrid is now 1.17-1.18x **faster** than A16 at the two
+long-prefill sizes that previously collapsed.  The preregistered speed gate
+is still not met: 1.73x full-MoE is required for 1.15x end-to-end at MoE
+fraction 0.31, and the measured full-MoE speedup projects to only
+~1.047-1.049x end-to-end.  The residual gap is structural to the hybrid
+quality configuration: the required A16 down block (~13.4 ms of 33.7 ms at
+M=4,096) caps the reachable full-MoE ratio near 2.8x, and clearing 1.73x
+needs the gate/up projection near 8.6 ms — a further ~2.3x, with identified
+but unproven levers (per-expert chunked M loops to remove the remaining
+~2.4x decode redundancy, T12 LUT in shared memory, wider staged K tiles).
+This is a single-layer, two-M, assumed-fraction component result, not
+serving acceptance.
+
+Sources, hashes, and environment identity:
+[`evaluation/w4a8_route_packed_kernel_r2/`](../evaluation/w4a8_route_packed_kernel_r2/README.md);
+result narrative:
+[`results/glm52_sqg_route_packed_kernel_r2.md`](../results/glm52_sqg_route_packed_kernel_r2.md).
+
 ### Combined conditional decision
 
 The alpha panel did not beat MCG, Test 8b is red, and Test 8c-core is below the
-long-prefill migration floor at M=3,072/4,096.  Therefore the conditional
-authorization does not trigger: no 75-layer encode, BF16 stream, fused kernel
+long-prefill migration floor at M=3,072/4,096.  Test 8c-layer subsequently
+removed the route-packed implementation collapse (hybrid now faster than A16)
+but still projects below the 1.15x end-to-end floor at MoE fraction 0.31.
+Therefore the conditional authorization does not trigger: no 75-layer encode,
+BF16 stream, fused kernel
 port, Docker image, Compose/serve release, or Hugging Face model upload begins
 from these results.  Those release deliverables remain defined in the
 conditional plan and become active only after a repaired activation path and
