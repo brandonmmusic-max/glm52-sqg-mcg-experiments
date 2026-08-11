@@ -24,10 +24,11 @@ diagnostic layers were 6, 28, 52, and 77; the first contiguous block is layers
 
 ## Bottom line
 
-The conditional program is currently **NO-GO**. The evidence supports a
-targeted activation-policy repair and route-packed-kernel research, but does
-**not** authorize a full 75-layer conversion or establish lower full-model
-KLD.
+The conditional program remains **NO-GO for full encoding**. The isolated
+route-packed hybrid kernel defect is now repaired, but integrated serving
+performance and the final down-path quality contract remain open. The current
+evidence therefore does **not** authorize a full 75-layer conversion or
+establish lower full-model KLD.
 
 | Measurement | Result | What it establishes |
 |---|---:|---|
@@ -39,6 +40,7 @@ KLD.
 | Late 74--77 all-arm H13 panel | MCG retained every formal hard-gate decision; alpha 0.25 was the stable SQG diagnostic | 25% expert-local/75% layer-shared is the SQG prior, not an MCG-beating result |
 | Test 8b full W4A8 versus matched SQG A16 | `+22.9802%` selection NMSE; `+22.7790%` secondary-holdout NMSE | The current A8 policy is a replicated functional regression and fails the quality gate |
 | Test 8c compact-core speed | projected `1.1310x` at M=3,072 and `1.0684x` at M=4,096, assuming MoE fraction `0.31` | The native FP8 path is real, but the serial-core projection misses the `1.15x` long-prefill migration floor and is not serving acceptance |
+| Test 8c route-packed hybrid layer | `1.1812x` at M=3,072 and `1.1686x` at M=4,096 versus dispatch-matched A16 | The M64xN256/K128 kernel repairs the original slowdown without changing encoded bytes; 31%-MoE Amdahl projections are only `1.0499x`/`1.0468x`, so integrated serving remains unaccepted |
 | Same-candidate-path 5v5 null | mean-delta p95 envelope `±0.0013867` | Ten reused boots provide a checkpoint/prompt-specific empirical reference, not independent experiments or a formal false-positive calibration |
 | Late paired trace versus one r33-r33 pair | MoE drift ratio `1.49–1.72x`; post-residual `1.04–1.29x` | Treatment-consistent but unreplicated mechanistic evidence; not a causal estimate or proof that compounding is absent |
 | Winner-native layer-77 profile | `-1.5202%` selection and `-0.8131%` untouched holdout versus the frozen profile | Repeating profile search under alpha 0.25 fixes a measurable home-field mismatch on the 16-expert panel |
@@ -77,7 +79,7 @@ early/middle/late blocks.
 | Support-conditioned alpha analysis | Complete: alpha 0.25 won all four effective-support quartiles; the association is diagnostic and does not justify per-expert alpha selection |
 | Exploratory layerwise alpha search | Complete: 0 of 625 all-SQG mappings passed MCG hard gates; the frozen uniform alpha-0.25 mapping also failed holdout |
 | Test 8b activation quality | **Red**: full W4A8 was `22.9802%`/`22.7790%` worse than matched SQG A16 on selection/secondary holdout |
-| Test 8c-core speed | Complete compact-core result: short tiles were fast, but M=3,072/4,096 projections fell below `1.15x`; route-packed Test 8c-layer was not run |
+| Test 8c route-packed speed | **Layer kernel green, deployment open**: M64xN256 hybrid is `1.1812x`/`1.1686x` faster than A16 at M=3,072/4,096, but the 31%-MoE whole-prefill projections are only `1.0499x`/`1.0468x` |
 
 The initial failure remains excluded. A later run-3 validator rejection exposed
 a float32-roundoff floor that was smaller than one machine epsilon; the saved
@@ -87,9 +89,11 @@ changing model, logits, or tensor bytes. Five accepted boots then completed.
 Test 10 establishes scalar KLD parity/no obvious scalar catastrophe for one
 late four-layer A16 block; it is not a general SQG quality win. The completed
 alpha panel makes alpha 0.25 a reproducible SQG prior while retaining MCG as
-the formal winner. Test 8b and Test 8c-core then fail the conditional quality
-and long-prefill speed case, so middle/early block conversion and the full
-quant do not begin from this result.
+the formal winner. Test 8b still fails the full-W4A8 quality case. The repaired
+route-packed hybrid layer removes the original kernel blocker, but it does not
+pass the preregistered whole-prefill migration floor. Middle/early preparation
+and the full quant remain frozen pending integrated serving measurement and a
+frozen hybrid-versus-full-W4A8 down-path quality contract.
 
 The late null does not numerically clear Test 9's separated-layer tail failure:
 it is not a matched-checkpoint null for Test 9, and those harmful-tail metrics
@@ -118,6 +122,8 @@ exceed even the late p95 reference.
 - [Late all-arm H13 holdout](results/contiguous_late_h13_blend_holdout_full_r1.md)
 - [Test 8b activation-quality result](results/glm52_w4a8_activation_quality_l077_r1.md)
 - [Test 8c compact-core speed result](results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
+- [Test 8c route-packed hybrid kernel result](docs/route_packed_w4a8_kernel_2026-08-11.md)
+- [Test 8c route-packed machine-readable summary](results/glm52_sqg_route_packed_w4a8_v2_l077_r1.json)
 - [Winner-native profile result](results/glm52_alpha025_winner_native_profile_l077_r1.md)
 - [Exact h-A8 `(H,B)` down re-encode](results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
 - [Unary-bounded retained-profile co-routing](results/glm52_retained_profile_corouting_l077_r1.md)
@@ -155,7 +161,8 @@ provenance](kquant/LOCAL_PROVENANCE.md) and
   KLD. Its holdout is encoder-unseen but analysis-seen, so it is secondary
   replication rather than a newly blind confirmation corpus.
 - Test 8c-core measures dense compact per-tensor calls and a serial route-
-  histogram projection. It is not a fused route-packed layer or end-to-end
+  histogram projection. The later route-packed test is a complete isolated
+  layer benchmark, but it is still not an integrated vLLM/DCP4 end-to-end
   serving benchmark.
 - The earlier four selected layers were separated; the new 74--77 block is
   contiguous but covers only 5.33% of the 75 routed layers.
@@ -166,8 +173,9 @@ provenance](kquant/LOCAL_PROVENANCE.md) and
   regenerated caches. Their manifests, hashes, receipts, and compact logs are
   preserved in `published_evidence/`.
 - Direct MCG-versus-SQG E4M3 weight-endpoint distortion, GLM W4A8 activation
-  quality, and compact-core speed have been measured. A repaired activation
-  path, exact-path `H2_A8`, route-packed layer speed, final-logit W4A8 KLD, and
-  full-model quality remain unmeasured.
+  quality, compact-core speed, and route-packed hybrid layer speed have been
+  measured. A repaired full-W4A8 activation path, exact-path `H2_A8`,
+  integrated DCP4 serving speed, final-logit W4A8 KLD, and full-model quality
+  remain unmeasured.
 
 No inference service or GPU process is started by this repository.

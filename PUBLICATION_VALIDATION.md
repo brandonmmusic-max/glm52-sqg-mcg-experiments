@@ -1,8 +1,8 @@
 # Publication validation
 
-Validation was rerun for the 2026-08-11 late-block results update with
-`CUDA_VISIBLE_DEVICES` empty. No inference container or GPU workload was
-started by the publication work.
+Validation was extended for the 2026-08-11 route-packed-kernel update. The
+publication-only checks used no inference container. The external runtime
+measurement did use an SM120 GPU and is separately identified below.
 
 ## Test results
 
@@ -10,6 +10,7 @@ started by the publication work.
 |---|---:|
 | Main project, current update | 301 passed, 1 skipped |
 | New retained-profile co-routing unit tests | 2 passed |
+| Route-packed M64xN256 bit-exact kernel test, external runtime tree | 2 passed in 14.96s |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
@@ -53,8 +54,8 @@ values for those keys. The complete suite then passed.
 - All 5,543 published JSON files parsed successfully; the compact contiguous-
   late evidence subtree contains 63 JSON files and 97 total files (about 1.2
   MB).
-- After the completed alpha/Test 8b/Test 8c update, all 5,566 published JSON
-  files parse successfully.  The seven current entry-point/evidence Markdown
+- After the route-packed update, all 5,567 published JSON files parse
+  successfully.  The current entry-point/evidence Markdown
   files have zero broken repository-relative links.  Three pre-existing links
   in explicitly historical/vendored documentation remain nonportable and are
   outside this update's entry-point audit.
@@ -102,6 +103,14 @@ values for those keys. The complete suite then passed.
   and both deterministic solver unit tests. The 112-second production run
   completed with zero new encodes, zero uniform-K3 substitution, and zero MCG
   inputs.
+- The new route-packed machine-readable summary parses as JSON, and all local
+  links added to the README and kernel report resolve. `git diff --check`
+  passes.
+- The external kernel test covered both four-block and two-block CTA variants.
+  Each must bit-match the original one-warp kernel, agree with a dense decoded
+  SQG reference, and remain equal under CUDA-graph replay. The complete
+  layer-77 benchmarks additionally passed finite output, compact-down oracle,
+  signed weighted top-8 closure, and eager/graph equality checks.
 - Shell syntax checks, Python byte compilation, and the sealed pure-SQG source
   manifest check passed. The corrected runner hashes to
   `aa7f5d556d2b5700b7fe49a441778822853bd75eeb0db70090eb71bf93dda636`;

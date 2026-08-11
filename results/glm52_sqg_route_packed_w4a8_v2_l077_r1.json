@@ -1,0 +1,89 @@
+{
+  "kind": "glm52_sqg_route_packed_w4a8_v2_l077_summary",
+  "schema_version": 1,
+  "status": "kernel_correctness_and_layer_timing_complete_serving_gate_open",
+  "date": "2026-08-11",
+  "input": {
+    "layer": 77,
+    "layer_shard_sha256": "04b07b35282673a684315d23db11c48f954ea802a83135e44ae75604ec7c8341",
+    "layer_manifest_sha256": "9301807125afa2b21aa073ffc86e5815f6645748482094c8b799eebaf25b931d",
+    "capture_run_uuid": "fa5b5504-e695-4fdf-bc17-601352b8a295",
+    "experts": 256,
+    "topk": 8,
+    "hidden": 6144,
+    "intermediate": 2048,
+    "rates": "independent_per_tensor_k3_k4",
+    "bit_histogram": {
+      "3": 384,
+      "4": 384
+    }
+  },
+  "candidate": {
+    "gate_up": "native_sqg_w4a8",
+    "down": "compact_sqg_w4a16",
+    "tile": "m64n256k128",
+    "threads": 128,
+    "m16_blocks_per_cta": 4,
+    "dense_weight_materialization": false,
+    "reencode": false,
+    "uniform_k3": false
+  },
+  "validation": {
+    "tile_cta_parameters_tested": [4, 2],
+    "pytest_passed": 2,
+    "pytest_seconds": 14.96,
+    "bit_exact_to_one_warp": true,
+    "dense_decoded_oracle_passed": true,
+    "cuda_graph_bit_exact": true,
+    "signed_top8_closure_passed": true,
+    "all_finite": true
+  },
+  "results": {
+    "3072": {
+      "routes": 24576,
+      "a16_median_ms": 31.897567749023438,
+      "hybrid_median_ms": 27.003600120544434,
+      "a16_over_hybrid": 1.1812338949855674,
+      "bootstrap_ci95": [1.180526003770522, 1.1819487424740232],
+      "layer_nmse": 0.0002545059276315372,
+      "layer_cosine": 0.9998730585173291,
+      "moe_fraction": 0.31,
+      "projected_whole_prefill_speedup": 1.0499377255721365
+    },
+    "4096": {
+      "routes": 32768,
+      "a16_median_ms": 39.49337577819824,
+      "hybrid_median_ms": 33.79617691040039,
+      "a16_over_hybrid": 1.168575246925181,
+      "bootstrap_ci95": [1.1677442872761443, 1.1692896042821208],
+      "layer_nmse": 0.0002096047006458569,
+      "layer_cosine": 0.999895898531709,
+      "moe_fraction": 0.31,
+      "projected_whole_prefill_speedup": 1.0468131635316371
+    }
+  },
+  "negative_control": {
+    "m": 4096,
+    "m16_blocks_per_cta": 2,
+    "a16_over_hybrid": 0.8705850078012731,
+    "disposition": "rejected_slower_than_a16"
+  },
+  "gate": {
+    "isolated_layer_kernel": "pass",
+    "integrated_serving": "not_run",
+    "whole_prefill_threshold": 1.15,
+    "projected_whole_prefill": "fail",
+    "full_encode": "hold"
+  },
+  "source_identity": {
+    "runtime_base_commit": "7cecbb2c4819636ae7f05f8b116f2c45ee2cff7b",
+    "glm_trellis_w4a8_py_sha256": "56952fc75c92d41a1e3696d1b12b5de7a6d9bea84cea525e51647312cfc028d8",
+    "benchmark_sha256": "7ba5926d8387935265f5f4ac2ec4dcc3cf0aed49ea544513408ba707435e1dce",
+    "test_sha256": "9339d10fb886ff82ad07e76254753a3828adbec50cec6008ef8cc4bca2077889"
+  },
+  "raw_result_sha256": {
+    "m3072_four_block": "387f99262e18a5d286229b8041fe9d3d9a8053931887020e15fd6481842c513c",
+    "m4096_four_block": "78225891fbe0720e69bc6f3f5fa96f90b9eb4ca2b0dba1c9ecd5d6b295a6c4b7",
+    "m4096_two_block": "d487a51a5212480b2932f37e23e4ec7a45320731031b4db0d4a3f3008ec8794e"
+  }
+}
