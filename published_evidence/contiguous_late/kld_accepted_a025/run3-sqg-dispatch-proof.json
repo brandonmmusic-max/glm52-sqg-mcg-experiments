@@ -1,0 +1,30 @@
+{
+  "schema": "glm52-sqg-dispatch-proof-v1",
+  "log": "/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-evaluation-contig-late-a025-r1/candidate/fresh-sqg-contig-late-a025-r1-candidate-kld-fp8-dcp4/run3.log",
+  "log_sha256": "04db5b6f1c7054962b70167c32519f7f47824fb40961345f3703e989b2b3ddfa",
+  "required_layers": [
+    74,
+    75,
+    76,
+    77
+  ],
+  "records": [
+    {
+      "layer": 74,
+      "count": 4
+    },
+    {
+      "layer": 75,
+      "count": 4
+    },
+    {
+      "layer": 76,
+      "count": 4
+    },
+    {
+      "layer": 77,
+      "count": 4
+    }
+  ],
+  "every_required_line_observed": true
+}

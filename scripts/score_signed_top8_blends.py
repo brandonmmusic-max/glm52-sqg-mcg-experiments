@@ -209,6 +209,7 @@ def _score_layer(
     layer: int,
     gpu: int,
     candidates_raw: dict[str, str],
+    permutation_root_raw: str,
     baseline_label: str,
     role: str,
     mcg_root_raw: str,
@@ -225,7 +226,7 @@ def _score_layer(
     torch.set_float32_matmul_precision("highest")
     device = torch.device(f"cuda:{gpu}")
     candidates = {label: Path(path) for label, path in candidates_raw.items()}
-    reference_root = next(iter(candidates.values()))
+    reference_root = Path(permutation_root_raw)
     labels = list(candidates)
     if mcg_baseline_label is not None:
         labels.append(mcg_baseline_label)
@@ -633,6 +634,14 @@ def main() -> int:
     parser.add_argument("--mcg-root", type=Path, default=DEFAULT_MCG_ROOT)
     parser.add_argument("--bf16-root", type=Path, default=DEFAULT_BF16_ROOT)
     parser.add_argument("--capture-root", type=Path, default=DEFAULT_CAPTURE_ROOT)
+    parser.add_argument(
+        "--permutation-root",
+        type=Path,
+        help=(
+            "Preparation root containing layer_NNN/preparation/permutations; "
+            "defaults to the first candidate root for legacy combined trees."
+        ),
+    )
     parser.add_argument("--chunk-rows", type=int, default=256)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -651,6 +660,13 @@ def main() -> int:
     for label, path in candidates.items():
         if not path.is_dir():
             raise ValueError(f"candidate {label} is absent: {path}")
+    permutation_root = (
+        args.permutation_root
+        if args.permutation_root is not None
+        else next(iter(candidates.values()))
+    )
+    if not permutation_root.is_dir():
+        raise ValueError(f"permutation root is absent: {permutation_root}")
 
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -665,6 +681,7 @@ def main() -> int:
                 layer,
                 gpu,
                 {label: str(path.resolve()) for label, path in candidates.items()},
+                str(permutation_root.resolve()),
                 args.baseline_label,
                 args.role,
                 str(args.mcg_root.resolve()),
@@ -707,6 +724,7 @@ def main() -> int:
             "candidate_packed_bytes_decoded": True,
             "mcg_packed_bytes_decoded": args.mcg_baseline_label is not None,
             "layers": list(args.layers),
+            "permutation_root": str(permutation_root.resolve()),
             "tail_control_precedes_win_rate": True,
             "fit_rows_used": False,
             "selection_rows_used": args.role == "selection",
@@ -716,7 +734,7 @@ def main() -> int:
             ),
         },
         "aggregate": aggregate,
-        "layers": {str(layer): layer_results[layer] for layer in LAYERS},
+        "layers": {str(layer): layer_results[layer] for layer in args.layers},
     }
     output.write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
