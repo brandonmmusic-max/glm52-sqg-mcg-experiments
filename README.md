@@ -123,6 +123,7 @@ exceed even the late p95 reference.
 - [Test 8b activation-quality result](results/glm52_w4a8_activation_quality_l077_r1.md)
 - [Test 8c compact-core speed result](results/glm52_sqg_w4a8_core_benchmark_l077_r1.md)
 - [Test 8c route-packed hybrid kernel result](docs/route_packed_w4a8_kernel_2026-08-11.md)
+- [Route-packed kernel r2 raw artifacts and source snapshot](evaluation/w4a8_route_packed_kernel_r2/README.md)
 - [Test 8c route-packed machine-readable summary](results/glm52_sqg_route_packed_w4a8_v2_l077_r1.json)
 - [Winner-native profile result](results/glm52_alpha025_winner_native_profile_l077_r1.md)
 - [Exact h-A8 `(H,B)` down re-encode](results/glm52_uncoupled_h_a8_xterm_down_l077_r1.md)
