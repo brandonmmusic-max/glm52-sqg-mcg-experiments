@@ -11,6 +11,7 @@ measurement did use an SM120 GPU and is separately identified below.
 | Main project, current update | 301 passed, 1 skipped |
 | New retained-profile co-routing unit tests | 2 passed |
 | Route-packed M64xN256 bit-exact kernel test, external runtime tree | 2 passed in 14.96s |
+| Corrected full-W4A8 beta/down focused source-workspace tests | 23 passed |
 | Vendored KQuant, prior publication validation | 346 passed, 1 skipped |
 | BMM Law R7 encoder, prior publication validation | 44 passed |
 | Upstream QSRT audit recorded in the new Kimi K3/K1 report | 491 passed, 1 skipped |
@@ -21,6 +22,12 @@ CUDA FP16 boundary regression that requires SM120.
 The QSRT count belongs to the pinned upstream audit described in
 [`docs/qsrt_kimi_k3_k1_feasibility.md`](docs/qsrt_kimi_k3_k1_feasibility.md),
 not to the vendored KQuant tree.
+
+The corrected full-W4A8 row was run in the authoritative construction
+workspace after the preliminary-H2 initialization and canonical-contract hash
+repairs. It covers the beta panel, selected encoder, and derived-target
+binding; it is recorded here as source-workspace evidence, not as a test run
+from this publication-only checkout.
 
 The BMM Law directory retains its historical local name
 `bmmlaw_r7_encoder`, while its tests import `r7_encoder`. The validation run
@@ -109,6 +116,11 @@ values for those keys. The complete suite then passed.
 - The final same-environment r2 summary binds all eight raw before/after result
   files by SHA-256, records the exact kernel/benchmark/test identities, and
   preserves the earlier independent r1 summary instead of overwriting it.
+- The coordinate-corrected down and fit-only beta reports record the sealed
+  result/selection IDs, distinguish fit-only choice from selection/holdout
+  scoring, and explicitly exclude the superseded beta-1 partial triplet run.
+  The README, both new reports, the conditional plan, and the updated ledger
+  have zero broken repository-relative links; `git diff --check` passes.
 - The external kernel test covered both four-block and two-block CTA variants.
   Each must bit-match the original one-warp kernel, agree with a dense decoded
   SQG reference, and remain equal under CUDA-graph replay. The complete

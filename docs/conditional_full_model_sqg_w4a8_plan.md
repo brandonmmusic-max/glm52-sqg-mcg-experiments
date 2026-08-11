@@ -1,10 +1,10 @@
 # Conditional full-model SQG/W4A8 execution and serving plan
 
-Status: active conditional execution plan. Tests 8b, 8c-core, and the isolated
-8c route-packed layer kernel are complete. The route-packed slowdown is
-repaired, but the integrated serving and down-path quality gates remain open.
-The full-model encode remains frozen so that it runs once, after those
-contracts are fixed.
+Status: active full native-W4A8 measurement build. Tests 8b, 8c-core, the PR11
+route-packed layer kernel, the coordinate-corrected `(H,B)` down repair, and
+fit-only beta selection are complete. The owner explicitly authorized the
+full encode under the corrected contract. Integrated serving and final
+full-model quality remain release gates rather than construction blockers.
 
 The target is not merely a second 3.5-bpw checkpoint.  The deliverable is a
 fully SQG, BMMLaw-calibrated GLM-5.2 model whose compact K3/K4 bytes can be
@@ -29,9 +29,9 @@ prior; it does not independently prove that a full SQG quant will beat MCG.
 The full build is justified only if exact-E4M3 W4A8 quality and deployable
 prefill speed supply the missing benefit.
 
-## Measured decision, 2026-08-11
+## Original disposition and corrected build decision, 2026-08-11
 
-The conditional program is currently **NO-GO**:
+The original fixed-byte conditional program was **NO-GO**:
 
 - Test 8b was red.  Relative to the matched SQG-A16 arm, full W4A8 increased
   signed weighted top-8 NMSE by 22.9802% on selection and 22.7790% on
@@ -53,18 +53,30 @@ The conditional program is currently **NO-GO**:
   those ratios project to only 1.0499x and 1.0468x whole-prefill speedups.
   The isolated layer kernel is green; the integrated serving gate remains
   open and below threshold by projection.
+
+PR11 subsequently measured the full-W4A8 route-packed arm at `1.7550x` for
+M=3,072 and `1.8236x` for M=4,096, projecting to `1.1539x`/`1.1628x` at the
+declared 31% MoE fraction. This clears the isolated long-prefill speed floor;
+the actual four-GPU workload fraction and integrated DCP4 result remain open.
+
+The coordinate-corrected, dual-scale-anchored `(H,B)` down repair reduced
+layer-77 signed top-8 NMSE by `9.5762%`/`9.3043%` versus base full W4A8, while
+remaining `10.22%`/`10.86%` worse than SQG A16. A fit-only panel then selected
+`beta=0.0625`; beta 1 was catastrophically worse and is excluded. This is the
+active construction contract, not a claim that the final quality gate passed.
+
 - The alpha panel selected 25% expert-local/75% layer-shared H13 among SQG
   candidates, but MCG remained the formal mean-NMSE winner.  The alpha-0.25
   holdout was 2.7705% worse in mean signed-top-8 NMSE and improved 39.0295% of
   positions.  No support-quartile or layerwise schedule displaced uniform
   alpha 0.25 or passed the MCG hard gates.
 
-Therefore no 75-layer encode, Docker release, or Hugging Face model upload
-begins from this result. Immutable BF16 staging and already-running capture
-may be sealed because they do not commit quantized bytes. A future GO requires
-either a quality-accepted hybrid h-A8/down-A16 contract or a repaired full
-act-A8/down-W4A8 contract, plus an integrated route-packed serving result at
-the speed floor.
+Those original results did not authorize a release. The later owner directive,
+PR11 full-W4A8 speed result, corrected down objective, and fit-only beta panel
+now authorize the 75-layer native-W4A8 construction as a measurement program.
+Docker and Hugging Face publication remain conditional on the final quality
+and integrated-serving battery; construction progress is not release
+acceptance.
 
 ## Gate A: Test 8b, activation quality
 
