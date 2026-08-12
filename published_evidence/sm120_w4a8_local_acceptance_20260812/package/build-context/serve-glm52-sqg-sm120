@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+# GLM-5.2 SQG full-W4A8 SM120 local entrypoint (infernal-invocation base).
+#
+# Mirrors the branch's serve-glm52.sh launch shape, adapted to the sealed
+# SQG W4A8 serving contract: TP4/DCP4 on four SM120 GPUs, quantization exl3,
+# the frozen m128n64/blocks8/stages2 route-packed schedule, native SQG K6
+# W6A16 non-routed execution, and no A16/A8 forcing. Extra arguments are
+# appended after the preset so compose services can override single flags.
+set -Eeuo pipefail
+
+require_exact() {
+  local name="$1" actual="$2" expected="$3"
+  [[ "$actual" == "$expected" ]] || {
+    echo "$name must be $expected; got '$actual'" >&2
+    exit 2
+  }
+}
+
+require_exact B12X_GLM_W4A8_ACCEPT_ARCH "${B12X_GLM_W4A8_ACCEPT_ARCH:-}" sm_120
+require_exact B12X_GLM_W4A8_KERNEL "${B12X_GLM_W4A8_KERNEL:-}" m128n64
+require_exact B12X_GLM_W4A8_V2_BLOCKS "${B12X_GLM_W4A8_V2_BLOCKS:-}" 8
+require_exact B12X_GLM_W4A8_V2_STAGES "${B12X_GLM_W4A8_V2_STAGES:-}" 2
+require_exact CUTE_DSL_ARCH "${CUTE_DSL_ARCH:-}" sm_120a
+require_exact TORCH_CUDA_ARCH_LIST "${TORCH_CUDA_ARCH_LIST:-}" 12.0a
+if [[ -n "${VLLM_GLM_SQG_W4A8_ALLOW_PARTIAL_CONSTRUCTION:-}" ]]; then
+  echo "partial-construction runtime is forbidden in the serving image" >&2
+  exit 2
+fi
+if [[ "${B12X_MOE_FORCE_A16:-0}" != "0" || "${B12X_MOE_FORCE_A8:-0}" != "0" ]]; then
+  echo "B12X_MOE_FORCE_A16/A8 must stay 0: the native full-W4A8 route is the contract" >&2
+  exit 2
+fi
+
+/opt/venv/bin/python - <<'PY'
+import importlib.util
+
+import torch
+import vllm
+
+assert vllm.__file__.startswith("/opt/infernal-invocation"), vllm.__file__
+assert importlib.util.find_spec("deep_gemm") is not None, "DeepGEMM is required"
+count = torch.cuda.device_count()
+assert count == 4, f"TP4/DCP4 requires exactly 4 visible GPUs; found {count}"
+for index in range(count):
+    capability = torch.cuda.get_device_capability(index)
+    assert capability == (12, 0), (index, capability)
+PY
+
+# Engine environment, mirroring the branch's serve-glm52.sh GLM-5.2 preset.
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-16}"
+export SAFETENSORS_FAST_GPU="${SAFETENSORS_FAST_GPU:-1}"
+export CUDA_DEVICE_ORDER="${CUDA_DEVICE_ORDER:-PCI_BUS_ID}"
+export CUDA_DEVICE_MAX_CONNECTIONS="${CUDA_DEVICE_MAX_CONNECTIONS:-32}"
+export NCCL_IB_DISABLE=1
+export NCCL_P2P_LEVEL=SYS
+export NCCL_PROTO=LL,LL128,Simple
+export GLOO_SOCKET_IFNAME="${GLOO_SOCKET_IFNAME:-lo}"
+export NCCL_SOCKET_IFNAME="${NCCL_SOCKET_IFNAME:-lo}"
+export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
+export VLLM_USE_AOT_COMPILE="${VLLM_USE_AOT_COMPILE:-1}"
+export VLLM_USE_BREAKABLE_CUDAGRAPH="${VLLM_USE_BREAKABLE_CUDAGRAPH:-0}"
+export VLLM_USE_MEGA_AOT_ARTIFACT="${VLLM_USE_MEGA_AOT_ARTIFACT:-1}"
+export VLLM_USE_FLASHINFER_SAMPLER="${VLLM_USE_FLASHINFER_SAMPLER:-1}"
+export VLLM_USE_B12X_FP8_GEMM="${VLLM_USE_B12X_FP8_GEMM:-1}"
+export VLLM_B12X_ABSORB_BMM="${VLLM_B12X_ABSORB_BMM:-0}"
+export VLLM_USE_B12X_MOE="${VLLM_USE_B12X_MOE:-1}"
+export VLLM_USE_B12X_SPARSE_INDEXER="${VLLM_USE_B12X_SPARSE_INDEXER:-1}"
+export VLLM_USE_V2_MODEL_RUNNER="${VLLM_USE_V2_MODEL_RUNNER:-1}"
+export VLLM_ENABLE_PCIE_ALLREDUCE="${VLLM_ENABLE_PCIE_ALLREDUCE:-1}"
+export VLLM_PCIE_ALLREDUCE_BACKEND="${VLLM_PCIE_ALLREDUCE_BACKEND:-b12x}"
+export B12X_MOE_FORCE_A8=0
+export B12X_MOE_FORCE_A16=0
+export VLLM_GLM_SQG_W4A8_WORKSPACE_LANES="${VLLM_GLM_SQG_W4A8_WORKSPACE_LANES:-2}"
+export VLLM_GLM_SQG_W4A8_EVIDENCE_DIR="${VLLM_GLM_SQG_W4A8_EVIDENCE_DIR:-/results/evidence}"
+
+MODEL="${MODEL:-/model}"
+SERVED_MODEL_NAME="${SERVED_MODEL_NAME:-GLM-5.2-SQG-W4A8}"
+HOST="${HOST:-0.0.0.0}"
+PORT="${PORT:-8000}"
+TP_SIZE="${TP_SIZE:-4}"
+DCP_SIZE="${DCP_SIZE:-4}"
+require_exact TP_SIZE "${TP_SIZE}" 4
+case "${DCP_SIZE}" in
+  4) require_exact VLLM_GLM_SQG_W4A8_TOPOLOGY_ATTESTATION        "${VLLM_GLM_SQG_W4A8_TOPOLOGY_ATTESTATION:-}" tp4dcp4 ;;
+  1) require_exact VLLM_GLM_SQG_W4A8_TOPOLOGY_ATTESTATION        "${VLLM_GLM_SQG_W4A8_TOPOLOGY_ATTESTATION:-}" tp4dcp1 ;;
+  *) echo "DCP_SIZE must be 4 (primary) or 1 (diagnostic/fallback)" >&2; exit 2 ;;
+esac
+GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.92}"
+MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-4096}"
+MAX_NUM_SEQS="${MAX_NUM_SEQS:-4}"
+MAX_MODEL_LEN="${MAX_MODEL_LEN:-8192}"
+MOE_BACKEND="${MOE_BACKEND:-b12x}"
+MOE_SPEC_BACKEND="${MOE_SPEC_BACKEND:-b12x}"
+ATTENTION_BACKEND="${ATTENTION_BACKEND:-B12X_MLA_SPARSE}"
+KV_CACHE_DTYPE="${KV_CACHE_DTYPE:-fp8}"
+LOAD_FORMAT="${LOAD_FORMAT:-safetensors}"
+MTP="${MTP:-0}"
+
+GLM52_INDEX_TOPK_PATTERN="${GLM52_INDEX_TOPK_PATTERN:-FFFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSSFSSS}"
+[[ "${#GLM52_INDEX_TOPK_PATTERN}" -eq 78 ]] || {
+  echo "GLM52_INDEX_TOPK_PATTERN must be exactly 78 characters" >&2
+  exit 2
+}
+HF_OVERRIDES="${HF_OVERRIDES:-$(printf '{"index_topk_pattern":"%s"}' "${GLM52_INDEX_TOPK_PATTERN}")}"
+
+SPEC_ARGS=()
+if [[ "${MTP}" != "0" ]]; then
+  SPEC_CONFIG="${SPEC_CONFIG:-$(printf '{"model":"%s","method":"mtp","num_speculative_tokens":%s,"moe_backend":"%s","draft_sample_method":"%s"}' \
+    "${MODEL}" "${MTP}" "${MOE_SPEC_BACKEND}" "${MTP_DRAFT_SAMPLE_METHOD:-greedy}")}"
+  SPEC_ARGS+=(--speculative-config "${SPEC_CONFIG}")
+  echo "MTP speculative decoding enabled: ${SPEC_CONFIG}" >&2
+fi
+
+GRAPH_ARGS=()
+if [[ "${ENFORCE_EAGER:-1}" == "1" ]]; then
+  GRAPH_ARGS+=(--enforce-eager)
+else
+  step=$((MTP + 1))
+  sizes=""
+  for ((size = step; size <= ${GRAPH:-32}; size += step)); do
+    [[ -n "${sizes}" ]] && sizes+=,
+    sizes+="${size}"
+  done
+  GRAPH_ARGS+=(--compilation-config
+    "$(printf '{"cudagraph_mode":"FULL_AND_PIECEWISE","custom_ops":["all"],"cudagraph_capture_sizes":[%s]}' "${sizes}")")
+fi
+
+exec /opt/venv/bin/python -m vllm.entrypoints.cli.main serve "${MODEL}" \
+  --served-model-name "${SERVED_MODEL_NAME}" \
+  --trust-remote-code \
+  --host "${HOST}" \
+  --port "${PORT}" \
+  --max-model-len "${MAX_MODEL_LEN}" \
+  --tensor-parallel-size "${TP_SIZE}" \
+  --pipeline-parallel-size 1 \
+  --decode-context-parallel-size "${DCP_SIZE}" \
+  --dcp-comm-backend "${DCP_COMM_BACKEND:-a2a}" \
+  --dcp-kv-cache-interleave-size "${DCP_KV_CACHE_INTERLEAVE_SIZE:-64}" \
+  --disable-custom-all-reduce \
+  --quantization exl3 \
+  --load-format "${LOAD_FORMAT}" \
+  --enable-chunked-prefill \
+  --gpu-memory-utilization "${GPU_MEMORY_UTILIZATION}" \
+  --max-num-batched-tokens "${MAX_NUM_BATCHED_TOKENS}" \
+  --max-num-seqs "${MAX_NUM_SEQS}" \
+  --long-prefill-token-threshold 2048 \
+  --moe-backend "${MOE_BACKEND}" \
+  --attention-backend "${ATTENTION_BACKEND}" \
+  --kv-cache-dtype "${KV_CACHE_DTYPE}" \
+  --block-size 64 \
+  --tool-call-parser glm47 \
+  --enable-auto-tool-choice \
+  --reasoning-parser glm45 \
+  --generation-config "${GENERATION_CONFIG:-vllm}" \
+  --hf-overrides "${HF_OVERRIDES}" \
+  "${GRAPH_ARGS[@]}" \
+  "${SPEC_ARGS[@]}" \
+  "$@"

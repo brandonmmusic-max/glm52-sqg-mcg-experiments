@@ -1,0 +1,54 @@
+{
+  "schema": "glm52-sqg-w4a8-sm120-gpu-probe-v1",
+  "layer": 3,
+  "experts": 256,
+  "hidden_size": 6144,
+  "global_intermediate": 2048,
+  "local_intermediate": 512,
+  "tp_size": 4,
+  "sqg_marker_count": 768,
+  "census": {
+    "4": 384,
+    "3": 384
+  },
+  "device": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+  "compute_capability": [
+    12,
+    0
+  ],
+  "ranks": [
+    {
+      "tp_rank": 0,
+      "finite": true,
+      "nonzero": true,
+      "mean_abs": 0.08066931366920471,
+      "k3": 384,
+      "k4": 384
+    },
+    {
+      "tp_rank": 1,
+      "finite": true,
+      "nonzero": true,
+      "mean_abs": 0.09269730746746063,
+      "k3": 384,
+      "k4": 384
+    },
+    {
+      "tp_rank": 2,
+      "finite": true,
+      "nonzero": true,
+      "mean_abs": 0.1450895369052887,
+      "k3": 384,
+      "k4": 384
+    },
+    {
+      "tp_rank": 3,
+      "finite": true,
+      "nonzero": true,
+      "mean_abs": 0.21155986189842224,
+      "k3": 384,
+      "k4": 384
+    }
+  ],
+  "pass": true
+}

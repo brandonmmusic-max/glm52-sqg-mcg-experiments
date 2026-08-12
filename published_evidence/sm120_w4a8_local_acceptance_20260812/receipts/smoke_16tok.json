@@ -1,0 +1,52 @@
+{
+  "schema": "glm52-sqg-w4a8-sm120-smoke-v1",
+  "prompt": "The Commonwealth of Kentucky's highest court is called the",
+  "temperature": 0.0,
+  "seed": 0,
+  "completion_text": " Supreme Court of Kentucky. It is the court of last resort and the final interpreter",
+  "tokens": [
+    " Supreme",
+    " Court",
+    " of",
+    " Kentucky",
+    ".",
+    " It",
+    " is",
+    " the",
+    " court",
+    " of",
+    " last",
+    " resort",
+    " and",
+    " the",
+    " final",
+    " interpreter"
+  ],
+  "token_logprobs": [
+    -0.5827505588531494,
+    -0.018770916387438774,
+    -0.15910498797893524,
+    -0.0016888416139408946,
+    -0.1466856300830841,
+    -0.9183305501937866,
+    -0.8918351531028748,
+    -0.7902201414108276,
+    -0.421093225479126,
+    -0.0012848464539274573,
+    -0.05013072118163109,
+    -0.001637666835449636,
+    -0.833592414855957,
+    -0.4122808575630188,
+    -0.0008721124031580985,
+    -0.005297788418829441
+  ],
+  "finish_reason": "length",
+  "usage": {
+    "prompt_tokens": 10,
+    "total_tokens": 26,
+    "completion_tokens": 16,
+    "prompt_tokens_details": null
+  },
+  "problems": [],
+  "pass": true
+}

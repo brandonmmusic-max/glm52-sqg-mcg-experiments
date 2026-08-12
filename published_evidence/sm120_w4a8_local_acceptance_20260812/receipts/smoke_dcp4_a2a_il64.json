@@ -1,0 +1,52 @@
+{
+  "schema": "glm52-sqg-w4a8-sm120-smoke-v1",
+  "prompt": "The Commonwealth of Kentucky's highest court is called the",
+  "temperature": 0.0,
+  "seed": 0,
+  "completion_text": "1</think># \ud83c\udfaf 5-Day Python Learning Plan\n\n##",
+  "tokens": [
+    "1",
+    "</think>",
+    "#",
+    "",
+    "",
+    " \ud83c\udfaf",
+    " ",
+    "5",
+    "-Day",
+    " Python",
+    " Learning",
+    " Plan",
+    "\n\n",
+    "##",
+    "",
+    ""
+  ],
+  "token_logprobs": [
+    -2.01674747467041,
+    -0.7208162546157837,
+    -0.7973034381866455,
+    -1.7005705833435059,
+    -1.49149751663208,
+    -1.6378711462020874,
+    -3.5603280067443848,
+    -2.322833299636841,
+    -1.470895767211914,
+    -3.6040427684783936,
+    -2.0180916786193848,
+    -0.3661381006240845,
+    -1.0200371742248535,
+    -0.8100795745849609,
+    -0.29213884472846985,
+    -0.006635773461312056
+  ],
+  "finish_reason": "length",
+  "usage": {
+    "prompt_tokens": 10,
+    "total_tokens": 26,
+    "completion_tokens": 16,
+    "prompt_tokens_details": null
+  },
+  "problems": [],
+  "pass": true
+}

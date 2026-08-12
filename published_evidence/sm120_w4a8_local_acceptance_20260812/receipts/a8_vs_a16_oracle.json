@@ -1,0 +1,10 @@
+{
+  "schema": "glm52-sqg-w4a8-a8-vs-a16-expert-oracle-v1",
+  "note": "Same stored SQG trellis payloads, identical expert; only activation precision differs. Scored against ORIGINAL zai-org/GLM-5.2 BF16 weights. CAVEAT: synthetic N(0,0.4) inputs lack the heavy act tail (campaign Test 8b records raw pre-suh act max ~1660 on real data), so this UNDERSTATES the production A8 cost; the campaign figure is +10.22%/+10.86% NMSE with the corrected cross-term down encoder that this checkpoint ships.",
+  "layer": 3, "expert": 0, "bits": {"gate": 4, "up": 4, "down": 3},
+  "a16_ffn_rel_rmse_vs_bf16": 0.132068932056427,
+  "a8_ffn_rel_rmse_vs_bf16": 0.13740041851997375,
+  "a8_over_a16_ratio": 1.0403689677847086,
+  "a8_vs_a16_direct_rel_rmse": 0.04049094021320343,
+  "rms": {"bf16": 0.07115843147039413, "a16": 0.07101767510175705, "a8": 0.0708518922328949}
+}
