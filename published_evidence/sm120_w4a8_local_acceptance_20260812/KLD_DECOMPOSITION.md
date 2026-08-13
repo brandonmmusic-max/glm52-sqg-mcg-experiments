@@ -88,3 +88,76 @@ fp8-KV contribution to KLD could not be isolated by substitution.
 
 Encode-side (requires re-encode, explicitly out of scope for this run):
 genuine per-layer beta/profile selection instead of the uniform 0.25.
+
+## 6. Determinism: verified real, and falsified against a frozen-output artifact
+
+Repeat boots at fixed config reproduce the mean to all 17 digits
+(`0.07583317451217256` x 5 boots, SD 0.0), which raised a fair suspicion of a
+cached or frozen result. Two checks resolve it:
+
+1. **Separate executions:** wall-clock differs per boot (57.273 s, 58.570 s ...)
+   and `enable_prefix_caching=False` in the runner.
+2. **Perturbation test:** forcing two prefill chunks instead of one
+   (`max_num_batched_tokens` 2304 -> 1152) MOVES the result:
+
+   | prefill | mean KLD | p99 | max |
+   |---|---|---|---|
+   | single chunk (2304) | 0.07583317451 | 1.3976 | 5.978 |
+   | two chunks (1152) | 0.07650368874 | 1.4137 | 6.113 |
+
+   Delta **+0.00067 (+0.88%)**. Receipt: `kld/chunkperturb_batched1152.json`.
+
+Conclusion: computation is live; determinism is a property of the TP4/**DCP1**
+configuration (no cross-rank LSE merge, batch=1, eager, no async scheduling),
+whereas the historical SD ~0.0014 came from DCP4 where the cross-rank merge
+varies reduction order. Note also that chunked prefill costs ~0.9% KLD, and the
+reported baseline uses the single-chunk path — matching the historical runs
+(`max_num_batched_tokens=2048` >= 2047 positions), so the comparison is not
+flattered by chunking.
+
+## 7. CORRECTIONS (adversarial review, 2026-08-13) — errors in sections above
+
+Independent review found the following errors in MY earlier analysis. They are
+corrected here rather than edited away.
+
+1. **The "MCG r33 gate" row was a chimera.** I reported the target as
+   `mean 0.0624499 / p99 1.0797 / CVaR-1% 1.8384`. Only the MEAN is MCG r33
+   (`docs/fast_parallel_sqg_encoding.md:329`). The p99 and CVaR figures are the
+   **SQG alpha=0 arm's** tails from `results/h13_blend_final_kld_r1.md`. I was
+   gating against SQG's own tails while labelling them MCG's.
+2. **Those tail thresholds are not discriminating.** The same-checkpoint null
+   envelope (`results/contiguous_late_same_checkpoint_tail_null_r1.json`) reaches
+   p99 **1.1146** and CVaR-1% **1.8736** — both ABOVE the thresholds I used. So
+   my claim that this checkpoint "fails all three gates" is unsupported on the
+   two tail criteria. **The defensible statement is the mean only: 0.0758 vs
+   0.0624 = +21%.**
+3. **`down_target_beta = 0.0625` was NOT a frozen fleet value.** It is a declared
+   bootstrap *prior*, layer-77 scoped
+   (`FULL_W4A8_BUILD_BINDING_AND_BETA_POLICY.md:5-11`;
+   `SQG_REPRODUCIBILITY_BUILD_BINDING.json -> beta_policy.fleet_wide_layer77_beta
+   = false`). The policy states "a bare numeric beta is not an admissible
+   production input", which condemns 0.0625-for-all-76 as much as 0.25. The
+   measured panel gap is **0.372%** on layer-77 fit SSE over 16 experts, and
+   **beta=0 won more experts than 0.0625**. Beta cannot carry a material share of
+   the ~9.5% residual.
+4. **H13 alpha=0 makes the MEAN worse**, not better: 0.0628499 (alpha=0) vs
+   0.0624617 (alpha=0.25). It buys tails (p99 -11.76%, CVaR -3.57%) at ~0.62%
+   mean cost. Stated more clearly than before.
+5. **A GLM coupled arm was already measured and LOST.** Selection NMSE
+   0.00488459 vs 0.00366551 (**+33.26%**), holdout +35.10%, recorded verdict
+   "NO-GO for promotion into the full build"
+   (`docs/sqg_mcg_experiment_record.md:2794-2811`). My citation of
+   -9.58%/-9.30% NMSE as support for the coupled arm was evidence substitution:
+   those numbers belong to the **uncoupled** coordinate-corrected xterm repair
+   that ALREADY SHIPS in this checkpoint.
+6. **Disk figure wrong:** `/` has **460 GB** free (not 829 GB); `/mnt/toshiba`
+   has 2.2 TB.
+7. **My "no BF16 needed" verification was wrong.** `load_layer_hessians` returns
+   only Gram matrices (`w13`, `w2`) — **there is no `B` in the Hessian bundle**,
+   so `W* = H^-1 B` is not constructible from what was saved. The QSRT packer's
+   quantization target is a dequantized official weight matrix, and the
+   `--official-repo-dir` line I cited as an optionality guard is subprocess argv
+   forwarding. A re-encode needs the official BF16 routed experts (~19.3 GB/layer).
+8. I inspected a **stale QSRT tree** (local master 2 commits behind origin/master,
+   557 lines changed in `scripts/pack_qsrt_candidates.py`), so my flag and
+   line-number claims came from the wrong revision.
