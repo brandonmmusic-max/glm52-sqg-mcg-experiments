@@ -7,13 +7,13 @@ top-8, tail-constrained `H13` blend ablation, the preregistered contiguous-block
 follow-up, the completed Test 8b/8c W4A8 falsifications, and a separate
 QSRT/Kimi K3 K1 feasibility audit.
 
-The [current-QSRT snapshot and history
-review](docs/qsrt_current_update_review_2026-08-10.md) covers the new coupled
+The [QSRT revision snapshot and history
+review](docs/qsrt_current_update_review_2026-08-10.md) covers the coupled
 K3 Hadamard path, allocation evidence, W4A8 implications, and attribution
 history without treating QSRT fixtures as GLM quality results.
 
 The [post-falsification QSRT-head
-addendum](docs/qsrt_current_update_review_2026-08-11.md) records which current
+addendum](docs/qsrt_current_update_review_2026-08-11.md) records which QSRT-head
 mechanisms transfer to the protected mixed per-tensor K3/K4 design and which
 uniform-K3/H308 assumptions are rejected.
 
@@ -22,18 +22,42 @@ assignment fixed. Bits were **not** reallocated per expert. The initial
 diagnostic layers were 6, 28, 52, and 77; the first contiguous block is layers
 74--77. Every selected layer has 256 experts and three expert projections.
 
+## Coupled-Hadamard K96-tail re-encode
+
+The repository also tracks a separate routed-expert re-encode from the frozen
+SQG W4A8 checkpoint. It applies the updated QSRT coupled H512/H128 transform,
+uses saved calibration captures instead of downloading the official BF16
+routed weights, and selects profiles, beta values, and rates independently for
+each layer.
+
+The implemented rate is hybrid. Layer 3 contains 720 K3 and 48 K4 tensors at
+3.0625 bpw. Layers 4 through 78 contain 672 K3 and 96 K4 tensors at 3.125 bpw.
+The routed-layer average is 3.124177631579 bpw, not a uniform 3.0625 bpw.
+
+Routed layers 3 through 18 are qualified as layer artifacts. The full model,
+candidate KLD, and release remain unsupported until every layer and full-model
+gate passes.
+
+- [Coupled transform and rate specification](docs/coupled_hadamard_k96tail_reencode.md)
+- [Exact reproduction procedure](docs/coupled_hadamard_k96tail_reproduction.md)
+- [Measured execution record for 2026-08-14](docs/coupled_hadamard_k96tail_status_2026-08-14.md)
+- [Campaign source, patches, runtime context, and compact evidence](coupled_hadamard_k96tail/README.md)
+
 ## Bottom line
 
-The original conditional gate was **NO-GO**, but the owner has now explicitly
-authorized a full native-SQG W4A8 measurement build using the corrected
-encoder. Construction is active; release acceptance is not. No corrected
-full-model KLD, LAVD, Estonia, integrated serving result, or claim of lower KLD
-exists yet.
+The original conditional gate was **NO-GO**. The native SQG W4A8 checkpoint
+`brandonmusic/GLM-5.2-SQG-W4A8` is published without final-logit KLD or runtime
+acceptance. That frozen checkpoint is the source for the separately
+specified coupled-Hadamard K96-tail re-encode. No coupled full-model KLD, LAVD,
+Estonia, integrated serving result, or lower-KLD claim exists yet.
 
-The [current construction-status record](docs/full_w4a8_construction_status_2026-08-11.md)
-freezes the full-W4A8 format, per-layer beta/build-binding policy, 19-wave
-fixed-point DAG, production-v2 lineage, compact retention contract, runtime
-static-integration boundary, and exact limits of the first-wave launch.
+The [native W4A8 construction record](docs/full_w4a8_construction_status_2026-08-11.md)
+documents an earlier local construction contract. It is not evidence of how the
+published source checkpoint was produced. The published source's actual
+provenance is its
+[`FULL_SQG_NATIVE_MANIFEST.json`](https://huggingface.co/brandonmusic/GLM-5.2-SQG-W4A8/blob/593dd0d2de6f79ce4e65303930c22c75e1359d44/FULL_SQG_NATIVE_MANIFEST.json)
+and
+[`SQG_REPRODUCIBILITY.md`](https://huggingface.co/brandonmusic/GLM-5.2-SQG-W4A8/blob/593dd0d2de6f79ce4e65303930c22c75e1359d44/SQG_REPRODUCIBILITY.md).
 
 | Measurement | Result | What it establishes |
 |---|---:|---|
@@ -43,7 +67,7 @@ static-integration boundary, and exact limits of the first-wave launch.
 | Late 74--77 five-boot A16 KLD | `0.0624264841` vs r33 `0.0624498626` | `-0.03744%`, far inside repeat noise; no obvious scalar catastrophe and no demonstrated KLD win |
 | Late alpha-0.25 signed top-8 holdout | `2.7705%` worse than MCG; `39.0295%` of positions improved | The separated-layer blend does not transfer cleanly to the late block |
 | Late 74--77 all-arm H13 panel | MCG retained every formal hard-gate decision; alpha 0.25 was the stable SQG diagnostic | 25% expert-local/75% layer-shared is the SQG prior, not an MCG-beating result |
-| Test 8b full W4A8 versus matched SQG A16 | `+22.9802%` selection NMSE; `+22.7790%` secondary-holdout NMSE | The current A8 policy is a replicated functional regression and fails the quality gate |
+| Test 8b full W4A8 versus matched SQG A16 | `+22.9802%` selection NMSE; `+22.7790%` secondary-holdout NMSE | The measured A8 policy is a replicated functional regression and fails the quality gate |
 | Test 8c compact-core speed | projected `1.1310x` at M=3,072 and `1.0684x` at M=4,096, assuming MoE fraction `0.31` | The native FP8 path is real, but the serial-core projection misses the `1.15x` long-prefill migration floor and is not serving acceptance |
 | Test 8c route-packed hybrid layer | final same-environment r2: `1.1780x` at M=3,072 and `1.1685x` at M=4,096 versus dispatch-matched A16 | The M64xN256/K128 kernel repairs the original slowdown without changing encoded bytes; 31%-MoE Amdahl projections are only `1.0491x`/`1.0468x`, so integrated serving remains unaccepted |
 | PR11 route-packed full W4A8 | `1.7550x` at M=3,072 and `1.8236x` at M=4,096; projected `1.1539x`/`1.1628x` end to end at declared MoE fraction `0.31` | The isolated long-prefill speed arm clears the preregistered floor; actual four-GPU workload fraction and integrated serving remain unmeasured |
@@ -63,10 +87,10 @@ damage from `act = SiLU(gate) * up` and a poor initial kernel schedule. PR11
 repairs the isolated large-M speed path, and corrected candidate-path `(H,B)`
 down calibration recovers roughly half of the activation penalty. Neither
 result establishes model-level quality: the late block remains a scalar
-no-catastrophe screen, and the old `25%` local / `75%` shared `H13` result is
+no-catastrophe screen, and the `25%` local / `75%` shared `H13` result is
 not frozen as the fleet-wide answer.
 
-## Current late-block and W4A8 status
+## Late-block and W4A8 measurement summary
 
 The late contiguous block, layers 74-77, is the first of the preregistered
 early/middle/late blocks.
@@ -92,7 +116,7 @@ early/middle/late blocks.
 | Test 8c route-packed speed | **Isolated speed gate green, integrated serving open**: PR11 full W4A8 is `1.7550x`/`1.8236x` faster than A16 at M=3,072/4,096 and projects to `1.1539x`/`1.1628x` at the declared 31% MoE fraction |
 | Corrected full-W4A8 down calibration | Complete on all layer-77 experts: `9.5762%`/`9.3043%` better than base full W4A8 on selection/secondary holdout, but still `10.22%`/`10.86%` worse than SQG A16 |
 | Fit-only beta selection | Complete: `beta=0.0625`; all 16 receipts validated; selection and holdout unused; beta 1 rejected |
-| Full native-W4A8 build | Active: layers 3--6 have sealed BF16/capture inputs and completed preparation; bootstrap native-W4A8 profile search launched under canonical source binding `32b9a4b1...`; no final profile selections, beta choices, encoded layers, progressive checkpoint, or full-model quality result yet |
+| Native SQG W4A8 checkpoint | Published as `brandonmusic/GLM-5.2-SQG-W4A8`; final-logit KLD and runtime acceptance were skipped, so it is a frozen re-encode source rather than a qualified quality result |
 
 The initial failure remains excluded. A later run-3 validator rejection exposed
 a float32-roundoff floor that was smaller than one machine epsilon; the saved
@@ -103,9 +127,9 @@ Test 10 establishes scalar KLD parity/no obvious scalar catastrophe for one
 late four-layer A16 block; it is not a general SQG quality win. The completed
 alpha panel makes alpha 0.25 a reproducible historical SQG prior while
 retaining MCG as the formal winner. The corrected down objective substantially
-repairs but does not erase Test 8b's W4A8 quality gap. The full quant is now
-being built under the selected fit-only beta and a W4A8-native profile/rate
-process; integrated serving and final quality remain acceptance gates.
+repairs but does not erase Test 8b's W4A8 quality gap. The coupled-Hadamard
+K96-tail re-encode uses the published SQG W4A8 checkpoint as its frozen source.
+Integrated serving and full-model quality remain acceptance gates.
 
 The late null does not numerically clear Test 9's separated-layer tail failure:
 it is not a matched-checkpoint null for Test 9, and those harmful-tail metrics
@@ -113,8 +137,8 @@ exceed even the late p95 reference.
 
 ## Start here
 
-- [Complete experiment ledger](docs/sqg_mcg_experiment_record.md) — methodology,
-  holdouts, assumptions, discovered errors, validation, results, and the next
+- [Complete experiment ledger](docs/sqg_mcg_experiment_record.md): methodology,
+  holdouts, assumptions, discovered errors, validation, results, and the
   hypothesis for every test.
 - [Raw encoded NMSE report](results/raw_encoded_nmse_sqg_vs_mcg.md)
 - [Hessian-weighted NMSE report](results/hessian_weighted_nmse_sqg_vs_mcg.md)
@@ -185,7 +209,7 @@ provenance](kquant/LOCAL_PROVENANCE.md) and
   histogram projection. The later route-packed test is a complete isolated
   layer benchmark, but it is still not an integrated vLLM/DCP4 end-to-end
   serving benchmark.
-- The earlier four selected layers were separated; the new 74--77 block is
+- The earlier four selected layers were separated; the contiguous 74--77 block is
   contiguous but covers only 5.33% of the 75 routed layers.
 - The MCG baseline and SQG candidate did not share the same selected-layer
   dispatch path. The preserved `+0.64057%` four-layer SQG-versus-r33 result is

@@ -1,0 +1,1386 @@
+diff --git a/kquant/candidate_hessian.py b/kquant/candidate_hessian.py
+index 36f5f30..6603799 100644
+--- a/kquant/candidate_hessian.py
++++ b/kquant/candidate_hessian.py
+@@ -92,8 +92,10 @@ def weighted_covariance(
+     accumulator = torch.zeros(
+         (dimension, dimension), dtype=torch.float32, device=device
+     )
+-    denominator = float(weights.double().sum())
+-    if not math.isfinite(denominator) or denominator <= 0:
++    denominator_tensor = weights.to(device=device, dtype=torch.float64).sum()
++    if not bool(torch.isfinite(denominator_tensor)) or not bool(
++        denominator_tensor > 0
++    ):
+         raise ValueError("covariance weights must have a positive finite sum")
+     for begin in range(0, int(rows.shape[0]), chunk_rows):
+         values = rows[begin : begin + chunk_rows].to(
+@@ -103,8 +105,9 @@ def weighted_covariance(
+             device=device, dtype=torch.float32
+         )
+         accumulator.addmm_(values.T, values * local_weights[:, None])
+-    covariance = accumulator.div_(denominator)
++    covariance = accumulator.div_(denominator_tensor.to(torch.float32))
+     covariance = ((covariance + covariance.T) * 0.5).contiguous()
++    denominator = float(denominator_tensor)
+     if return_cpu:
+         covariance = covariance.cpu()
+     if not torch.all(torch.isfinite(covariance)):
+@@ -115,13 +118,23 @@ def weighted_covariance(
+ def shrink_covariance(
+     global_covariance: torch.Tensor,
+     local_covariance: torch.Tensor,
+-    alpha: float,
++    alpha: float | torch.Tensor,
+ ) -> torch.Tensor:
+     """Convexly shrink a low-support local covariance toward a global one."""
+ 
+-    alpha = float(alpha)
+-    if not math.isfinite(alpha) or not 0.0 <= alpha <= 1.0:
+-        raise ValueError("alpha must be finite and in [0, 1]")
++    if isinstance(alpha, torch.Tensor):
++        if alpha.numel() != 1 or not bool(torch.isfinite(alpha)) or not bool(
++            (alpha >= 0) & (alpha <= 1)
++        ):
++            raise ValueError("alpha must be a finite scalar in [0, 1]")
++        blend_weight: float | torch.Tensor = alpha.to(
++            device=global_covariance.device, dtype=torch.float32
++        )
++    else:
++        alpha_value = float(alpha)
++        if not math.isfinite(alpha_value) or not 0.0 <= alpha_value <= 1.0:
++            raise ValueError("alpha must be finite and in [0, 1]")
++        blend_weight = alpha_value
+     if (
+         global_covariance.ndim != 2
+         or global_covariance.shape[0] != global_covariance.shape[1]
+@@ -133,7 +146,7 @@ def shrink_covariance(
+     ):
+         raise ValueError("covariances must be finite")
+     blended = torch.lerp(
+-        global_covariance.float(), local_covariance.float(), alpha
++        global_covariance.float(), local_covariance.float(), blend_weight
+     )
+     return ((blended + blended.T) * 0.5).contiguous()
+ 
+@@ -141,6 +154,17 @@ def shrink_covariance(
+ def weighted_effective_sample_size(weights: torch.Tensor) -> float:
+     """Return Kish effective sample size for nonnegative row weights."""
+ 
++    if weights.ndim != 1 or not weights.numel():
++        raise ValueError("weights must be a nonempty vector")
++    if not torch.all(torch.isfinite(weights)) or torch.any(weights < 0):
++        raise ValueError("weights must be finite and nonnegative")
++    value = _weighted_effective_sample_size_tensor(weights)
++    return float(value)
++
++
++def _weighted_effective_sample_size_tensor(weights: torch.Tensor) -> torch.Tensor:
++    """Kish support as a scalar tensor on the input numerical device."""
++
+     if weights.ndim != 1 or not weights.numel():
+         raise ValueError("weights must be a nonempty vector")
+     if not torch.all(torch.isfinite(weights)) or torch.any(weights < 0):
+@@ -150,7 +174,7 @@ def weighted_effective_sample_size(weights: torch.Tensor) -> float:
+     squared_total = weights64.square().sum()
+     if total <= 0 or squared_total <= 0:
+         raise ValueError("weights must have positive effective support")
+-    return float(total.square() / squared_total)
++    return total.square() / squared_total
+ 
+ 
+ def adaptive_identity_shrinkage(
+@@ -180,7 +204,7 @@ def adaptive_identity_shrinkage(
+     if not torch.all(torch.isfinite(local_covariance)):
+         raise ValueError("local covariance must be finite")
+ 
+-    effective_rows = weighted_effective_sample_size(weights)
++    effective_rows_tensor = _weighted_effective_sample_size_tensor(weights)
+     dimension = int(local_covariance.shape[0])
+     local64 = local_covariance.double()
+     local_trace = torch.trace(local64)
+@@ -189,24 +213,34 @@ def adaptive_identity_shrinkage(
+ 
+     mu = local_trace / dimension
+     mean_square = local64.square().mean()
+-    denominator = (effective_rows + 1.0) * (
++    denominator = (effective_rows_tensor + 1.0) * (
+         mean_square - mu.square() / dimension
+     )
+-    if denominator <= 0:
+-        oas_shrinkage = 1.0
+-    else:
+-        oas_shrinkage = min(
+-            1.0,
+-            max(0.0, float((mean_square + mu.square()) / denominator)),
+-        )
+-    local_alpha = min(max_local_alpha, 1.0 - oas_shrinkage)
+-    identity_scale = float(mu)
++    raw_oas = (mean_square + mu.square()) / denominator.clamp_min(
++        torch.finfo(local64.dtype).tiny
++    )
++    oas_shrinkage_tensor = torch.where(
++        denominator <= 0,
++        torch.ones_like(raw_oas),
++        raw_oas.clamp(0.0, 1.0),
++    )
++    local_alpha_tensor = torch.minimum(
++        torch.as_tensor(max_local_alpha, device=local64.device, dtype=local64.dtype),
++        1.0 - oas_shrinkage_tensor,
++    )
+     scaled_identity = torch.eye(
+         dimension,
+         dtype=torch.float32,
+         device=local_covariance.device,
+-    ).mul_(identity_scale)
+-    blended = shrink_covariance(scaled_identity, local_covariance, local_alpha)
++    ).mul_(mu.to(dtype=torch.float32))
++    blended = shrink_covariance(
++        scaled_identity, local_covariance, local_alpha_tensor.to(torch.float32)
++    )
++    # Evidence scalars are detached only after the numerical result is frozen.
++    effective_rows = float(effective_rows_tensor)
++    oas_shrinkage = float(oas_shrinkage_tensor)
++    local_alpha = float(local_alpha_tensor)
++    identity_scale = float(mu)
+     return blended, {
+         "effective_sample_size": effective_rows,
+         "oas_shrinkage": oas_shrinkage,
+diff --git a/kquant/csrc/qsrt_quantize_tiles_kernel.cuh b/kquant/csrc/qsrt_quantize_tiles_kernel.cuh
+index 76febdd..f4299d1 100644
+--- a/kquant/csrc/qsrt_quantize_tiles_kernel.cuh
++++ b/kquant/csrc/qsrt_quantize_tiles_kernel.cuh
+@@ -17,6 +17,9 @@
+ #ifndef H_INF
+ #define H_INF __ushort_as_half(0x7c00)
+ #endif
++#ifndef H_MAX_FINITE
++#define H_MAX_FINITE __ushort_as_half(0x7bff)
++#endif
+ 
+ template <int K, int cb>
+ __global__ __launch_bounds__(
+@@ -121,7 +124,12 @@ void quantize_tiles_kernel
+                 decoded2 = decode_3inst_2<cb>(out_edge_idx, out_edge_idx + 1);
+             }
+             half2 dh2 = __hsub2(decoded2, w2);
+-            half2 min_err2 = __hmul2(dh2, dh2);
++            // Positive infinity denotes an unreachable state. Reachable path
++            // costs must remain finite when their FP16 sum overflows, or
++            // traceback can confuse a saturated path with an unreachable one
++            // and violate the constrained cyclic boundary.
++            half2 min_err2 = __hmin2(
++                __hmul2(dh2, dh2), __half2half2(H_MAX_FINITE));
+             if (pre_state >= 0 && in_edge_idx != pre_state) min_err2 = __half2half2(H_INF);
+             int min_k0 = 0;
+             int min_k1 = 0;
+@@ -165,7 +173,8 @@ void quantize_tiles_kernel
+                     decoded2 = decode_3inst_2<cb>(state0, state0 + 1);
+                 }
+                 dh2 = __hsub2(decoded2, w2);
+-                half2 err2 = __hmul2(dh2, dh2);
++                half2 err2 = __hmin2(
++                    __hmul2(dh2, dh2), __half2half2(H_MAX_FINITE));
+                 if (pre_state >= 0 && in_edge_idx != pre_state) err2 = __half2half2(H_INF);
+                 const unsigned less = __hlt2_mask(err2, min_err2);
+                 min_err2 = __hmin2(err2, min_err2);
+@@ -253,7 +262,13 @@ void quantize_tiles_kernel
+                     decoded2 = decode_3inst_2<cb>(out_edge_idx, out_edge_idx + 1);
+                 }
+                 half2 dh2 = __hsub2(decoded2, w2);
+-                half2 min_err2 = __hfma2(dh2, dh2, __half2half2(temp_costs_inc[in_edge_idx]));
++                half predecessor_cost = temp_costs_inc[in_edge_idx];
++                half2 min_err2 = __heq(predecessor_cost, H_INF)
++                    ? __half2half2(H_INF)
++                    : __hmin2(
++                        __hfma2(
++                            dh2, dh2, __half2half2(predecessor_cost)),
++                        __half2half2(H_MAX_FINITE));
+                 int min_k0 = 0;
+                 int min_k1 = 0;
+ 
+@@ -296,7 +311,13 @@ void quantize_tiles_kernel
+                         decoded2 = decode_3inst_2<cb>(state0, state0 + 1);
+                     }
+                     dh2 = __hsub2(decoded2, w2);
+-                    half2 err2 = __hfma2(dh2, dh2, __half2half2(temp_costs_inc[in_edge_idx]));
++                    predecessor_cost = temp_costs_inc[in_edge_idx];
++                    half2 err2 = __heq(predecessor_cost, H_INF)
++                        ? __half2half2(H_INF)
++                        : __hmin2(
++                            __hfma2(
++                                dh2, dh2, __half2half2(predecessor_cost)),
++                            __half2half2(H_MAX_FINITE));
+                     const unsigned less = __hlt2_mask(err2, min_err2);
+                     min_err2 = __hmin2(err2, min_err2);
+                     if (less & 0xffffu) min_k0 = k;
+diff --git a/kquant/csrc/sqg_quantize.cu b/kquant/csrc/sqg_quantize.cu
+index 42dcd88..e51210e 100644
+--- a/kquant/csrc/sqg_quantize.cu
++++ b/kquant/csrc/sqg_quantize.cu
+@@ -187,7 +187,7 @@ void quantize_tiles_sqg_cuda(
+                 "output_indices shape mismatch");
+     TORCH_CHECK(output_indices.scalar_type() == at::kShort,
+                 "output_indices must be int16");
+-    TORCH_CHECK(K >= 2 && K <= 4, "SQG validation kernel supports K2--K4");
++    TORCH_CHECK(K >= 2 && K <= 6, "SQG validation kernel supports K2--K6");
+     TORCH_CHECK(tailbite_context >= 1 && tailbite_context <= 128,
+                 "tailbite_context must be in 1..128");
+     TORCH_CHECK(codebook.is_cuda() && codebook.device() == input_tiles.device(),
+@@ -255,6 +255,22 @@ void quantize_tiles_sqg_cuda(
+                 temp_edges.data_ptr<uint8_t>(), tiles, max_batch, shared_memory,
+                 static_cast<int>(tailbite_context), stream);
+             break;
++        case 5:
++            launch_trellis<5, 4>(
++                input_tiles.data_ptr<float>(), output_tiles.data_ptr<float>(),
++                reinterpret_cast<uint16_t*>(output_indices.data_ptr<int16_t>()),
++                reinterpret_cast<half*>(temp_costs.data_ptr<at::Half>()),
++                temp_edges.data_ptr<uint8_t>(), tiles, max_batch, shared_memory,
++                static_cast<int>(tailbite_context), stream);
++            break;
++        case 6:
++            launch_trellis<6, 4>(
++                input_tiles.data_ptr<float>(), output_tiles.data_ptr<float>(),
++                reinterpret_cast<uint16_t*>(output_indices.data_ptr<int16_t>()),
++                reinterpret_cast<half*>(temp_costs.data_ptr<at::Half>()),
++                temp_edges.data_ptr<uint8_t>(), tiles, max_batch, shared_memory,
++                static_cast<int>(tailbite_context), stream);
++            break;
+     }
+ }
+ 
+diff --git a/kquant/exl3_encoder_backend.py b/kquant/exl3_encoder_backend.py
+index f810bf3..616b9e6 100644
+--- a/kquant/exl3_encoder_backend.py
++++ b/kquant/exl3_encoder_backend.py
+@@ -21,6 +21,18 @@ import threading
+ had_k, had_n = 128, 128
+ codebook_scale = 1.24371088
+ 
++# The original search used a 0.1..1.9 coarse bracket and could return 2.05
++# only because its five-point fine grid extended past the bracket.  GLM-5.2
++# contains healthy tensors with a stable minimum around 3.0, so keep the cheap
++# original bracket as stage one and expand only when its upper point wins.
++G_SCALE_SEARCH_INITIAL_MIN = 0.1
++G_SCALE_SEARCH_INITIAL_MAX = 1.9
++G_SCALE_SEARCH_COARSE_STEP = 0.2
++G_SCALE_SEARCH_EXPANDED_MAX = 3.9
++G_SCALE_SEARCH_FINE_STEP = 0.075
++G_SCALE_SEARCH_HARD_CEILING = 4.05
++G_SCALE_SEARCH_CEILING_TOLERANCE = 1e-6
++
+ codebook_mcg_mult = 0xCBAC1FED
+ codebook_mul1_mult = 0x83DCD12D
+ 
+@@ -319,6 +331,11 @@ def block_ldl(H: torch.Tensor, b: int, quant_args: dict, verbose: bool):
+     assert (n % b == 0)
+     m = n // b
+ 
++    keep_hessian_on_device = bool(quant_args.get("keep_hessian_on_device", False))
++    gpu_only_numerical_path = bool(quant_args.get("gpu_only_numerical_path", False))
++    if gpu_only_numerical_path and H.device.type != "cuda":
++        raise RuntimeError("GPU-only BlockLDLQ received a non-CUDA Hessian")
++
+     # Cholesky factorization: H = L @ L.T
+     # Try on GPU first
+     num_cholesky_retries = 0
+@@ -326,12 +343,14 @@ def block_ldl(H: torch.Tensor, b: int, quant_args: dict, verbose: bool):
+     while True:
+         try:
+             L = torch.linalg.cholesky(H)
+-            # H is not needed after this, move to CPU. Then overwrite H's GPU storage with L, since we can't otherwise
+-            # free up that VRAM as the tensor is referenced by the parent frame
+-            H_cpu = H.cpu()
+-            H.copy_(L)  # VRAM copy, tiny overhead
+-            L = H
+-            H = H_cpu
++            if not keep_hessian_on_device:
++                # Historical memory-saving path. Production retains both the
++                # caller-owned H and its factor on CUDA so neither numerical
++                # tensor crosses the host boundary.
++                H_cpu = H.cpu()
++                H.copy_(L)  # VRAM copy, tiny overhead
++                L = H
++                H = H_cpu
+             break
+ 
+         except torch._C._LinAlgError as e:
+@@ -346,6 +365,10 @@ def block_ldl(H: torch.Tensor, b: int, quant_args: dict, verbose: bool):
+         # Fall back on CPU factorization
+         except Exception as e:
+             if e.__class__.__name__ == "OutOfMemoryError" or "CUDA out of memory" in str(e) or "HIP out of memory" in str(e):
++                if gpu_only_numerical_path:
++                    raise RuntimeError(
++                        "GPU-only BlockLDLQ exhausted CUDA memory; CPU fallback is forbidden"
++                    ) from e
+                 retry_cpu = True
+                 break
+             else:
+@@ -380,7 +403,7 @@ def block_ldl(H: torch.Tensor, b: int, quant_args: dict, verbose: bool):
+     # Insert block identity matrices along the diagonal.
+     # TODO: Figure out if this is necessary. Diagonal blocks should already be identities after previous step
+     L_block = L.view(m, b, m, b).permute(0, 2, 1,3)
+-    dr = torch.arange(m)
++    dr = torch.arange(m, device=L.device)
+     L_block[dr, dr] = torch.stack([torch.eye(b, device = L.device, dtype = H.dtype)] * m)
+ 
+     return L, H  # , D.to(DL.device)
+@@ -1585,6 +1608,43 @@ def ldlq_batched(
+ 
+ finalize_capture_H_mutex = threading.Lock()
+ 
++
++def _explicit_vector(
++    value: torch.Tensor,
++    *,
++    length: int,
++    name: str,
++    device: torch.device,
++    orientation: str,
++    signs: bool = False,
++) -> torch.Tensor:
++    """Validate a caller-owned regularization vector without retaining it.
++
++    QSRT's original shared-input-scale hook stores the first tensor's profile
++    in module-global state.  Model ports that require a topology-neutral
++    layer-wide vector need a deterministic, caller-owned contract instead.
++    These optional vectors are cloned for each encode and never enter the
++    process-global cache.
++    """
++
++    if not isinstance(value, torch.Tensor):
++        raise TypeError(f"{name} must be a torch.Tensor")
++    if value.ndim != 1 or value.numel() != length:
++        raise ValueError(f"{name} must have shape ({length},)")
++    vector = value.detach().to(device=device, dtype=torch.float32, copy=True)
++    if not bool(torch.isfinite(vector).all()):
++        raise ValueError(f"{name} must contain only finite values")
++    if signs:
++        if not bool((vector.abs() == 1).all()):
++            raise ValueError(f"{name} must contain only -1 and +1")
++    elif not bool((vector > 0).all()):
++        raise ValueError(f"{name} must contain only positive values")
++    if orientation == "column":
++        return vector.unsqueeze(1).contiguous()
++    if orientation == "row":
++        return vector.unsqueeze(0).contiguous()
++    raise ValueError(f"unsupported explicit-vector orientation: {orientation}")
++
+ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+     with finalize_capture_H_mutex:
+ 
+@@ -1596,7 +1656,23 @@ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+ 
+             H = H_data["H"]
+             k = H.shape[0]
+-            su = (torch.randn(k, device = H_data["device"]).sign() + 1e-5).sign().to(torch.float).unsqueeze(1)
++            explicit_input_signs = quant_args.get("input_signs")
++            if explicit_input_signs is None:
++                su = (
++                    (torch.randn(k, device=H_data["device"]).sign() + 1e-5)
++                    .sign()
++                    .to(torch.float)
++                    .unsqueeze(1)
++                )
++            else:
++                su = _explicit_vector(
++                    explicit_input_signs,
++                    length=k,
++                    name="input_signs",
++                    device=H_data["device"],
++                    orientation="column",
++                    signs=True,
++                )
+             H_data["su"] = su
+ 
+             return True, None, None, su, None
+@@ -1608,7 +1684,28 @@ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+ 
+         H = H_data["H"]
+         if H_data["finalized"]:
+-            return H_data["q_fallback"], H, H_data["L"], H_data["su"], H_data["diag"]
++            explicit_input_signs = quant_args.get("input_signs")
++            if explicit_input_signs is not None:
++                expected = _explicit_vector(
++                    explicit_input_signs,
++                    length=H.shape[0],
++                    name="input_signs",
++                    device=H_data["su"].device,
++                    orientation="column",
++                    signs=True,
++                )
++                if not torch.equal(H_data["su"], expected):
++                    raise ValueError(
++                        "finalized Hessian input signs do not match the "
++                        "caller-supplied profile"
++                    )
++            return (
++                H_data["q_fallback"],
++                H,
++                H_data["L"],
++                H_data["su"],
++                H_data["diag"],
++            )
+ 
+         # Mean of samples summed up during forward pass
+         # Switch to uncalibrated fallback if no input activations or diagonal is too small (few activations)
+@@ -1634,7 +1731,23 @@ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+ 
+         # Random sign flips for input channel, fixed for the first linear layer to quantize with this H
+         k = H.shape[0]
+-        su = (torch.randn(k, device = H.device).sign() + 1e-5).sign().to(torch.float).unsqueeze(1)
++        explicit_input_signs = quant_args.get("input_signs")
++        if explicit_input_signs is None:
++            su = (
++                (torch.randn(k, device=H.device).sign() + 1e-5)
++                .sign()
++                .to(torch.float)
++                .unsqueeze(1)
++            )
++        else:
++            su = _explicit_vector(
++                explicit_input_signs,
++                length=k,
++                name="input_signs",
++                device=H.device,
++                orientation="column",
++                signs=True,
++            )
+         H_data["su"] = su
+ 
+         # Input had
+@@ -1648,14 +1761,21 @@ def finalize_capture_H(H_data: dict, quant_args: dict, verbose: bool):
+             L = None
+         else:
+             L, H = block_ldl(H, 16, quant_args, verbose)
+-            dr = torch.arange(k)
++            dr = torch.arange(k, device=L.device)
+             L[dr, dr] = 0
+ 
+         H_data["L"] = L
+ 
+-        # H is no longer needed except to compute proxy error so move to CPU
+-        H = H.cpu()
+-        H_data["H"] = H.cpu()
++        # Paid B300 production keeps caller-owned H/L on the quant device.
++        # CPU storage remains the default for historical/offline callers.
++        keep_hessian_on_device = bool(
++            quant_args.get("keep_hessian_on_device", False)
++        )
++        if keep_hessian_on_device:
++            H_data["H"] = H
++        else:
++            H = H.cpu()
++            H_data["H"] = H.cpu()
+ 
+         H_data["finalized"] = True
+         H_data["diag"] = diag
+@@ -1752,23 +1872,63 @@ def g_scale_search_batch(
+             i = j
+         return out
+ 
+-    # Stage 1: coarse grid over the full search range, on a subsample of each tensor's tiles
+-    coarse = [0.1 + 0.2 * i for i in range(10)]  # 0.1 .. 1.9, same range as the old golden-section bracket
++    # Stage 1: retain the historical cheap bracket on a tile subsample.  Only
++    # tensors whose minimum lands at the upper point pay for the expansion.
++    coarse = [
++        G_SCALE_SEARCH_INITIAL_MIN + G_SCALE_SEARCH_COARSE_STEP * i
++        for i in range(
++            round(
++                (G_SCALE_SEARCH_INITIAL_MAX - G_SCALE_SEARCH_INITIAL_MIN)
++                / G_SCALE_SEARCH_COARSE_STEP
++            )
++            + 1
++        )
++    ]
+     subs = [s[::3] for s in samples]
+     pairs1 = [(t, s) for t in range(n_t) for s in coarse]
+     mse1 = eval_pairs(pairs1, subs).view(n_t, len(coarse))
+-    centers = [coarse[c] for c in mse1.argmin(dim = 1).tolist()]
++    coarse_best = mse1.argmin(dim = 1).tolist()
++    centers = [coarse[c] for c in coarse_best]
++    expanded = [index == len(coarse) - 1 for index in coarse_best]
++
++    expansion = [
++        G_SCALE_SEARCH_INITIAL_MAX + G_SCALE_SEARCH_COARSE_STEP * (i + 1)
++        for i in range(
++            round(
++                (G_SCALE_SEARCH_EXPANDED_MAX - G_SCALE_SEARCH_INITIAL_MAX)
++                / G_SCALE_SEARCH_COARSE_STEP
++            )
++        )
++    ]
++    expanded_tensors = [t for t, needed in enumerate(expanded) if needed]
++    if expanded_tensors:
++        pairs_x = [(t, scale) for t in expanded_tensors for scale in expansion]
++        mse_x = eval_pairs(pairs_x, subs).view(len(expanded_tensors), len(expansion))
++        for row, tensor_index in enumerate(expanded_tensors):
++            values = torch.cat((mse1[tensor_index], mse_x[row]))
++            combined = coarse + expansion
++            centers[tensor_index] = combined[int(values.argmin().item())]
+ 
+     # Stage 2: fine grid around each tensor's coarse minimum, on its full sample
+-    step = 0.075
++    step = G_SCALE_SEARCH_FINE_STEP
+     fine = [[c + step * (i - 2) for i in range(5)] for c in centers]
+     pairs2 = [(t, s) for t in range(n_t) for s in fine[t]]
+     mse2 = eval_pairs(pairs2, samples).view(n_t, 5)
+     mse2_h = mse2.tolist()
+ 
+     results = []
++    evidence = []
+     for t in range(n_t):
+         best = min(range(5), key = lambda i: mse2_h[t][i])
++        if (
++            fine[t][best]
++            >= G_SCALE_SEARCH_HARD_CEILING - G_SCALE_SEARCH_CEILING_TOLERANCE
++        ):
++            raise RuntimeError(
++                "global scale search saturated at its hard upper ceiling: "
++                f"scale={fine[t][best]:.8g}, "
++                f"ceiling={G_SCALE_SEARCH_HARD_CEILING:.8g}"
++            )
+         if 0 < best < 4:
+             y0, y1, y2 = mse2_h[t][best - 1], mse2_h[t][best], mse2_h[t][best + 1]
+             denom = y0 - 2.0 * y1 + y2
+@@ -1777,7 +1937,31 @@ def g_scale_search_batch(
+         else:
+             offset = 0.0
+         best_scale = max(fine[t][best] + offset * step, 0.01)
++        if (
++            best_scale
++            >= G_SCALE_SEARCH_HARD_CEILING - G_SCALE_SEARCH_CEILING_TOLERANCE
++        ):
++            raise RuntimeError(
++                "global scale interpolation reached its hard upper ceiling: "
++                f"scale={best_scale:.8g}, "
++                f"ceiling={G_SCALE_SEARCH_HARD_CEILING:.8g}"
++            )
+         results.append((best_scale, mse2[t, best]))
++        evidence.append(
++            {
++                "policy": "raw_sample_adaptive_coarse_then_fine_v2",
++                "initial_min": G_SCALE_SEARCH_INITIAL_MIN,
++                "initial_max": G_SCALE_SEARCH_INITIAL_MAX,
++                "expanded": expanded[t],
++                "expanded_max": G_SCALE_SEARCH_EXPANDED_MAX,
++                "fine_min": fine[t][0],
++                "fine_max": fine[t][-1],
++                "hard_ceiling": G_SCALE_SEARCH_HARD_CEILING,
++                "selected_scale": best_scale,
++                "selected_is_below_hard_ceiling": True,
++            }
++        )
++    quant_args["g_scale_search_evidence"] = evidence
+     return results
+ 
+ 
+@@ -1867,6 +2051,16 @@ _SHARED_INPUT_SCALES: dict = {}
+ def output_signs(n: int, device: torch.device, quant_args: dict) -> torch.Tensor:
+     """Draw output signs from an optional transform-specific RNG stream."""
+ 
++    explicit_output_signs = quant_args.get("output_signs")
++    if explicit_output_signs is not None:
++        return _explicit_vector(
++            explicit_output_signs,
++            length=n,
++            name="output_signs",
++            device=device,
++            orientation="row",
++            signs=True,
++        )
+     if "sv_seed" in quant_args:
+         torch.manual_seed(quant_args["sv_seed"])
+     return (
+@@ -1920,35 +2114,81 @@ def regularize(
+             print(f"     - input state skew: {skew_factor.item():.6f}")
+ 
+         if force_out_scales is None:
+-            apply_out_scales = skew_factor.item() < 0.15
++            apply_out_scales_mask = skew_factor < 0.15
+         else:
+-            apply_out_scales = force_out_scales
++            apply_out_scales_mask = torch.tensor(
++                bool(force_out_scales), dtype=torch.bool, device=weight.device
++            )
+ 
+     else:
+-        apply_out_scales = True if force_out_scales is None else force_out_scales
++        apply_out_scales_mask = torch.tensor(
++            True if force_out_scales is None else bool(force_out_scales),
++            dtype=torch.bool,
++            device=weight.device,
++        )
+ 
+     if q_fallback:
+-        apply_out_scales = force_out_scales
+-
+-    # Apply output scales
+-    out_channel_scales = block_rms(weight, dim = 0, keepdim = True)
+-    mean = out_channel_scales.mean().item()
+-    if mean > 1e-30:
+-        out_channel_scales /= mean
+-        quant_args["zeros"] = False
++        # Preserve the historical truthiness of a missing fallback override.
++        apply_out_scales_mask = torch.tensor(
++            False if force_out_scales is None else bool(force_out_scales),
++            dtype=torch.bool,
++            device=weight.device,
++        )
++
++    # Apply output scales.  An explicit profile is caller-owned and bypasses
++    # first-tensor derivation, which is required for topology-neutral ports.
++    explicit_output_scales = quant_args.get("output_channel_scale_profile")
++    observed_out_channel_scales = block_rms(weight, dim = 0, keepdim = True)
++    if explicit_output_scales is not None:
++        if force_out_scales is False:
++            raise ValueError(
++                "output_channel_scale_profile requires apply_out_scales=True"
++            )
++        apply_out_scales_mask = torch.ones(
++            (), dtype=torch.bool, device=weight.device
++        )
++        out_channel_scales = _explicit_vector(
++            explicit_output_scales,
++            length=weight.shape[1],
++            name="output_channel_scale_profile",
++            device=weight.device,
++            orientation="row",
++        )
+     else:
+-        quant_args["zeros"] = True
+-        if force_out_scales is not None:
+-            apply_out_scales = True
+-    zero_out_scales = out_channel_scales.abs() < 1e-30
+-
+-    if apply_out_scales:
+-        out_channel_scales[zero_out_scales] = 0.1
+-        sv = (sv * out_channel_scales + 1e-10).float()
+-        if verbose:
+-            out_channel_std = out_channel_scales.std().item()
+-            out_channel_mean = out_channel_scales.mean().item()
+-            print(f"     - out ch scales std/mean: {out_channel_std:.6f}   {out_channel_mean:.6f}")
++        out_channel_scales = observed_out_channel_scales
++    mean = out_channel_scales.mean()
++    mean_positive = mean > 1e-30
++    if explicit_output_scales is None:
++        # Keep the data-dependent normalization decision on CUDA.  The
++        # clamped denominator is ignored by torch.where for an all-zero
++        # profile and therefore cannot alter that historical branch.
++        out_channel_scales = torch.where(
++            mean_positive,
++            out_channel_scales / mean.clamp_min(1e-30),
++            out_channel_scales,
++        )
++    if force_out_scales is not None:
++        # Historical behavior forces scaling for an all-zero tensor even when
++        # an explicit boolean override was supplied.
++        apply_out_scales_mask = torch.where(
++            mean_positive,
++            apply_out_scales_mask,
++            torch.ones_like(apply_out_scales_mask),
++        )
++    zero_out_scales = observed_out_channel_scales.abs() < 1e-30
++    if explicit_output_scales is not None and bool(zero_out_scales.any()):
++        raise ValueError(
++            "an explicit output scale profile cannot encode a zero output channel"
++        )
++
++    candidate_out_channel_scales = out_channel_scales.clone()
++    candidate_out_channel_scales[zero_out_scales] = 0.1
++    scaled_sv = (sv * candidate_out_channel_scales + 1e-10).float()
++    sv = torch.where(apply_out_scales_mask, scaled_sv, sv)
++    if verbose:
++        out_channel_std = candidate_out_channel_scales.std().item()
++        out_channel_mean = candidate_out_channel_scales.mean().item()
++        print(f"     - out ch scales std/mean: {out_channel_std:.6f}   {out_channel_mean:.6f}")
+ 
+     # Output sign flips (and scales)
+     weight /= sv
+@@ -1960,13 +2200,28 @@ def regularize(
+     blockwise_preapply_had_r_(weight, had_n)
+ 
+     # Input sign flips and scales
+-    in_channel_scales = block_rms(weight, dim = 1, keepdim = True)
+-    in_channel_scales[in_channel_scales.abs() < 1e-30] = 0.1
++    explicit_input_scales = quant_args.get("input_channel_scale_profile")
++    if explicit_input_scales is None:
++        in_channel_scales = block_rms(weight, dim = 1, keepdim = True)
++        in_channel_scales[in_channel_scales.abs() < 1e-30] = 0.1
++    else:
++        in_channel_scales = _explicit_vector(
++            explicit_input_scales,
++            length=weight.shape[0],
++            name="input_channel_scale_profile",
++            device=weight.device,
++            orientation="column",
++        )
+     # kquant shared-su mode: reuse the first tensor's channel-scale profile for
+     # every tensor with the same key (e.g. all experts of a MoE layer/matrix),
+     # so the stored su vector is identical across them and TP replicas can
+     # broadcast one copy. Trellis codes re-fit against the shared profile.
+     shared_key = quant_args.get("shared_input_scales_key")
++    if explicit_input_scales is not None and shared_key is not None:
++        raise ValueError(
++            "input_channel_scale_profile cannot be combined with the "
++            "module-global shared_input_scales_key"
++        )
+     if shared_key is not None:
+         in_channel_scales = _SHARED_INPUT_SCALES.setdefault(
+             shared_key, in_channel_scales)
+@@ -1976,7 +2231,49 @@ def regularize(
+ 
+     # Determine best scale for matrix by test quantizing a sample of tiles along a wrapped diagonal
+     if not skip_g_scale:
+-        g_scale, mse_scale = g_scale_gss(weight, False, quant_args, pb = pb)
++        override = quant_args.get("g_scale_override")
++        if override is None:
++            g_scale, mse_scale = g_scale_gss(weight, False, quant_args, pb = pb)
++        else:
++            if (
++                isinstance(override, bool)
++                or not isinstance(override, (int, float))
++                or not math.isfinite(float(override))
++                or float(override) <= 0.0
++                or float(override)
++                >= G_SCALE_SEARCH_HARD_CEILING - G_SCALE_SEARCH_CEILING_TOLERANCE
++            ):
++                raise ValueError(
++                    "g_scale_override must be positive, finite, and below the "
++                    "hard scale ceiling"
++                )
++            policy = quant_args.get("g_scale_override_policy")
++            evidence_id = quant_args.get("g_scale_override_evidence_id")
++            if policy != "activation_parametric_coupled_v1":
++                raise ValueError(
++                    "serial g_scale_override requires the activation-parametric "
++                    "coupled policy"
++                )
++            if (
++                not isinstance(evidence_id, str)
++                or len(evidence_id) != 64
++                or any(ch not in "0123456789abcdef" for ch in evidence_id)
++            ):
++                raise ValueError(
++                    "serial g_scale_override requires a lowercase SHA-256 evidence ID"
++                )
++            g_scale = float(override)
++            mse_scale = torch.tensor(float("nan"), device=weight.device)
++            quant_args["g_scale_search_evidence"] = [
++                {
++                    "policy": policy,
++                    "evidence_id": evidence_id,
++                    "raw_sample_search_performed": False,
++                    "hard_ceiling": G_SCALE_SEARCH_HARD_CEILING,
++                    "selected_scale": g_scale,
++                    "selected_is_below_hard_ceiling": True,
++                }
++            ]
+     else:
+         g_scale = 1.0
+     weight, su, sv = apply_g_scale(
+@@ -1987,6 +2284,11 @@ def regularize(
+         into_sv=bool(quant_args.get("g_scale_into_sv")),
+     )
+ 
++    # The transform is now numerically frozen.  Only manifest booleans cross
++    # to the host; neither value can feed back into weight construction.
++    apply_out_scales = bool(apply_out_scales_mask.item())
++    quant_args["zeros"] = bool((~mean_positive).item())
++
+     # ext.test_distribution(weight_os, dist_r, dist_ref, -3.8, 3.8)
+     # js_os = jsd(dist_r, dist_ref)
+ 
+@@ -2119,8 +2421,12 @@ def quantize_qsrt(
+             H_diag = H_diag.to(device)
+         sv = output_signs(n, device, quant_args)
+ 
+-        # Move stored L to CPU (if not already), move working L to device
+-        if H_data["L"] is not None:
++        # Historical callers store L on CPU.  The B300 path retains it on GPU
++        # so a shared H13 session does not round-trip a 6144-square factor for
++        # every gate/up candidate.
++        if H_data["L"] is not None and not quant_args.get(
++            "keep_hessian_on_device", False
++        ):
+             H_data["L"] = H_data["L"].cpu()
+         if L is not None:
+             L = L.to(device)
+@@ -2160,7 +2466,9 @@ def quantize_qsrt(
+ 
+         # Select device for work buffers (CPU is slower for small tensors but saves a lot of VRAM on big ones)
+         # TODO: Use pynvml or mem_get_info to predict whether CPU buffer is needed
+-        if weight_r.numel() > 5e8:
++        if weight_r.numel() > 5e8 and not quant_args.get(
++            "gpu_only_numerical_path", False
++        ):
+             weight_r = weight_r.cpu()
+ 
+         # Quantize
+@@ -2305,6 +2613,8 @@ def quantize_qsrt_batch(
+         "ldlq_tf32",
+         "tailbite_context",
+         "g_scale_override",
++        "keep_hessian_on_device",
++        "gpu_only_numerical_path",
+     )
+     for group in quant_args_groups:
+         reference = group[0]
+@@ -2338,7 +2648,9 @@ def quantize_qsrt_batch(
+         su = su.to(device)
+         if H_diag is not None:
+             H_diag = H_diag.to(device)
+-        if H_data["L"] is not None:
++        if H_data["L"] is not None and not args.get(
++            "keep_hessian_on_device", False
++        ):
+             H_data["L"] = H_data["L"].cpu()
+         sv = output_signs(weight.shape[1], device, args)
+         apply_out_scales, weight_r, _, su, sv = regularize(
+diff --git a/kquant/exl3_reference.py b/kquant/exl3_reference.py
+index b1a4e1e..01b4b5d 100644
+--- a/kquant/exl3_reference.py
++++ b/kquant/exl3_reference.py
+@@ -30,8 +30,8 @@ QSRT_CODEBOOKS = (
+ 
+ 
+ def _validate_bits(bits: int) -> None:
+-    if isinstance(bits, bool) or not isinstance(bits, int) or bits not in (2, 3, 4):
+-        raise ValueError("the QSRT reference supports K=2, K=3, or K=4")
++    if isinstance(bits, bool) or not isinstance(bits, int) or bits not in range(2, 7):
++        raise ValueError("the SQG reference supports K=2 through K=6")
+ 
+ 
+ def reconstruct_trellis_states(
+@@ -150,9 +150,9 @@ def decode_qsrt_regularized_weight(
+     tile_bits: tuple[int, ...],
+     codebook: str,
+ ) -> torch.Tensor:
+-    """Decode a K2/K3/K4 tile map to transformed ``[K, N]`` weights.
++    """Decode a K2--K6 tile map to transformed ``[K, N]`` weights.
+ 
+-    SQG uses a distinct state labelling for K2, K3, and K4, so the physical
++    SQG uses a distinct state labelling for every supported K, so the physical
+     tile rate is part of the numerical decode contract.
+     """
+ 
+@@ -164,10 +164,10 @@ def decode_qsrt_regularized_weight(
+     if len(tile_bits) != states.shape[axis]:
+         raise ValueError("tile_bits length does not match the selected rate axis")
+     if any(
+-        isinstance(value, bool) or not isinstance(value, int) or value not in (2, 3, 4)
++        isinstance(value, bool) or not isinstance(value, int) or value not in range(2, 7)
+         for value in tile_bits
+     ):
+-        raise ValueError("tile_bits must contain only integer K2, K3, or K4")
++        raise ValueError("tile_bits must contain only integer K2 through K6")
+     if codebook not in QSRT_CODEBOOKS:
+         raise ValueError(f"unsupported QSRT codebook: {codebook}")
+ 
+diff --git a/kquant/qsrt.py b/kquant/qsrt.py
+index 0424724..1bfd2a0 100644
+--- a/kquant/qsrt.py
++++ b/kquant/qsrt.py
+@@ -804,8 +804,8 @@ def repack_encoded_records(
+ 
+ 
+ def _validate_k(bits: int) -> None:
+-    if isinstance(bits, bool) or not isinstance(bits, int) or bits not in (2, 3, 4):
+-        raise ValueError("QSRT supports K=2, K=3, or K=4")
++    if isinstance(bits, bool) or not isinstance(bits, int) or bits not in range(2, 7):
++        raise ValueError("SQG trellis packing supports K=2 through K=6")
+ 
+ 
+ def pack_trellis_edges(indices: torch.Tensor, bits: int) -> torch.Tensor:
+diff --git a/kquant/sqg_e4m3.py b/kquant/sqg_e4m3.py
+index 2783b10..d7f831d 100644
+--- a/kquant/sqg_e4m3.py
++++ b/kquant/sqg_e4m3.py
+@@ -31,8 +31,8 @@ _Q = (1.0, 2.07630930, -8.08332684, 6.32135736, -1.31208298)
+ 
+ 
+ def _validate(bits: int, mode: str) -> None:
+-    if isinstance(bits, bool) or not isinstance(bits, int) or bits not in (2, 3, 4):
+-        raise ValueError("SQG supports integer K2, K3, or K4")
++    if isinstance(bits, bool) or not isinstance(bits, int) or bits not in range(2, 7):
++        raise ValueError("SQG supports integer K2 through K6")
+     if mode != "normal":
+         raise ValueError("the supported R44 mode is 'normal'")
+ 
+@@ -157,7 +157,7 @@ def sqg_e4m3_bytes_from_rank_lut(
+ ) -> torch.Tensor:
+     """Map a shared rank-indexed E4M3 law onto the unchanged SQG graph.
+ 
+-    ``rank_lut`` is deliberately independent of ``bits``.  K2/K3/K4 may
++    ``rank_lut`` is deliberately independent of ``bits``.  K2 through K6 may
+     expose different outgoing menus because their stratum widths differ, but
+     they retain the same history mixer, syndrome mixer, branch permutation,
+     and scalar reconstruction law.  This is the controlled interface used to
+diff --git a/kquant/sqg_quantizer.py b/kquant/sqg_quantizer.py
+index cc29e00..ade6f06 100644
+--- a/kquant/sqg_quantizer.py
++++ b/kquant/sqg_quantizer.py
+@@ -2,9 +2,15 @@
+ 
+ from __future__ import annotations
+ 
++import hashlib
++import importlib.machinery
++import importlib.util
++import os
++import re
++import sys
++from collections.abc import Mapping
+ from functools import lru_cache
+ from pathlib import Path
+-from collections.abc import Mapping
+ 
+ import torch
+ from torch.utils.cpp_extension import load
+@@ -12,11 +18,107 @@ from torch.utils.cpp_extension import load
+ from kquant.sqg_e4m3 import sqg_e4m3_bytes
+ 
+ 
++_EXTENSION_NAME = "kquant_sqg_quantize_ext_v22"
++_EXTENSION_PATH_ENV = "KQUANT_SQG_EXTENSION_PATH"
++_EXTENSION_SHA256_ENV = "KQUANT_SQG_EXTENSION_SHA256"
++_REQUIRE_PREBUILT_ENV = "KQUANT_SQG_REQUIRE_PREBUILT"
++_SHA256_RE = re.compile(r"[0-9a-f]{64}")
++
++
++def _sha256_file(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as handle:
++        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def _import_prebuilt_extension(path: Path):
++    """Import one exact pybind extension without invoking the JIT builder."""
++
++    spec = importlib.util.spec_from_file_location(_EXTENSION_NAME, path)
++    if spec is None or spec.loader is None:
++        raise ImportError(f"cannot construct an import spec for SQG extension: {path}")
++    previous = sys.modules.get(_EXTENSION_NAME)
++    module = importlib.util.module_from_spec(spec)
++    sys.modules[_EXTENSION_NAME] = module
++    try:
++        spec.loader.exec_module(module)
++    except BaseException:
++        if previous is None:
++            sys.modules.pop(_EXTENSION_NAME, None)
++        else:
++            sys.modules[_EXTENSION_NAME] = previous
++        raise
++    return module
++
++
++def _load_prebuilt_extension(raw_path: str, expected_sha256: str):
++    candidate = Path(raw_path)
++    if not candidate.is_absolute():
++        raise ValueError(f"{_EXTENSION_PATH_ENV} must be an absolute path")
++    if candidate.is_symlink():
++        raise ValueError(f"{_EXTENSION_PATH_ENV} may not name a symlink")
++    try:
++        path = candidate.resolve(strict=True)
++    except FileNotFoundError as exc:
++        raise FileNotFoundError(
++            f"sealed SQG extension does not exist: {candidate}"
++        ) from exc
++    if not path.is_file():
++        raise ValueError(f"sealed SQG extension is not a regular file: {path}")
++    allowed_names = {
++        f"{_EXTENSION_NAME}{suffix}"
++        for suffix in importlib.machinery.EXTENSION_SUFFIXES
++    }
++    if path.name not in allowed_names:
++        raise ValueError(
++            "sealed SQG extension filename must identify "
++            f"{_EXTENSION_NAME}: {path.name}"
++        )
++    if _SHA256_RE.fullmatch(expected_sha256) is None:
++        raise ValueError(f"{_EXTENSION_SHA256_ENV} must be 64 lowercase hex digits")
++    observed_sha256 = _sha256_file(path)
++    if observed_sha256 != expected_sha256:
++        raise RuntimeError(
++            "sealed SQG extension SHA256 mismatch: "
++            f"{observed_sha256} != {expected_sha256}"
++        )
++    module = _import_prebuilt_extension(path)
++    module_path = Path(str(getattr(module, "__file__", ""))).resolve()
++    if module_path != path:
++        raise RuntimeError(
++            f"loaded SQG extension origin differs: {module_path} != {path}"
++        )
++    if not callable(getattr(module, "quantize_tiles_procedural", None)) or not callable(
++        getattr(module, "quantize_tiles_sqg", None)
++    ):
++        raise RuntimeError(
++            "sealed SQG extension lacks required quantization entry points"
++        )
++    if _sha256_file(path) != expected_sha256:
++        raise RuntimeError("sealed SQG extension changed while it was being imported")
++    return module
++
++
+ @lru_cache(maxsize=1)
+ def _extension():
++    require_value = os.environ.get(_REQUIRE_PREBUILT_ENV, "")
++    if require_value not in ("", "0", "1"):
++        raise ValueError(f"{_REQUIRE_PREBUILT_ENV} must be unset, 0, or 1")
++    raw_path = os.environ.get(_EXTENSION_PATH_ENV, "")
++    expected_sha256 = os.environ.get(_EXTENSION_SHA256_ENV, "")
++    if require_value == "1" or raw_path or expected_sha256:
++        if not raw_path or not expected_sha256:
++            raise RuntimeError(
++                f"{_EXTENSION_PATH_ENV} and {_EXTENSION_SHA256_ENV} are both required "
++                "for sealed prebuilt SQG loading"
++            )
++        return _load_prebuilt_extension(raw_path, expected_sha256)
++
+     project = Path(__file__).resolve().parents[1]
+     return load(
+-        name="kquant_sqg_quantize_ext_v22",
++        name=_EXTENSION_NAME,
+         sources=[
+             str(project / "kquant/csrc/sqg_quantize.cpp"),
+             str(project / "kquant/csrc/sqg_quantize.cu"),
+@@ -42,7 +144,7 @@ def _sqg_temp_buffers(device: torch.device, bits: int):
+ 
+     multiprocessors = torch.cuda.get_device_properties(device).multi_processor_count
+     edges = 65536 >> bits
+-    decisions = edges // (4 if bits == 2 else 2)
++    decisions = edges // 4 if bits == 2 else (edges // 2 if bits <= 4 else edges)
+     free_bytes, _ = torch.cuda.mem_get_info(device)
+     decision_bytes_per_tile = 256 * decisions
+     affordable = max(256, int(free_bytes * 0.5) // decision_bytes_per_tile)
+@@ -94,13 +196,17 @@ def install_sqg_quantizer(quantizer_module) -> None:
+                 )
+             if not isinstance(rate_codebooks, Mapping):
+                 raise TypeError("sqg_e4m3_luts_by_bits must be a mapping")
+-            if set(rate_codebooks) - {2, 3, 4}:
+-                raise ValueError("rate-specific SQG LUT keys must be K2, K3, or K4")
++            if set(rate_codebooks) - set(range(2, 7)):
++                raise ValueError("rate-specific SQG LUT keys must be K2 through K6")
+             try:
+                 codebook = rate_codebooks[bits]
+             except KeyError as exc:
+                 raise ValueError(f"missing rate-specific SQG K{bits} LUT") from exc
+             if codebook is None:
++                if bits not in (2, 3, 4):
++                    raise ValueError(
++                        "non-SQG procedural controls remain limited to K2 through K4"
++                    )
+                 output = torch.empty_like(tiles)
+                 indices = torch.empty_like(tiles, dtype=torch.int16)
+                 costs, edges = _sqg_temp_buffers(tiles.device, bits)
+diff --git a/tests/test_qsrt.py b/tests/test_qsrt.py
+index 0d5189d..6e5c469 100644
+--- a/tests/test_qsrt.py
++++ b/tests/test_qsrt.py
+@@ -218,6 +218,8 @@ def test_matrix_rate_axis_tracks_shared_intermediate_dimension() -> None:
+         (2, [6939] * 6),
+         (3, [30469, 1337, 1337, 14711, 14711, 30469]),
+         (4, [17767, 291, -12817, -30293, 17767, 291]),
++        (5, [12820, 68, 21686, -14526, -31643, 13775]),
++        (6, [-31984, 16, 8338, 20871, -11377, -29904]),
+     ],
+ )
+ def test_trellis_edge_pack_matches_native_word_order(
+@@ -231,7 +233,7 @@ def test_trellis_edge_pack_matches_native_word_order(
+     torch.testing.assert_close(unpack_trellis_edges(packed, bits), indices)
+ 
+ 
+-@pytest.mark.parametrize("bits", [2, 3, 4])
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_trellis_edge_pack_round_trips_only_stored_low_bits(bits: int) -> None:
+     generator = torch.Generator().manual_seed(100 + bits)
+     indices = torch.randint(-32768, 32768, (7, 256), generator=generator)
+@@ -241,7 +243,7 @@ def test_trellis_edge_pack_round_trips_only_stored_low_bits(bits: int) -> None:
+     torch.testing.assert_close(unpacked.int(), indices.int() & ((1 << bits) - 1))
+ 
+ 
+-@pytest.mark.parametrize("bits", [2, 3, 4])
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_cyclic_trellis_states_round_trip_exactly(bits: int) -> None:
+     generator = torch.Generator().manual_seed(150 + bits)
+     edges = torch.randint(0, 1 << bits, (5, 256), generator=generator)
+@@ -251,7 +253,7 @@ def test_cyclic_trellis_states_round_trip_exactly(bits: int) -> None:
+     torch.testing.assert_close(unpack_trellis_states(packed, bits), states)
+ 
+ 
+-@pytest.mark.parametrize("bits", [2, 3, 4])
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_cyclic_trellis_state_closed_form_matches_scalar_recurrence(bits: int) -> None:
+     generator = torch.Generator().manual_seed(175 + bits)
+     edges = torch.randint(0, 1 << bits, (3, 5, 256), generator=generator)
+diff --git a/tests/test_sqg_e4m3.py b/tests/test_sqg_e4m3.py
+index f630827..669fd6d 100644
+--- a/tests/test_sqg_e4m3.py
++++ b/tests/test_sqg_e4m3.py
+@@ -34,6 +34,8 @@ _SQG_XOR_CHEB_T12_SHA256 = {
+     2: "62027916386245a84c86156a0a08b6cf07e41548871af0e56fb40780558f6293",
+     3: "afe7b3633e7d243b00b379b18ec4dca573722b3727cafef47fcb6470d7e7e6c9",
+     4: "5a9620f0c4d8f0a60d0b6fbea921dcecbd193e6febf31043aaa6403c20389c2f",
++    5: "a1caf5572c67d4face423478f423e1ed6149a8c920be5c28d4702946c93cae2f",
++    6: "8e0edc92e20eb92f5287dbdadc8e870fc500fc03c5eed996cae0781d197ebcb0",
+ }
+ 
+ 
+@@ -48,7 +50,7 @@ def test_primary_sqg_xor_cheb_t12_matches_runtime_contract() -> None:
+     assert _sha256(table) == _SQG_XOR_CHEB_T12_SHA256["t12"]
+ 
+ 
+-@pytest.mark.parametrize("bits", (2, 3, 4))
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_primary_sqg_xor_cheb_t12_graph_and_labels_match_runtime_contract(
+     bits: int,
+ ) -> None:
+@@ -69,7 +71,7 @@ def test_primary_sqg_xor_cheb_t12_graph_and_labels_match_runtime_contract(
+     assert _sha256(labels) == _SQG_XOR_CHEB_T12_SHA256[bits]
+ 
+ 
+-@pytest.mark.parametrize("bits", (2, 3, 4))
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_sqg_preprojection_mapping_is_a_permutation(bits: int) -> None:
+     ranks = sqg_rank_permutation(bits)
+     assert ranks.dtype == torch.int64
+@@ -77,7 +79,7 @@ def test_sqg_preprojection_mapping_is_a_permutation(bits: int) -> None:
+     assert torch.equal(torch.sort(ranks).values, torch.arange(1 << 16))
+ 
+ 
+-@pytest.mark.parametrize("bits", (2, 3, 4))
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_sqg_codebook_round_trips_exact_e4m3(bits: int) -> None:
+     raw = sqg_e4m3_bytes(bits, "normal")
+     codebook = sqg_e4m3_codebook(bits, "normal")
+@@ -88,7 +90,7 @@ def test_sqg_codebook_round_trips_exact_e4m3(bits: int) -> None:
+     assert bool(torch.isfinite(codebook).all())
+ 
+ 
+-@pytest.mark.parametrize("bits", (2, 3, 4))
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_sqg_each_state_spans_all_coarse_strata(bits: int) -> None:
+     ranks = sqg_rank_permutation(bits)
+     width = 16 - bits
+@@ -97,7 +99,7 @@ def test_sqg_each_state_spans_all_coarse_strata(bits: int) -> None:
+     assert torch.equal(torch.sort(strata, dim=1).values, expected)
+ 
+ 
+-@pytest.mark.parametrize("bits", (2, 3, 4))
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_shared_rank_lut_preserves_one_graph_for_every_rate(bits: int) -> None:
+     rank_lut = torch.arange(1 << 16, dtype=torch.int64).remainder(126).to(torch.uint8)
+     raw = sqg_e4m3_bytes_from_rank_lut(bits, rank_lut)
+@@ -118,7 +120,7 @@ def test_shared_rank_lut_rejects_nonfinite_e4m3() -> None:
+         sqg_e4m3_bytes_from_rank_lut(2, rank_lut)
+ 
+ 
+-@pytest.mark.parametrize("bits", (2, 3, 4))
++@pytest.mark.parametrize("bits", range(2, 7))
+ def test_sqg_cheb_normal_named_codebook_uses_exact_shared_rank_law(bits: int) -> None:
+     expected = sqg_cheb_normal_rank_e4m3_bytes().index_select(
+         0, sqg_rank_permutation(bits)
+@@ -132,7 +134,7 @@ def test_sqg_cheb_normal_named_codebook_uses_exact_shared_rank_law(bits: int) ->
+     )
+ 
+ 
+-@pytest.mark.parametrize("bits", (2, 3, 4))
++@pytest.mark.parametrize("bits", range(2, 7))
+ @pytest.mark.parametrize("rate_axis", ("k", "n"))
+ def test_w2_k2_q8h4_profile_changes_only_k_axis_k2(
+     bits: int, rate_axis: str
+diff --git a/tests/test_sqg_quantizer.py b/tests/test_sqg_quantizer.py
+index 8d99e86..c470ee2 100644
+--- a/tests/test_sqg_quantizer.py
++++ b/tests/test_sqg_quantizer.py
+@@ -1,11 +1,135 @@
+ from __future__ import annotations
+ 
++import hashlib
++from pathlib import Path
+ from types import SimpleNamespace
+ 
++import pytest
+ import torch
+ 
+ import kquant.sqg_quantizer as sqg_quantizer
++from kquant.exl3_reference import reconstruct_trellis_states
+ from kquant.sqg_quantizer import install_sqg_quantizer
++from kquant.sqg_e4m3 import sqg_xor_cheb_t12_bytes
++
++
++def _sealed_extension(
++    tmp_path: Path,
++    monkeypatch: pytest.MonkeyPatch,
++    *,
++    filename: str = "kquant_sqg_quantize_ext_v22.so",
++) -> tuple[Path, SimpleNamespace]:
++    path = tmp_path / filename
++    payload = b"sealed-sqg-extension-test-double"
++    path.write_bytes(payload)
++    module = SimpleNamespace(
++        __file__=str(path),
++        quantize_tiles_procedural=lambda *_args: None,
++        quantize_tiles_sqg=lambda *_args: None,
++    )
++    monkeypatch.setenv("KQUANT_SQG_REQUIRE_PREBUILT", "1")
++    monkeypatch.setenv("KQUANT_SQG_EXTENSION_PATH", str(path))
++    monkeypatch.setenv(
++        "KQUANT_SQG_EXTENSION_SHA256", hashlib.sha256(payload).hexdigest()
++    )
++    return path, module
++
++
++def test_required_prebuilt_extension_uses_exact_path_and_never_jit_builds(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    path, module = _sealed_extension(tmp_path, monkeypatch)
++    imported: list[Path] = []
++
++    def fake_import(actual: Path):
++        imported.append(actual)
++        return module
++
++    monkeypatch.setattr(sqg_quantizer, "_import_prebuilt_extension", fake_import)
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        assert sqg_quantizer._extension() is module
++        assert imported == [path.resolve()]
++    finally:
++        sqg_quantizer._extension.cache_clear()
++
++
++def test_required_prebuilt_extension_rejects_wrong_filename_before_import_or_jit(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    _sealed_extension(tmp_path, monkeypatch, filename="foreign_extension.so")
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "_import_prebuilt_extension",
++        lambda _path: pytest.fail("foreign extension must not be imported"),
++    )
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        with pytest.raises(ValueError, match="filename must identify"):
++            sqg_quantizer._extension()
++    finally:
++        sqg_quantizer._extension.cache_clear()
++
++
++def test_required_prebuilt_extension_rejects_hash_mismatch_before_import_or_jit(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
++) -> None:
++    _sealed_extension(tmp_path, monkeypatch)
++    monkeypatch.setenv("KQUANT_SQG_EXTENSION_SHA256", "0" * 64)
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "_import_prebuilt_extension",
++        lambda _path: pytest.fail("mismatched extension must not be imported"),
++    )
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        with pytest.raises(RuntimeError, match="SHA256 mismatch"):
++            sqg_quantizer._extension()
++    finally:
++        sqg_quantizer._extension.cache_clear()
++
++
++@pytest.mark.parametrize(
++    ("missing", "message"),
++    (
++        ("KQUANT_SQG_EXTENSION_PATH", "are both required"),
++        ("KQUANT_SQG_EXTENSION_SHA256", "are both required"),
++    ),
++)
++def test_required_prebuilt_extension_rejects_partial_binding_without_jit(
++    tmp_path: Path,
++    monkeypatch: pytest.MonkeyPatch,
++    missing: str,
++    message: str,
++) -> None:
++    _sealed_extension(tmp_path, monkeypatch)
++    monkeypatch.delenv(missing)
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "load",
++        lambda **_kwargs: pytest.fail("JIT builder must not run in prebuilt mode"),
++    )
++    sqg_quantizer._extension.cache_clear()
++    try:
++        with pytest.raises(RuntimeError, match=message):
++            sqg_quantizer._extension()
++    finally:
++        sqg_quantizer._extension.cache_clear()
+ 
+ 
+ def test_rate_specific_none_dispatches_to_kquant_mcg(monkeypatch) -> None:
+@@ -88,3 +212,51 @@ def test_sqg_luts_are_transposed_by_predecessor_for_vector_loads(
+         )
+         assert torch.equal(actual, expected)
+         assert calls[-1][6:] == (bits, 128)
++
++
++@pytest.mark.parametrize("bits", [5, 6])
++def test_k5_k6_sqg_luts_remain_in_direct_state_order(
++    monkeypatch, bits: int
++) -> None:
++    calls: list[tuple] = []
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "_sqg_temp_buffers",
++        lambda _device, _bits: (torch.empty(0), torch.empty(0)),
++    )
++    monkeypatch.setattr(
++        sqg_quantizer,
++        "_extension",
++        lambda: SimpleNamespace(quantize_tiles_sqg=lambda *args: calls.append(args)),
++    )
++    module = SimpleNamespace(quantize_tiles=lambda *_args: "upstream")
++    install_sqg_quantizer(module)
++    raw = torch.arange(65536, dtype=torch.int64).to(torch.uint8)
++    module.quantize_tiles(
++        torch.zeros((1, 256), dtype=torch.float32),
++        {"K": bits, "devices": ["cuda:0"], "sqg_e4m3_lut": raw},
++    )
++    assert torch.equal(calls[-1][5], raw)
++    assert calls[-1][6:] == (bits, 128)
++
++
++@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is unavailable")
++@pytest.mark.parametrize("bits", range(2, 7))
++def test_sqg_quantizer_keeps_saturated_cost_paths_closed(bits: int) -> None:
++    module = SimpleNamespace(quantize_tiles=lambda *_args: "upstream")
++    install_sqg_quantizer(module)
++    tiles = torch.full((2, 256), 1000.0, dtype=torch.float32, device="cuda")
++
++    _output, states = module.quantize_tiles(
++        tiles,
++        {
++            "K": bits,
++            "devices": ["cuda:0"],
++            "sqg_e4m3_lut": sqg_xor_cheb_t12_bytes(bits),
++            "tailbite_context": 128,
++        },
++    )
++
++    edges = states.to(torch.int64) & ((1 << bits) - 1)
++    expected = reconstruct_trellis_states(edges, bits)
++    assert torch.equal(states, expected)

@@ -1,5 +1,39 @@
 # Publication validation
 
+## Coupled-Hadamard K96-tail source publication, 2026-08-14
+
+The K96-tail publication adds an exact measured-host source snapshot and
+compact evidence without claiming full-model completion or lower KLD.
+
+| Check | Result |
+|---|---:|
+| Snapshot SHA-256 manifest | 733 files passed |
+| Campaign source equivalence | 52 files passed |
+| Complete KQuant working source equivalence | 144 files passed |
+| Complete QSRT working source equivalence | 185 files passed |
+| Runtime source equivalence | 262 active files passed |
+| Filtered runtime overlay manifest | 248 source files passed |
+| QSRT revision, diff, and exact patch application | 3 changed files passed |
+| KQuant revision, diff, and exact patch application | 11 changed files passed |
+| Updated QSRT coupled tests | 5 passed |
+| Updated KQuant focused tests | 108 passed |
+| Coupled campaign focused tests | 35 passed |
+| Python syntax | 592 files passed before the final cache-free test run |
+| Shell syntax | 13 files passed |
+| Compact execution evidence | 16 layer oracles, 15 parity receipts, and 1,162 score receipt hashes passed |
+| Local links in the six edited entry-point documents | 64 checked, zero missing |
+| Secret-pattern scan | passed |
+| Generated cache, compiled object, model tensor, and file-size scan | zero included; no file over 100 MB |
+
+The active runtime overlay checksum file included five Ruff cache entries. The
+publication excludes those generated files, preserves the exact active
+checksum file as provenance, and regenerates the build-context checksum over
+the 248 published source files. `sha256sum -c` passes on the filtered context.
+
+The no-em-dash check covers newly authored prose. Exact campaign, QSRT,
+KQuant, patch, and runtime source bytes are not cosmetically rewritten, so
+inherited comments and docstrings retain their original typography.
+
 Validation was extended for the 2026-08-11 route-packed-kernel update. The
 publication-only checks used no inference container. The external runtime
 measurement did use an SM120 GPU and is separately identified below.
