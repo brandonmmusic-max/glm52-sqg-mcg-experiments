@@ -1,0 +1,442 @@
+diff --git a/qsrt/pack/qsrt_candidates.py b/qsrt/pack/qsrt_candidates.py
+index d7464fc..864b5c2 100644
+--- a/qsrt/pack/qsrt_candidates.py
++++ b/qsrt/pack/qsrt_candidates.py
+@@ -43,8 +43,10 @@ from qsrt.qsrt import (
+ from qsrt.qsrt_coupled import (
+     CoupledHadamardExecution,
+     CoupledHadamardSpec,
++    ExpertActivation,
+     coupled_execution,
+     encode_coupled_weights,
++    expert_activation,
+ )
+ from qsrt.pack.qsrt_encoder import (
+     Layout,
+@@ -172,9 +174,22 @@ class QSRTCandidateEncoding:
+ 
+ 
+ def _source_middle(
+-    gate_projection: torch.Tensor, up_projection: torch.Tensor
++    gate_projection: torch.Tensor,
++    up_projection: torch.Tensor,
++    *,
++    activation: ExpertActivation = "situ",
+ ) -> torch.Tensor:
+-    return situ(gate_projection, up_projection)
++    return expert_activation(
++        gate_projection,
++        up_projection,
++        activation=activation,
++    )
++
++
++def _activation_basis(activation: ExpertActivation) -> str:
++    if activation not in ("situ", "silu"):
++        raise ValueError(f"unsupported expert activation: {activation}")
++    return f"post_{activation}"
+ 
+ 
+ def _folded_intermediate_conditioning(
+@@ -407,13 +422,16 @@ def _candidate_middle_by_r13(
+     inputs: torch.Tensor,
+     upstream: dict[str, dict[int, QSRTMatrixCandidate]],
+     evaluated_modes: Sequence[int],
++    *,
++    activation: ExpertActivation = "situ",
+ ) -> dict[int, torch.Tensor]:
+-    """Replay exact candidate reconstructions through Kimi's SiTU."""
++    """Replay exact candidate reconstructions through the model activation."""
+ 
+     return {
+         int(r13): _source_middle(
+             F.linear(inputs, upstream["w1"][int(r13)].reconstruction),
+             F.linear(inputs, upstream["w3"][int(r13)].reconstruction),
++            activation=activation,
+         )
+         for r13 in evaluated_modes
+     }
+@@ -627,6 +645,7 @@ def encode_phase1_expert(
+     permutation_policy: PermutationPolicy = "h2_reverse",
+     folded_scale_power: float = 0.0,
+     transform_seeds: Mapping[str, QSRTTransformSeeds] | None = None,
++    activation: ExpertActivation = "situ",
+ ) -> QSRTCandidateEncoding:
+     """Encode and conservatively select one official-source expert.
+ 
+@@ -674,7 +693,11 @@ def encode_phase1_expert(
+     if all_rows.rows:
+         source_gate = F.linear(inputs, source_w1)
+         source_up = F.linear(inputs, source_w3)
+-        source_middle = _source_middle(source_gate, source_up)
++        source_middle = _source_middle(
++            source_gate,
++            source_up,
++            activation=activation,
++        )
+         del source_gate, source_up
+     else:
+         source_middle = torch.empty(
+@@ -697,7 +720,8 @@ def encode_phase1_expert(
+             "h13_local_alpha": 0.0,
+         }
+         context_basis = (
+-            f"official_source_post_situ_fit_documents:{permutation_policy}"
++            f"official_source_{_activation_basis(activation)}_fit_documents:"
++            f"{permutation_policy}"
+         )
+         covariance = {
+             **covariance,
+@@ -762,7 +786,10 @@ def encode_phase1_expert(
+     del source_w1, source_w3
+ 
+     middle_by_r13 = _candidate_middle_by_r13(
+-        inputs, upstream_candidates, evaluated_modes
++        inputs,
++        upstream_candidates,
++        evaluated_modes,
++        activation=activation,
+     )
+     h2_by_r13, h2_evidence = _conditional_h2_by_r13(
+         inputs,
+@@ -781,7 +808,8 @@ def encode_phase1_expert(
+                 "identity"
+                 if hessian_policy == "identity"
+                 else (
+-                    "decoded_candidate_post_situ_adaptive_shrinkage"
++                    f"decoded_candidate_{_activation_basis(activation)}_"
++                    "adaptive_shrinkage"
+                     if have_local_support
+                     else "identity_support_fallback"
+                 )
+@@ -789,7 +817,7 @@ def encode_phase1_expert(
+             "h2_by_r13": h2_evidence,
+         }
+     )
+-    context_basis += "+decoded_candidate_post_situ_h2"
++    context_basis += f"+decoded_candidate_{_activation_basis(activation)}_h2"
+ 
+     source_w2 = _load_source_matrix(store, layer, expert, "w2", device)
+     if all_rows.rows:
+@@ -996,6 +1024,7 @@ def encode_phase1_expert_batch(
+         int, Mapping[str, QSRTTransformSeeds]
+     ] | None = None,
+     coupled_intermediate_draws_by_expert: Mapping[int, int] | None = None,
++    activation: ExpertActivation = "situ",
+ ) -> list[QSRTCandidateEncoding]:
+     """Encode several experts while batching their independent trellis work.
+ 
+@@ -1019,6 +1048,7 @@ def encode_phase1_expert_batch(
+     fixed_k2 = modes == (K2.mode_id,)
+     fixed_profile = fixed_k3 or fixed_high_rate or fixed_k2
+     coupled = coupled_intermediate_draws_by_expert is not None
++    _activation_basis(activation)
+     if coupled:
+         if modes not in (
+             (R0.mode_id,),
+@@ -1079,7 +1109,11 @@ def encode_phase1_expert_batch(
+         if all_rows.rows:
+             source_gate = F.linear(inputs, source_w1)
+             source_up = F.linear(inputs, source_w3)
+-            source_middle = _source_middle(source_gate, source_up)
++            source_middle = _source_middle(
++                source_gate,
++                source_up,
++                activation=activation,
++            )
+             del source_gate, source_up
+         else:
+             source_middle = torch.empty(
+@@ -1095,7 +1129,8 @@ def encode_phase1_expert_batch(
+                 policy=permutation_policy,
+             )
+             context_basis = (
+-                f"official_source_post_situ_fit_documents:{permutation_policy}"
++                f"official_source_{_activation_basis(activation)}_fit_documents:"
++                f"{permutation_policy}"
+             )
+         else:
+             block_contexts = fallback_block_contexts.clone()
+@@ -1156,7 +1191,10 @@ def encode_phase1_expert_batch(
+         coupled_reference_output: torch.Tensor | None = None
+         if coupled:
+             draw = int(coupled_intermediate_draws_by_expert[expert])
+-            spec = CoupledHadamardSpec(intermediate_draw=draw)
++            spec = CoupledHadamardSpec(
++                intermediate_draw=draw,
++                activation=activation,
++            )
+             source_w2 = _load_source_matrix(store, layer, expert, "w2", device)
+             transformed = encode_coupled_weights(
+                 (source_w1, source_w3, source_w2), spec
+@@ -1272,7 +1310,10 @@ def encode_phase1_expert_batch(
+         execution_basis = item["coupled_execution"]
+         if execution_basis is None:
+             middle_by_r13 = _candidate_middle_by_r13(
+-                inputs, upstream, evaluated_modes
++                inputs,
++                upstream,
++                evaluated_modes,
++                activation=activation,
+             )
+         else:
+             middle_by_r13 = {
+@@ -1303,7 +1344,8 @@ def encode_phase1_expert_batch(
+                     "identity"
+                     if hessian_policy == "identity"
+                     else (
+-                        "decoded_candidate_post_situ_adaptive_shrinkage"
++                        f"decoded_candidate_{_activation_basis(activation)}_"
++                        "adaptive_shrinkage"
+                         if int(item["covariance"]["fit_documents"])
+                         >= min_fit_documents
+                         else "identity_support_fallback"
+@@ -1313,7 +1355,8 @@ def encode_phase1_expert_batch(
+             }
+         )
+         item["context_basis"] = (
+-            str(item["context_basis"]) + "+decoded_candidate_post_situ_h2"
++            str(item["context_basis"])
++            + f"+decoded_candidate_{_activation_basis(activation)}_h2"
+         )
+         all_rows = item["all_rows"]
+         if item["coupled_reference_output"] is not None:
+@@ -1535,6 +1578,9 @@ def encode_phase1_expert_batch(
+                         "intermediate_draw": item[
+                             "coupled_execution"
+                         ].spec.intermediate_draw,
++                        "activation": item[
++                            "coupled_execution"
++                        ].spec.activation,
+                     }
+                 ),
+                 **_mode_evidence(selected_encodings),
+diff --git a/qsrt/qsrt_coupled.py b/qsrt/qsrt_coupled.py
+index 6159771..4febf9b 100644
+--- a/qsrt/qsrt_coupled.py
++++ b/qsrt/qsrt_coupled.py
+@@ -11,6 +11,7 @@ from __future__ import annotations
+ 
+ import math
+ from dataclasses import dataclass
++from typing import Literal
+ 
+ import torch
+ import torch.nn.functional as F
+@@ -20,6 +21,31 @@ from qsrt.tp_simulator import situ
+ 
+ Tensor = torch.Tensor
+ WeightTriplet = tuple[Tensor, Tensor, Tensor]
++ExpertActivation = Literal["situ", "silu"]
++
++
++def expert_activation(
++    gate: Tensor,
++    up: Tensor,
++    *,
++    activation: ExpertActivation,
++) -> Tensor:
++    """Evaluate the model's exact coordinatewise gated activation.
++
++    Coupled Hadamard construction is valid for either activation because the
++    preactivation transform is inverted before this operation and the
++    postactivation transform is applied afterward.  Keeping the choice in the
++    immutable transform specification prevents a Kimi SiTU candidate from
++    being replayed accidentally under GLM's standard SwiGLU contract.
++    """
++
++    if gate.shape != up.shape:
++        raise ValueError("gate and up projections must have matching shapes")
++    if activation == "situ":
++        return situ(gate, up)
++    if activation == "silu":
++        return F.silu(gate) * up
++    raise ValueError(f"unsupported expert activation: {activation}")
+ 
+ 
+ @dataclass(frozen=True)
+@@ -31,6 +57,7 @@ class CoupledHadamardSpec:
+     postactivation_block_size: int = 128
+     residual_draw: int = 0
+     intermediate_draw: int = 0
++    activation: ExpertActivation = "situ"
+ 
+     def __post_init__(self) -> None:
+         for name, value in (
+@@ -44,6 +71,8 @@ class CoupledHadamardSpec:
+             raise ValueError("the coupled profile fixes residual draw zero")
+         if not 0 <= self.intermediate_draw < 8:
+             raise ValueError("intermediate_draw must lie in 0..7")
++        if self.activation not in ("situ", "silu"):
++            raise ValueError("activation must be 'situ' or 'silu'")
+ 
+ 
+ def block_hadamard(values: Tensor, *, block_size: int, dim: int = -1) -> Tensor:
+@@ -252,19 +281,46 @@ class CoupledHadamardExecution:
+         )
+ 
+     def decode_middle(self, rows: Tensor, w1: Tensor, w3: Tensor) -> Tensor:
+-        transformed = torch.cat((F.linear(rows, w1), F.linear(rows, w3)), dim=1)
++        return self.decode_middle_outputs(F.linear(rows, w1), F.linear(rows, w3))
++
++    def decode_middle_outputs(
++        self, transformed_w1: Tensor, transformed_w3: Tensor
++    ) -> Tensor:
++        """Close the coupled boundary from already-computed FC1 outputs.
++
++        This is the runtime/calibration seam used when the two upstream GEMMs
++        have their own operand precision, reconstruction law, or fused kernel.
++        It applies exactly the same inverse preactivation rotation, model
++        activation, and postactivation rotation as :meth:`decode_middle`.
++        """
++
++        if (
++            transformed_w1.ndim != 2
++            or transformed_w3.ndim != 2
++            or transformed_w1.shape != transformed_w3.shape
++            or transformed_w1.shape[1] != self.intermediate
++            or transformed_w1.device != transformed_w3.device
++        ):
++            raise ValueError(
++                "coupled upstream outputs must be aligned [rows, intermediate]"
++            )
++        transformed = torch.cat((transformed_w1, transformed_w3), dim=1)
+         recovered = signed_block_hadamard(
+             transformed,
+             block_size=self.spec.preactivation_block_size,
+-            signs=self._signs(1, device=rows.device),
++            signs=self._signs(1, device=transformed.device),
+             dim=1,
+             inverse=True,
+         )
+-        middle = situ(recovered[:, 0::2], recovered[:, 1::2])
++        middle = expert_activation(
++            recovered[:, 0::2],
++            recovered[:, 1::2],
++            activation=self.spec.activation,
++        )
+         return signed_block_hadamard(
+             middle,
+             block_size=self.spec.postactivation_block_size,
+-            signs=self._signs(2, device=rows.device),
++            signs=self._signs(2, device=transformed.device),
+             dim=1,
+         )
+ 
+@@ -279,6 +335,24 @@ class CoupledHadamardExecution:
+             inverse=True,
+         )
+ 
++    def transform_outputs(self, rows: Tensor) -> Tensor:
++        """Map caller-coordinate outputs into the coupled residual basis.
++
++        Calibration uses this forward counterpart of :meth:`decode_output`
++        when constructing a candidate-conditioned down cross term.  The
++        candidate operand and source-model teacher must share the transformed
++        output coordinates before forming ``B = Q.T @ Y``.
++        """
++
++        if rows.ndim != 2 or rows.shape[1] != self.hidden:
++            raise ValueError("output rows do not match the hidden dimension")
++        return signed_block_hadamard(
++            rows,
++            block_size=self.spec.residual_block_size,
++            signs=self._signs(3, device=rows.device),
++            dim=1,
++        )
++
+     def execute(self, rows: Tensor, weights: WeightTriplet) -> Tensor:
+         _validate_triplet(weights)
+         transformed_rows = self.transform_inputs(rows)
+@@ -296,10 +370,12 @@ def coupled_execution(
+ __all__ = [
+     "CoupledHadamardExecution",
+     "CoupledHadamardSpec",
++    "ExpertActivation",
+     "WeightTriplet",
+     "block_hadamard",
+     "coupled_execution",
+     "encode_coupled_weights",
++    "expert_activation",
+     "rotation_signs",
+     "signed_block_hadamard",
+ ]
+diff --git a/tests/test_qsrt_coupled.py b/tests/test_qsrt_coupled.py
+index 8f3f6a3..2fef347 100644
+--- a/tests/test_qsrt_coupled.py
++++ b/tests/test_qsrt_coupled.py
+@@ -12,6 +12,7 @@ from qsrt.qsrt_coupled import (
+     block_hadamard,
+     coupled_execution,
+     encode_coupled_weights,
++    expert_activation,
+     rotation_signs,
+     signed_block_hadamard,
+ )
+@@ -75,6 +76,66 @@ def test_production_coupled_transform_closes_and_matches_research_oracle() -> No
+     assert torch.allclose(output, research_output, rtol=2e-5, atol=2e-5)
+ 
+ 
++def test_glm_silu_coupled_transform_closes_exact_expert_function() -> None:
++    generator = torch.Generator().manual_seed(5202)
++    rows, hidden, intermediate = 11, 24, 16
++    weights = (
++        torch.randn(intermediate, hidden, generator=generator),
++        torch.randn(intermediate, hidden, generator=generator),
++        torch.randn(hidden, intermediate, generator=generator),
++    )
++    inputs = torch.randn(rows, hidden, generator=generator)
++    spec = CoupledHadamardSpec(
++        residual_block_size=8,
++        preactivation_block_size=8,
++        postactivation_block_size=8,
++        intermediate_draw=6,
++        activation="silu",
++    )
++
++    encoded = encode_coupled_weights(weights, spec)
++    execution = coupled_execution(encoded, spec)
++    output = execution.execute(inputs, encoded)
++    gate = torch.nn.functional.linear(inputs, weights[0])
++    up = torch.nn.functional.linear(inputs, weights[1])
++    reference = torch.nn.functional.linear(
++        torch.nn.functional.silu(gate) * up,
++        weights[2],
++    )
++
++    assert torch.allclose(output, reference, rtol=2e-5, atol=2e-5)
++
++    transformed_input = execution.transform_inputs(inputs)
++    gate_output = torch.nn.functional.linear(transformed_input, encoded[0])
++    up_output = torch.nn.functional.linear(transformed_input, encoded[1])
++    middle_from_outputs = execution.decode_middle_outputs(
++        gate_output, up_output
++    )
++    middle_from_weights = execution.decode_middle(
++        transformed_input, encoded[0], encoded[1]
++    )
++    torch.testing.assert_close(
++        middle_from_outputs, middle_from_weights, rtol=0, atol=0
++    )
++
++    transformed_output = execution.transform_outputs(reference)
++    torch.testing.assert_close(
++        execution.decode_output(transformed_output), reference, rtol=2e-5, atol=2e-5
++    )
++
++
++def test_expert_activation_rejects_unknown_contract() -> None:
++    gate = torch.ones((2, 3))
++    up = torch.ones((2, 3))
++
++    try:
++        expert_activation(gate, up, activation="gelu")  # type: ignore[arg-type]
++    except ValueError as exc:
++        assert "unsupported expert activation" in str(exc)
++    else:
++        raise AssertionError("unknown expert activation was accepted")
++
++
+ def test_coupled_hessian_transforms_preserve_quadratic_forms() -> None:
+     generator = torch.Generator().manual_seed(91)
+     hidden, intermediate = 16, 12
