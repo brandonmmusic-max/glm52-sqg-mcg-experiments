@@ -1,0 +1,214 @@
+# GLM-5.2 SQG coupled full-W4A8 -- SM120 local serving package (TP1/PP4/DCP1),
+# infernal-invocation cu133/torch213 base.
+#
+# Services:
+#   server       acceptance configuration: MTP off, enforce-eager, fp8 KV,
+#                TP1/PP4/DCP1. This is the configuration the smoke test and
+#                KLD receipt describe. (default profile)
+#   server-prod  production configuration: MTP3 speculative decoding, FP8 KV,
+#                CUDA graphs. Started explicitly with --profile prod.
+#                Benchmarks from this service are MTP3 results; never mix them
+#                with acceptance (MTP0) numbers.
+#   kld          one-shot sealed BF16-reference KLD run (profile tools).
+#   gpu-probe    one-shot one-layer native kernel probe (profile tools).
+#
+# All services bind localhost only and use GPUs 0,1,2,3.
+
+x-glm52-common: &glm52-common
+  image: "${IMAGE:?Set IMAGE to the locally built SM120 image reference}"
+  ipc: host
+  shm_size: 32g
+  init: true
+  stop_grace_period: 120s
+  ulimits:
+    memlock: -1
+    nofile: 1048576
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            device_ids: ["0", "1", "2", "3"]
+            capabilities: [gpu]
+  volumes:
+    - "${MODEL_DIR:?Set MODEL_DIR to the downloaded model directory}:/model:ro"
+    - "${CACHE_DIR:?Set CACHE_DIR to a writable cache directory}:/cache:rw"
+    - "${RESULTS_DIR:?Set RESULTS_DIR to a writable results directory}:/results:rw"
+
+x-glm52-env: &glm52-env
+  MODEL: /model
+  SERVED_MODEL_NAME: "${SERVED_MODEL_NAME:-GLM-5.2-SQG-Coupled-H512-H128-MixedRate}"
+  PORT: "8000"
+  CUDA_VISIBLE_DEVICES: 0,1,2,3
+  CUDA_DEVICE_ORDER: PCI_BUS_ID
+  TP_SIZE: "1"
+  PP_SIZE: "4"
+  DCP_SIZE: "1"
+  LOAD_FORMAT: safetensors
+  DCP_COMM_BACKEND: "${DCP_COMM_BACKEND:-a2a}"
+  DCP_KV_CACHE_INTERLEAVE_SIZE: "${DCP_KV_CACHE_INTERLEAVE_SIZE:-64}"
+  # The branch's direct symmetric-memory A2A reduce rejects the b12x MLA
+  # partial-output layout ("packed heads and an aligned token stride"); the
+  # triton a2a combine is the proven-contract path.
+  VLLM_USE_DIRECT_DCP_A2A: "0"
+  # DCP4 bisect knobs (see RESULTS/DCP4_BISECT.md). GLOBAL_TOPK merges
+  # indexer candidates across DCP ranks; a wrong merge is finite-but-wrong.
+  VLLM_DCP_GLOBAL_TOPK: "${VLLM_DCP_GLOBAL_TOPK:-1}"
+  # --- Aug-9 receipted DCP4 regime (results/20260809T194958Z-kld-fp8-dcp4,
+  # mean KLD 0.06245 over 5 boots, same rig/backend/interleave). These six are
+  # NOT optional: with VLLM_USE_B12X_DCP_A2A unset the b12x DCP channel is dead
+  # (mla_attention.py:850), and with A2A_MAX_TOKENS=0 every batch is treated as
+  # "small" so the ag_rs large-batch fallback never engages (:1485).
+  VLLM_USE_B12X_DCP_A2A: "${VLLM_USE_B12X_DCP_A2A:-1}"
+  VLLM_DCP_A2A_MAX_TOKENS: "${VLLM_DCP_A2A_MAX_TOKENS:-16}"
+  VLLM_DCP_A2A_LARGE_BACKEND: "${VLLM_DCP_A2A_LARGE_BACKEND:-ag_rs}"
+  VLLM_B12X_MLA_CKV_GATHER: "${VLLM_B12X_MLA_CKV_GATHER:-1}"
+  # 140000 is the receipted production value (serve-glm52-v19.sh); it is a
+  # per-rank capacity (cdiv by dcp_world_size = 35,000 tok/rank), not the cause
+  # of the KV starvation -- that was fixed by util 0.955 + batched 2048.
+  VLLM_B12X_MLA_CKV_GATHER_MAX_TOKENS: "${VLLM_B12X_MLA_CKV_GATHER_MAX_TOKENS:-140000}"
+  # Serving with max_num_seqs>1 creates multiple execution lanes; the CKV
+  # prefetch pool is sized for 1 and raises "workspace pool exhausted".
+  VLLM_B12X_MLA_CKV_PREFETCH_DEPTH: "${VLLM_B12X_MLA_CKV_PREFETCH_DEPTH:-0}"
+  VLLM_DCP_QUERY_SPLIT: "${VLLM_DCP_QUERY_SPLIT:-0}"
+  VLLM_USE_B12X_SPARSE_INDEXER: "1"
+  NCCL_NVLS_ENABLE: "0"
+  # All three direct symmetric-memory DCP paths default to None (auto-enable).
+  # Only the A2A one was disabled before; the Q/KV gather twins are new on this
+  # branch and were never present in the lineage of the Aug-9 receipt.
+  VLLM_USE_DIRECT_DCP_Q_GATHER: "0"
+  VLLM_USE_DIRECT_DCP_KV_GATHER: "0"
+  VLLM_GLM_SQG_W4A8_TOPOLOGY_ATTESTATION: "${TOPOLOGY_ATTESTATION:-tp1pp4dcp1}"
+  VLLM_GLM_SQG_W4A8_WORKSPACE_LANES: "2"
+  VLLM_GLM_SQG_W4A8_EVIDENCE_DIR: /results/evidence
+  B12X_GLM_W4A8_ACCEPT_ARCH: sm_120
+  B12X_GLM_W4A8_KERNEL: m128n64
+  B12X_GLM_W4A8_V2_BLOCKS: "8"
+  B12X_GLM_W4A8_V2_STAGES: "2"
+  B12X_MOE_FORCE_A16: "0"
+  B12X_MOE_FORCE_A8: "0"
+  HF_HOME: /cache/hf
+
+services:
+  server:
+    <<: *glm52-common
+    container_name: glm52-sqg-coupled-sm120-accept
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:-9418}:8000"
+    environment:
+      <<: *glm52-env
+      MTP: "0"
+      ENFORCE_EAGER: "1"
+      KV_CACHE_DTYPE: fp8
+      MAX_MODEL_LEN: "${ACCEPT_MAX_MODEL_LEN:-8192}"
+      MAX_NUM_SEQS: "4"
+      MAX_NUM_BATCHED_TOKENS: "${ACCEPT_MAX_BATCHED_TOKENS:-2048}"
+      GPU_MEMORY_UTILIZATION: "${ACCEPT_GPU_MEMORY_UTILIZATION:-0.955}"
+    command:
+      - --no-enable-prefix-caching
+    healthcheck:
+      test:
+        - CMD
+        - /opt/venv/bin/python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 3600s
+
+  server-prod:
+    <<: *glm52-common
+    container_name: glm52-sqg-coupled-sm120-prod-mtp3
+    restart: unless-stopped
+    profiles: [prod]
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:-9418}:8000"
+    environment:
+      <<: *glm52-env
+      MTP: "3" # PRODUCTION IS MTP3. Do not compare its benchmarks with MTP0 acceptance numbers.
+      MTP_DRAFT_SAMPLE_METHOD: greedy
+      ENFORCE_EAGER: "0"
+      GRAPH: "${PROD_GRAPH:-32}"
+      # KV format options:
+      #   fp8            = fp8_ds_mla 656B/token records (acceptance-validated)
+      #   nvfp4_ds_mla   = 4-bit MLA KV (+~1.47x KV capacity). On this branch
+      #                    set VLLM_NVFP4_MLA_DYNAMIC_SCALE=1 (self-describing
+      #                    two-level records; no outer-scales file), or mount a
+      #                    scales file via VLLM_NVFP4_MLA_SCALES_FILE. The two
+      #                    are mutually exclusive.
+      KV_CACHE_DTYPE: "${PROD_KV_CACHE_DTYPE:-fp8}"
+      # VLLM_NVFP4_MLA_DYNAMIC_SCALE: "1"
+      MAX_MODEL_LEN: "${PROD_MAX_MODEL_LEN:-131072}"
+      MAX_NUM_SEQS: "${PROD_MAX_NUM_SEQS:-8}"
+      MAX_NUM_BATCHED_TOKENS: "${PROD_MAX_BATCHED_TOKENS:-4096}"
+      GPU_MEMORY_UTILIZATION: "${PROD_GPU_MEMORY_UTILIZATION:-0.95}"
+    healthcheck:
+      test:
+        - CMD
+        - /opt/venv/bin/python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 3600s
+
+  kld:
+    <<: *glm52-common
+    container_name: glm52-sqg-coupled-sm120-kld
+    profiles: [tools]
+    restart: "no"
+    entrypoint: ["/opt/venv/bin/python", "/opt/glm52-sqg-w4a8-sm120/kld/run_kld_sm120.py"]
+    command:
+      - --model
+      - /model
+      - --reference-logits
+      - /reference
+      - --result-json
+      - "/results/kld/kld_sm120_tp1pp4dcp1.json"
+      - --tensor-parallel-size
+      - "1"
+      - --pipeline-parallel-size
+      - "4"
+      - --decode-context-parallel-size
+      - "1"
+      - --num-gpu-blocks-override
+      - "128"
+      - --gpu-memory-utilization
+      - "0.90"
+      - --max-model-len
+      - "2304"
+      - --max-num-batched-tokens
+      - "2304"
+      - --max-num-seqs
+      - "1"
+    environment:
+      <<: *glm52-env
+      IMAGE_REF: "${IMAGE}"
+      IMAGE_ID: "${IMAGE_ID:-}"
+      MODEL_REVISION_PIN: "${MODEL_REVISION:-local-coupled-assembly}"
+      VLLM_PROMPT_LOGPROBS_CHUNK_SIZE: "64"
+      VLLM_GLM_SQG_W4A8_WORKSPACE_LANES: "1" # one-shot single-stream engine
+    volumes:
+      - "${MODEL_DIR}:/model:ro"
+      - "${CACHE_DIR}:/cache:rw"
+      - "${RESULTS_DIR}:/results:rw"
+      - "${REFERENCE_DIR:?Set REFERENCE_DIR to the sealed BF16 reference-logits directory}:/reference:ro"
+
+  gpu-probe:
+    <<: *glm52-common
+    container_name: glm52-sqg-coupled-sm120-probe
+    profiles: [tools]
+    restart: "no"
+    entrypoint: ["/opt/venv/bin/python", "/opt/glm52-sqg-w4a8-sm120/scripts/gpu_probe_one_layer.py"]
+    command:
+      - --model
+      - /model
+      - --layer
+      - "3"
+      - --result-json
+      - /results/gpu_probe_layer3.json
+    environment:
+      <<: *glm52-env

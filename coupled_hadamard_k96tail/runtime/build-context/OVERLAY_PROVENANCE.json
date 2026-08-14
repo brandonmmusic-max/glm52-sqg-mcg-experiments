@@ -1,0 +1,95 @@
+{
+  "schema": "glm52-sqg-coupled-h512-h128-w4a8-sm120-overlay-provenance-v1",
+  "base_image": "voipmonitor/vllm@sha256:7c0899fb9b3d09fbebcdd45f7b34cf5533e8e22ded03edbe524c4dcb1e367420",
+  "base_image_tag": "voipmonitor/vllm:infernal-invocation-vllm6c50b0a-b12x1584743-fi1ac6942-cu133-torch213-20260812-r3",
+  "model": {
+    "repo": "brandonmusic/GLM-5.2-SQG-W4A8",
+    "revision": "593dd0d2de6f79ce4e65303930c22c75e1359d44",
+    "tag": "accepted-glm52-sqg-w4a8-b300-r1"
+  },
+  "coupled_reencode": {
+    "source": "existing frozen SQG function-preserving checkpoint; no original BF16 routed tensors",
+    "routed_bits_per_weight": 3.0625,
+    "per_layer_bit_census": {
+      "k3": 720,
+      "k4": 48,
+      "total": 768
+    },
+    "transform": "updated QSRT coupled residual H512, interleaved preactivation H128, SiLU, postactivation H128",
+    "residual_draw": 0,
+    "expert_draw_portfolio": [0, 6],
+    "selection": "fit proposes draw 6 and document-disjoint selection must confirm; otherwise draw 0"
+  },
+  "kernel": {
+    "path": "b12x/moe/_shared/kernels/glm_trellis_w4a8.py",
+    "sha256": "b95dde9347cf679836eedc1c76f0f569a4fb37dcc594a674e41666e4d0f162ad",
+    "expected_pr11_sha256": "b95dde9347cf679836eedc1c76f0f569a4fb37dcc594a674e41666e4d0f162ad",
+    "superseded_sm103_port_sha256": "427c75bedcedea7ac06600e69487b819125bf9a73567967fe8f72d703ae780a3",
+    "note": "PR11 SM120 kernel byte-identical to the accepted measurement; SM103 port hash recorded for lineage only, NOT used locally."
+  },
+  "exl3_py": {
+    "pr11_era_sm120_overlay_sha256": "80f99335c0ad014cc949ad5bd83b2daa6be5284e75662dd5f0dfdeacafe0e919",
+    "b300_patched_sha256": "d4f95f22b26d585a42427244f35afa678e8cba041523331bcfc0e6178db6f5d8",
+    "local_sm120_sha256": "b1996bbcd52075ea45e04d899232ad7a3c6ca43ff86eaf6e7ad49b7084774165",
+    "note": "Local file extends the published r7/K6 runtime with fail-closed coupled-layer maps, exact per-layer 720/48 censuses, updated-QSRT transform validation, expert draw loading, and TP1 pipeline-parallel admission."
+  },
+  "selected_sources": {
+    "overlay/vllm/model_executor/layers/quantization/exl3.py": "Published r7/K6 loader plus coupled H512/H128 contract, draw-map, census, and TP1 pipeline-parallel integration",
+    "overlay/b12x/moe/glm_sqg_w4a8.py": "Published route-packed runtime plus allocation-free updated-QSRT H512/H128 SiLU execution and explicit output endpoint cast",
+    "overlay/b12x/moe/_shared/kernels/glm_trellis_w4a8.py": "sealed SM120 release bundle == worktree PR11 kernel",
+    "overlay/b12x/moe/_shared/kernels/glm_trellis_transform.py": "Published transforms plus exact staged normalized H512 and interleaved H128 SiLU coupled boundary kernels",
+    "overlay/b12x/moe/__init__.py": "sealed SM120 release bundle (byte-identical everywhere)",
+    "overlay/b12x/moe/_shared/kernels/w4a16/kernel.py": "worktree glm52-sqg-runtime-20260809 == B300 patched (sealed overlay + one-line K6 stream_layout dispatch)",
+    "overlay/b12x/_lib/intrinsics.py": "worktree glm52-sqg-runtime-20260809 (adds K5/K6 rates + contiguous K6 stream decode; superset of r33 stock)",
+    "overlay/b12x/_lib/quant/sqg_e4m3.py": "worktree glm52-sqg-runtime-20260809 (K2-K6 LUT builder; superset of r33 stock)",
+    "overlay/b12x/gemm/trellis_linear/api.py": "r33 image stock + native-sqg-k6 patch 0001 function (run_sqg_k6_w6a16)",
+    "overlay/b12x/gemm/trellis_linear/__init__.py": "r33 image stock + native-sqg-k6 patch 0002 export (ported to lazy OpMeta form)",
+    "overlay/b12x/gemm/trellis_linear/_small_m.py": "B300 patched_sources (r33-identical base + MCG admission guard, patch 0003)",
+    "overlay/b12x/gemm/trellis_linear/w4a8.py": "worktree glm52-sqg-runtime-20260809 (SQG W4A8 dense decode with base-offset K6 stream reads; self-consistent with the worktree kernel/intrinsics trio the PR11 kernel was validated against)",
+    "overlay/b12x/moe/_shared/kernels/w4a16/prepare.py": "image (b12x main 184d7d52+PRs) prepare.py + one-gate widening: _validate_trellis256_codebook_bits accepts sqg_xor_cheb_t12 at K5/K6 (parity with the validated SQG worktree gate); all main-era QSRT prepare symbols retained for fused_moe._impl",
+    "overlay/vllm/model_executor/layers/attention/mla_attention.py": "branch dev/infernal-invocation file + one-line workaround: DCP LSE-merge probes attn_metadata.decode with getattr; B12xMLASparseMetadata has flat seq_lens/num_decodes and the existing else-arm handles it. Branch bug under B12X_MLA_SPARSE + DCP>1; not upstreamed (no external PRs without explicit OK).",
+    "overlay/vllm/v1/attention/ops/common.py": "branch file + guard: mask_dcp_empty_shards_ tolerates zero-sequence batches (pure-prefill profile pass under DCP>1); boundary mask already labels every row as padding",
+    "overlay/vllm/model_executor/layers/fused_moe/routed_experts_capturer.py": "branch file + wrapper-aware attention-group selection: routed-expert capture accepts an MLA FullAttentionSpec inside UniformTypeKVCacheSpecs while preserving the shared block-table and slot-mapping identity"
+  },
+  "k6_patch_set": "verdictai/glm52-sqg-w4a8-sm103@sha256:53641269fccf60a80e2467cc8502dc273fe4d0bfb33bbf2bd894d36262fe08f2:/opt/glm52-sqg-sm103-context/required-patches/native-sqg-k6 (patches 0001-0004)",
+  "b12x_parent": "7cecbb2c4819636ae7f05f8b116f2c45ee2cff7b",
+  "vllm_parent_of_sealed_bundle": "48465c3b01349c54422a6dfaac8f522cef389eb7",
+  "r33_stock_sha256_prefixes_replaced": {
+    "gemm/trellis_linear/api.py": "adbce4d47477",
+    "gemm/trellis_linear/__init__.py": "eefd3e90eae0",
+    "moe/_shared/kernels/w4a16/kernel.py": "329f8d90c5d9",
+    "_lib/intrinsics.py": "0e1dec5f72ca"
+  },
+  "base_image_candidate_swap": {
+    "user_directive": "work from local-inference-lab/vllm dev/infernal-invocation (2026-08-12)",
+    "branch_head": "ce5f50f6d01b02336c4207f11277fd7bedacb4d6",
+    "image": "voipmonitor/vllm:infernal-invocation-vllm6c50b0a-b12x1584743-fi1ac6942-cu133-torch213-20260812-r3",
+    "note": "branch has no GLM SQG/r7/K6 support of its own; this overlay provides it. Digest recorded after pull.",
+    "digest": "sha256:7c0899fb9b3d09fbebcdd45f7b34cf5533e8e22ded03edbe524c4dcb1e367420",
+    "superseded_r33_base": "voipmonitor/vllm@sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82"
+  },
+  "base_image_stack": {
+    "vllm": "0.26.1rc0+infernal.invocation (branch dev/infernal-invocation @ ce5f50f6 + PRs 285-287)",
+    "b12x": "1.2.3 master @ 184d7d52 + PRs 145-146 (PR146 w4a16 FC2 tile change superseded by the sealed worktree kernel.py inside this dedicated GLM image; that path is unused by GLM SQG serving)",
+    "cuda": "13.3.1",
+    "pytorch": "2.13.0",
+    "cutlass_dsl": "4.6.2",
+    "python": "3.12.3",
+    "code_roots": "/opt/infernal-invocation/{vllm,b12x} (PYTHONPATH precedence) + /opt/venv site-packages copies; overlay installed into BOTH"
+  },
+  "b12x_overlay_strategy": "COMPLETE package swap: the built image deletes the base's b12x package at both code roots and installs the glm52-sqg-runtime-20260809 worktree tree (parent 7cecbb2c + SQG modifications, PR11 kernel byte-pinned) with the native-sqg-k6 patches 0001-0003 applied to its own api/__init__/_small_m and the B300 arch-keyed glm_sqg_w4a8.py. Ground-truth oracle: runtime K6 decode vs original zai-org/GLM-5.2 BF16 weight = 0.0407 rel-RMSE.",
+  "branch_defects_found": [
+    "prepare.py K6 codebook gate (superseded by package swap)",
+    "mla_attention.py DCP LSE-merge .decode attribute assumption (patched: getattr)",
+    "common.py mask_dcp_empty_shards_ zero-sequence crash (patched: guard)",
+    "DCP4 decode-merge numeric corruption with B12X_MLA_SPARSE (avoided: coupled storage uses TP1/PP4/DCP1 locally)",
+    "engine envelope max_num_batched_tokens == index_topk (2048) -> Xid-31 MMU faults in warmup (avoided: non-2048 envelopes)",
+    "routed-expert capture rejected GLM's UniformTypeKVCacheSpecs wrapper despite its inner MLA specs inheriting FullAttentionSpec (patched: inspect inner specs and retain the wrapper group's shared slot mapping)"
+  ],
+  "validated_topology": {
+    "tensor_parallel": 1,
+    "pipeline_parallel": 4,
+    "decode_context_parallel": 1,
+    "attestation": "tp1pp4dcp1"
+  }
+}

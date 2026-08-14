@@ -1,0 +1,19 @@
+{
+  "encode_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+  "exllamav3_extension": {
+    "image_id": "sha256:12f86065d7fe64d30dad678585e68c91f47f1f2a32bed45ccaf108382f3928ac",
+    "image_ref": "verdictai/glm52-exl3-sparkinfer:v39-r28-r7fused-broadcast-cu132-sm120a",
+    "sha256": "e88bc24d2c292a0b69a7ee27bb701557c16e535c9980ee870c931a2b495033bd"
+  },
+  "exllamav3_python_tree_sha256": "834c8de389c700126e5746e7bae9876b3e443014480651e59919cdd68fc20506",
+  "hessian_dataset": {
+    "repo": "brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians",
+    "revision": "a05b3b92d749f6a641af5cfd52de2b4720380dfd"
+  },
+  "schema": "glm52-coupled-k96tail-runtime-dependencies-v1",
+  "source_checkpoint": {
+    "repo": "brandonmusic/GLM-5.2-SQG-W4A8",
+    "revision": "593dd0d2de6f79ce4e65303930c22c75e1359d44"
+  },
+  "sqg_encode_extension_sha256": "d29010f6ad51caf2e1a22f07365ab3548fcdb3e0ed3ee15d88330cee24de9614"
+}
