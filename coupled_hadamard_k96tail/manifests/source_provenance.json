@@ -1,8 +1,20 @@
 {
   "campaign_source": {
-    "file_count": 52,
+    "active_equal_file_count": 101,
+    "file_count": 102,
     "measured_host_root": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625",
+    "publication_normalization": "campaign/tests/conftest.py adds the adjacent complete published QSRT source root to sys.path",
     "published_root": "campaign"
+  },
+  "compact_evidence": {
+    "atomic_score_bytes_bound": 2154247428,
+    "atomic_score_files_bound": 24064,
+    "file_count": 777,
+    "frozen_at": "2026-08-15T00:26:39-04:00",
+    "published_root": "evidence/snapshot_2026-08-15T002639-0400",
+    "score_receipt_manifest_sha256": "1041a6f71399466fdce47543d615501faf6549d5a5073ebc08142b7dafdf2a93",
+    "sealed_layer_range": [3, 46],
+    "score_complete_layer_range": [4, 50]
   },
   "kquant": {
     "base_revision": "104dd9233f850a3955f4991bea68b07dd34deeb8",
@@ -24,6 +36,17 @@
     "patch_sha256": "33982c45a93c9291a5e0e63a40dd638863dc018bf1dcb9987e235d93e2eb278d",
     "upstream": "https://github.com/local-inference-lab/qsrt.git"
   },
+  "reproduction_source": {
+    "file_count": 4,
+    "measured_host_root": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625",
+    "published_root": "reproduction"
+  },
+  "orchestration_source": {
+    "file_count": 15,
+    "project_file_count": 12,
+    "installed_user_unit_count": 3,
+    "published_root": "orchestration"
+  },
   "runtime_source": {
     "active_overlay_manifest_sha256": "5918792700a68deba1e35b6a1b41b8c61d23e911251b19b0aa380b4415b83111",
     "file_count": 262,
@@ -33,5 +56,5 @@
     "published_root": "runtime",
     "publication_normalization": "removed_five_ruff_cache_files_and_regenerated_overlay_manifest"
   },
-  "schema": "glm52-coupled-k96tail-source-provenance-v1"
+  "schema": "glm52-coupled-k96tail-source-provenance-v2"
 }

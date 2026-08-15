@@ -12,6 +12,8 @@ end_layer=$2
 
 PROJECT_ROOT=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
 wave=$(printf 'wave-%03d-%03d' "$start_layer" "$end_layer")
+preflight_wave=$wave
+if ((start_layer == 75 && end_layer == 77)); then preflight_wave=wave-074-077; fi
 INPUT_ROOT=${WAVE_INPUT_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/$wave}
 PREPARATION_ROOT=${PREPARATION_ROOT:-$INPUT_ROOT/derived/wave_preflights/$wave}
 BINDING_ROOT=${BINDING_ROOT:-$INPUT_ROOT/derived/wave_preflights/$wave}
@@ -19,7 +21,13 @@ CAPTURE_ROOT=${CAPTURE_ROOT:-$INPUT_ROOT/capture_view}
 PROFILE_ROOT=${PROFILE_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles}
 OUTPUT_ROOT=${OUTPUT_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-3p0625-no-shortcut-work/$wave}
 DETACH=${DETACH:-0}
+GPU_BASE=${GPU_BASE:-0}
+GPU_SPAN=${GPU_SPAN:-4}
 [[ "$DETACH" == 0 || "$DETACH" == 1 ]] || die "DETACH must be 0 or 1"
+[[ "$GPU_BASE" =~ ^[0-9]+$ ]] || die "GPU_BASE must be a nonnegative integer"
+[[ "$GPU_SPAN" =~ ^[0-9]+$ ]] || die "GPU_SPAN must be a positive integer"
+((GPU_SPAN >= 1 && GPU_BASE + GPU_SPAN <= 8)) || \
+  die "GPU_BASE + GPU_SPAN must describe GPUs within 0..7"
 ENCODE_START=${ENCODE_START:-0}
 ENCODE_END=${ENCODE_END:-256}
 ENCODE_SHARDS_PER_LAYER=${ENCODE_SHARDS_PER_LAYER:-8}
@@ -48,6 +56,8 @@ EXLLAMA_EXTENSION_SHA256=e88bc24d2c292a0b69a7ee27bb701557c16e535c9980ee870c931a2
 IMAGE=sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82
 EXTENSION_SHA256=d29010f6ad51caf2e1a22f07365ab3548fcdb3e0ed3ee15d88330cee24de9614
 selected_layers=$(seq -s, "$start_layer" "$end_layer")
+contract_layers=$selected_layers
+if ((start_layer == 75 && end_layer == 77)); then contract_layers=74,75,76,77; fi
 run_layers_csv=${RUN_LAYERS:-$selected_layers}
 IFS=, read -r -a run_layers <<< "$run_layers_csv"
 (( ${#run_layers[@]} >= 1 && ${#run_layers[@]} <= 4 )) || \
@@ -104,11 +114,15 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 for layer in "${run_layers[@]}"; do
-  gpu=$((layer - start_layer))
   padded=$(printf '%03d' "$layer")
   allocation_name="layer_${padded}${ALLOCATION_SUFFIX}"
   encode_span=$((ENCODE_END - ENCODE_START))
   for ((encode_shard = 0; encode_shard < ENCODE_SHARDS_PER_LAYER; encode_shard++)); do
+    if ((GPU_SPAN <= 4)); then
+      gpu=$((GPU_BASE + layer - start_layer))
+    else
+      gpu=$((GPU_BASE + ((layer - start_layer) * ENCODE_SHARDS_PER_LAYER + encode_shard) % GPU_SPAN))
+    fi
     shard_start=$((ENCODE_START + encode_span * encode_shard / ENCODE_SHARDS_PER_LAYER))
     shard_end=$((ENCODE_START + encode_span * (encode_shard + 1) / ENCODE_SHARDS_PER_LAYER))
     name="glm52-goal019ffa7c-coupled-v4-${wave}-l${layer}-s${encode_shard}-r${BASHPID}"
@@ -123,10 +137,10 @@ for layer in "${run_layers[@]}"; do
     --shm-size 16g --cpus "$ENCODE_THREADS_PER_SHARD" \
     --mount "type=bind,src=$PROJECT_ROOT,dst=/work,readonly" \
     --mount "type=bind,src=$PREPARATION_ROOT,dst=/output,readonly" \
-    --mount "type=bind,src=$PREPARATION_ROOT,dst=/workspace/sqg-run/wave_preflights/$wave,readonly" \
+    --mount "type=bind,src=$PREPARATION_ROOT,dst=/workspace/sqg-run/wave_preflights/$preflight_wave,readonly" \
     --mount "type=bind,src=$BINDING_ROOT,dst=/binding,readonly" \
-    --mount "type=bind,src=$BINDING_ROOT/bit-contract.json,dst=/workspace/sqg-run/wave_preflight_inputs/$wave/bit-contract.json,readonly" \
-    --mount "type=bind,src=$BINDING_ROOT/source-seal.json,dst=/workspace/sqg-run/wave_preflight_inputs/$wave/source-seal.json,readonly" \
+    --mount "type=bind,src=$BINDING_ROOT/bit-contract.json,dst=/workspace/sqg-run/wave_preflight_inputs/$preflight_wave/bit-contract.json,readonly" \
+    --mount "type=bind,src=$BINDING_ROOT/source-seal.json,dst=/workspace/sqg-run/wave_preflight_inputs/$preflight_wave/source-seal.json,readonly" \
     --mount "type=bind,src=$OUTPUT_ROOT,dst=/candidate" \
     --mount "type=bind,src=$CAPTURE_ROOT,dst=/capture,readonly" \
     --mount "type=bind,src=$CAPTURE_ROOT,dst=/workspace/glm52-w4a8/capture/bf16-pp8-production-r1/sqg-view,readonly" \
@@ -154,7 +168,7 @@ for layer in "${run_layers[@]}"; do
     -e "KQUANT_SQG_EXTENSION_SHA256=$EXTENSION_SHA256" \
     -e KQUANT_SQG_REQUIRE_PREBUILT=1 -e TORCH_CUDA_ARCH_LIST=12.0 \
     -e "FRESH_SQG_RUNTIME_IMAGE_ID=$IMAGE" \
-    -e "FRESH_SQG_SELECTED_LAYERS=$selected_layers" \
+    -e "FRESH_SQG_SELECTED_LAYERS=$contract_layers" \
     -e FRESH_SQG_PLAN_CONTRACT=/work/evidence/contiguous_document_plan_r1.json \
     -e FRESH_SQG_BF16_MANIFEST=/binding/wave-bf16-shard-manifest.json \
     -e "FRESH_SQG_BIT_CONTRACT_SHA256=$BIT_CONTRACT_SHA256" \

@@ -30,17 +30,23 @@ uses saved calibration captures instead of downloading the official BF16
 routed weights, and selects profiles, beta values, and rates independently for
 each layer.
 
-The implemented rate is hybrid. Layer 3 contains 720 K3 and 48 K4 tensors at
-3.0625 bpw. Layers 4 through 78 contain 672 K3 and 96 K4 tensors at 3.125 bpw.
-The routed-layer average is 3.124177631579 bpw, not a uniform 3.0625 bpw.
+The implemented rate is hybrid. Layer 3 preserves its sealed 720-K3/48-K4
+exception at 3.0625 bpw. Layers 4 through 77 are the new layer-native
+672-K3/96-K4 targets at 3.125 bpw. MTP layer 78 is not re-encoded: its source
+384-K3/384-K4 payload remains at 3.5 bpw. Across all 76 routed layers the exact
+average is `3.1291118421052633` bpw, not a uniform 3.0625-bpw or K96 model.
 
-Routed layers 3 through 18 are qualified as layer artifacts. The full model,
-candidate KLD, and release remain unsupported until every layer and full-model
-gate passes.
+The frozen publication snapshot at `2026-08-15T00:26:39-04:00` contains
+passing layer artifacts through layer 46, complete atomic score receipts
+through layer 50, the current distributed-machine contract, and the local and
+Vast orchestration used for the remaining work. The full model, candidate KLD,
+and release remain **PENDING FINAL** until every layer and full-model gate
+passes.
 
 - [Coupled transform and rate specification](docs/coupled_hadamard_k96tail_reencode.md)
 - [Exact reproduction procedure](docs/coupled_hadamard_k96tail_reproduction.md)
 - [Measured execution record for 2026-08-14](docs/coupled_hadamard_k96tail_status_2026-08-14.md)
+- [Current distributed method and machine contract](coupled_hadamard_k96tail/reproduction/docs/K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md)
 - [Campaign source, patches, runtime context, and compact evidence](coupled_hadamard_k96tail/README.md)
 
 ## Bottom line
