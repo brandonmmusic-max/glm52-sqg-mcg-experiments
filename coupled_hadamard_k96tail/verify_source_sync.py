@@ -751,7 +751,7 @@ def verify_finalized_contract_normalization(
         )
     final = published["final_results"]
     pending = sorted(key for key, value in final.items() if value is None)
-    if pending != ["hub_model_commit", "model_card_hub_revision", "tensor_hub_revision"]:
+    if pending != ["hub_model_commit", "tensor_hub_revision"]:
         raise ValueError(f"finalized contract has non-Hub pending fields: {pending}")
     if not (
         published.get("complete") is False
@@ -760,6 +760,8 @@ def verify_finalized_contract_normalization(
         and final["mechanical_target_layer_count"] == 75
         and final["mechanical_runtime_oracle_count"] == 75
         and final["exact_k96_parity_receipt_count"] == 74
+        and final["model_card_hub_revision"]
+        == "7b936cad625f1e0ec58038d48d90775c83e9b9bf"
         and final["full_model_quality_gate_pass"] is False
     ):
         raise ValueError("finalized publication contract semantics differ")

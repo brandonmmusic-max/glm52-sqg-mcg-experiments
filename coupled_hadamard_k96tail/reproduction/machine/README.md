@@ -3,8 +3,9 @@
 The authoritative finalized publication contract is
 `k96tail-distributed-campaign.json`. Local encoding, merge, assembly, codec,
 mechanical evidence, KLD, hidden replay, runtime qualification, and task
-receipts are sealed. The contract remains `complete=false` only because the
-public tensor and publication revision fields are not fully sealed.
+receipts are sealed. The reviewed model card and reproduction closure are also
+published and byte-verified. The contract remains `complete=false` only
+because the final Hub model commit and public tensor revision are not sealed.
 
 Method, orchestration, validation gates, incident history, current measured
 ledger, and final results are in

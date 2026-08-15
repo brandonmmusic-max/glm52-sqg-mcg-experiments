@@ -638,7 +638,7 @@ would not change the model's research-only quality status.
 | Estonia 5x | qualified | 5/5 correct, zero truncations. |
 | LAVD 5x | qualified | 4 exact plus 1 near, zero truncations. |
 | Public tensor revision | unsupported | Routed layers 3 through 50 are still uploading. |
-| Public model-card revision | unsupported | The partial public file set has not passed anonymous hash verification. |
+| Public model-card revision | qualified | Reviewed card is byte-verified at `7b936cad625f1e0ec58038d48d90775c83e9b9bf`; the closure is byte-verified at `50f4c166b2061171117008a6704b62dccdd999a4`. |
 
 Server-side copy commit
 `0c38e683eda27ca84982e3d513c89dd780dcdb22` verified 390 byte-identical

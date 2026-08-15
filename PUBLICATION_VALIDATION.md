@@ -34,8 +34,10 @@ payload is verified.
 
 The end-to-end candidate KLD is sealed locally and is the quality authority.
 Layer-local oracles and score aggregates are not substituted for that
-measurement. The remaining open publication fields are the Hub model commit,
-tensor revision, and model-card revision.
+measurement. The reproduction closure is published at Hub revision
+`50f4c166b2061171117008a6704b62dccdd999a4`, and the exact reviewed model card
+is published at `7b936cad625f1e0ec58038d48d90775c83e9b9bf`. The remaining open publication
+fields are the final Hub model commit and tensor revision.
 
 The active runtime overlay checksum file included five Ruff cache entries. The
 publication excludes those generated files, preserves the exact active

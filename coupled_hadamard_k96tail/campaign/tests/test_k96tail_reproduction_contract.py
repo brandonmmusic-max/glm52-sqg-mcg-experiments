@@ -45,8 +45,10 @@ def test_publication_contract_seals_local_results_and_only_hub_is_open() -> None
     assert pending == {
         "hub_model_commit",
         "tensor_hub_revision",
-        "model_card_hub_revision",
     }
+    assert results["model_card_hub_revision"] == (
+        "7b936cad625f1e0ec58038d48d90775c83e9b9bf"
+    )
     assert "mtp3_smoke_sha256" not in results
     assert "full_acceptance_sha256" not in results
     assert results["assembly_manifest_sha256"] == (
