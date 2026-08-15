@@ -12,13 +12,21 @@ end_layer=$2
 
 PROJECT_ROOT=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
 wave=$(printf 'wave-%03d-%03d' "$start_layer" "$end_layer")
+preflight_wave=$wave
+if ((start_layer == 75 && end_layer == 77)); then preflight_wave=wave-074-077; fi
 INPUT_ROOT=${WAVE_INPUT_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/$wave}
 PREPARATION_ROOT=${PREPARATION_ROOT:-$INPUT_ROOT/derived/wave_preflights/$wave}
 BINDING_ROOT=${BINDING_ROOT:-$INPUT_ROOT/derived/wave_preflights/$wave}
 CAPTURE_ROOT=${CAPTURE_ROOT:-$INPUT_ROOT/capture_view}
 CANDIDATE_ROOT=${CANDIDATE_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-3p0625-no-shortcut-work/$wave}
 DETACH=${DETACH:-0}
+GPU_BASE=${GPU_BASE:-0}
+GPU_SPAN=${GPU_SPAN:-4}
 [[ "$DETACH" == 0 || "$DETACH" == 1 ]] || die "DETACH must be 0 or 1"
+[[ "$GPU_BASE" =~ ^[0-9]+$ ]] || die "GPU_BASE must be a nonnegative integer"
+[[ "$GPU_SPAN" =~ ^[0-9]+$ ]] || die "GPU_SPAN must be a positive integer"
+((GPU_SPAN >= 1 && GPU_BASE + GPU_SPAN <= 8)) || \
+  die "GPU_BASE + GPU_SPAN must describe GPUs within 0..7"
 SOURCE_SQG_ROOT=/home/brandonmusic/models/GLM-5.2-SQG-W4A8
 ALLOCATION_ROOT=${ALLOCATION_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-layer-native-allocations-no-shortcut-v7}
 ALLOCATION_SUFFIX=${ALLOCATION_SUFFIX:-.allocation.json}
@@ -30,6 +38,8 @@ EXLLAMA_EXTENSION_ROOT=${FRESH_SQG_EXLLAMA_EXTENSION_ROOT:-$PROJECT_ROOT/runtime
 EXLLAMA_EXTENSION_SHA256=e88bc24d2c292a0b69a7ee27bb701557c16e535c9980ee870c931a2b495033bd
 IMAGE=sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82
 selected_layers=$(seq -s, "$start_layer" "$end_layer")
+contract_layers=$selected_layers
+if ((start_layer == 75 && end_layer == 77)); then contract_layers=74,75,76,77; fi
 run_layers_csv=${RUN_LAYERS:-$selected_layers}
 IFS=, read -r -a run_layers <<< "$run_layers_csv"
 (( ${#run_layers[@]} >= 1 && ${#run_layers[@]} <= 4 )) || \
@@ -96,16 +106,16 @@ launch_scorer() {
     # therefore runs two independent exact scorers per GPU instead of
     # serializing draw 0 and draw 6 inside one process.
     if [[ "$draw" == 0 ]]; then
-      gpu=$(((2 * (layer - start_layer)) % 4))
+      gpu=$((GPU_BASE + (2 * (layer - start_layer)) % GPU_SPAN))
     else
-      gpu=$(((2 * (layer - start_layer) + 1) % 4))
+      gpu=$((GPU_BASE + (2 * (layer - start_layer) + 1) % GPU_SPAN))
     fi
     threads=4
     token="d${draw}"
     phase_args=(--phase draw --draw "$draw")
   else
     [[ "$phase" == all || "$phase" == selected ]] || die "invalid scoring phase: $phase"
-    gpu=$(((layer - start_layer) % 4))
+    gpu=$((GPU_BASE + (layer - start_layer) % GPU_SPAN))
     threads=8
     token=$phase
     phase_args=(--phase "$phase")
@@ -123,10 +133,10 @@ launch_scorer() {
     --shm-size 32g --cpus "$threads" \
     --mount "type=bind,src=$PROJECT_ROOT,dst=/work,readonly" \
     --mount "type=bind,src=$PREPARATION_ROOT,dst=/output,readonly" \
-    --mount "type=bind,src=$PREPARATION_ROOT,dst=/workspace/sqg-run/wave_preflights/$wave,readonly" \
+    --mount "type=bind,src=$PREPARATION_ROOT,dst=/workspace/sqg-run/wave_preflights/$preflight_wave,readonly" \
     --mount "type=bind,src=$BINDING_ROOT,dst=/binding,readonly" \
-    --mount "type=bind,src=$BINDING_ROOT/bit-contract.json,dst=/workspace/sqg-run/wave_preflight_inputs/$wave/bit-contract.json,readonly" \
-    --mount "type=bind,src=$BINDING_ROOT/source-seal.json,dst=/workspace/sqg-run/wave_preflight_inputs/$wave/source-seal.json,readonly" \
+    --mount "type=bind,src=$BINDING_ROOT/bit-contract.json,dst=/workspace/sqg-run/wave_preflight_inputs/$preflight_wave/bit-contract.json,readonly" \
+    --mount "type=bind,src=$BINDING_ROOT/source-seal.json,dst=/workspace/sqg-run/wave_preflight_inputs/$preflight_wave/source-seal.json,readonly" \
     --mount "type=bind,src=$CANDIDATE_ROOT,dst=/candidate" \
     --mount "type=bind,src=$CAPTURE_ROOT,dst=/capture,readonly" \
     --mount "type=bind,src=$CAPTURE_ROOT,dst=/workspace/glm52-w4a8/capture/bf16-pp8-production-r1/sqg-view,readonly" \
@@ -145,7 +155,7 @@ launch_scorer() {
     -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/work/kquant \
     -e GIT_CONFIG_KEY_1=safe.directory -e GIT_CONFIG_VALUE_1=/qsrt \
     -e GIT_CONFIG_KEY_2=safe.directory -e GIT_CONFIG_VALUE_2=/workspace/glm52-w4a8/code/glm52_fresh_sqg_test/kquant \
-    -e "FRESH_SQG_SELECTED_LAYERS=$selected_layers" \
+    -e "FRESH_SQG_SELECTED_LAYERS=$contract_layers" \
     -e FRESH_SQG_PLAN_CONTRACT=/work/evidence/contiguous_document_plan_r1.json \
     -e FRESH_SQG_BF16_MANIFEST=/binding/wave-bf16-shard-manifest.json \
     -e "FRESH_SQG_BIT_CONTRACT_SHA256=$BIT_CONTRACT_SHA256" \

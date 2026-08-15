@@ -15,7 +15,8 @@ from typing import Any
 
 
 SCHEMA = "glm52-coupled-k96tail-full-acceptance-v1"
-ROUTED_LAYERS = tuple(range(3, 79))
+MODEL_ROUTED_LAYERS = tuple(range(3, 79))
+COUPLED_TARGET_LAYERS = tuple(range(3, 78))
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -122,18 +123,23 @@ def main() -> None:
     tail = load(args.tail_analysis)
     mtp3_smoke = load(args.mtp3_smoke)
     if assembly.get("complete") is not True or assembly.get(
-        "all_routed_layers_coupled"
+        "all_target_routed_layers_coupled"
     ) is not True:
-        raise ValueError("assembled model is not a complete 3..78 coupled checkpoint")
-    expected_average_bpw = (3.0625 + 75 * 3.125) / 76
+        raise ValueError(
+            "assembled model is not a complete target-layer 3..77 coupled checkpoint"
+        )
+    expected_average_bpw = (3.0625 + 74 * 3.125 + 3.5) / 76
     if (
         assembly.get("per_layer_bit_census", {}).get("3")
         != {"k3": 720, "k4": 48, "total": 768}
         or any(
             assembly.get("per_layer_bit_census", {}).get(str(layer))
             != {"k3": 672, "k4": 96, "total": 768}
-            for layer in range(4, 79)
+            for layer in range(4, 78)
         )
+        or assembly.get("per_layer_bit_census", {}).get("78")
+        != {"k3": 384, "k4": 384, "total": 768}
+        or assembly.get("mtp_layer_78_policy") != "preserve_source_unchanged"
         or not math.isclose(
             float(assembly.get("routed_bits_per_weight", -1.0)),
             expected_average_bpw,
@@ -143,7 +149,12 @@ def main() -> None:
         or assembly.get("routed_layer_average_rate_is_uniform") is not False
     ):
         raise ValueError("assembled model does not have the hybrid K48/K96 rate contract")
-    if codec.get("pass") is not True or codec.get("routed_layer_count") != 76:
+    if (
+        codec.get("pass") is not True
+        or codec.get("routed_layer_count") != 76
+        or codec.get("mtp_layer78_preserved") is not True
+        or codec.get("coupled_layers") != list(COUPLED_TARGET_LAYERS)
+    ):
         raise ValueError("codec/closure receipt did not pass all 76 routed layers")
     if candidate.get("complete") is not True:
         raise ValueError("candidate KLD receipt is incomplete")
@@ -207,7 +218,7 @@ def main() -> None:
     }
 
     oracles: dict[str, Any] = {}
-    for layer in ROUTED_LAYERS:
+    for layer in COUPLED_TARGET_LAYERS:
         padded = f"{layer:03d}"
         manifest_path = args.layer_root / f"r7-experts-layer-{padded}.json"
         quality_path = args.layer_root / f"r7-experts-layer-{padded}.quality.json"
@@ -279,7 +290,8 @@ def main() -> None:
         "actual_routed_bits_per_weight": assembly["routed_bits_per_weight"],
         "uniform_rate": False,
         "layer_3_census": assembly["per_layer_bit_census"]["3"],
-        "layers_4_through_78_census": assembly["per_layer_bit_census"]["4"],
+        "layers_4_through_77_census": assembly["per_layer_bit_census"]["4"],
+        "layer_78_preserved_census": assembly["per_layer_bit_census"]["78"],
         "one_layer_kld_role": "directional_allocation_experiment_only",
         "acceptance_kld_role": "full_end_to_end_model_acceptance",
         "source_kld": {
@@ -353,7 +365,7 @@ def main() -> None:
             args.acceptance_root / "scripts" / "validate_model_codec.py",
             stage / "runtime" / "scripts" / "validate_model_codec.py",
         )
-        for layer in ROUTED_LAYERS:
+        for layer in COUPLED_TARGET_LAYERS:
             padded = f"{layer:03d}"
             for suffix in (".json", ".quality.json"):
                 source_path = args.layer_root / f"r7-experts-layer-{padded}{suffix}"
@@ -363,13 +375,55 @@ def main() -> None:
         copy_tree_filtered(args.allocation_root, stage / "allocations", (".json",))
         copy_tree_filtered(args.profile_root, stage / "profiles", (".json",))
         copy_tree_filtered(args.score_root, stage / "scores", (".json",))
+        copy_tree_filtered(
+            args.repro_root / "wave-archives",
+            stage / "wave-archives",
+            (".tgz",),
+        )
+        copy_tree_filtered(
+            args.repro_root / "remote-campaign-logs",
+            stage / "remote-campaign-logs",
+            (".log",),
+        )
+        copy_file(
+            args.project_root / "docs" / "K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md",
+            stage / "K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md",
+        )
+        copy_file(
+            args.project_root / "reproduction" / "k96tail-distributed-campaign.json",
+            stage / "campaign-contract.json",
+        )
+        copy_file(
+            args.project_root / "reproduction" / "README.md",
+            stage / "reproduction-index.md",
+        )
+        for name in (
+            "node1-k96.conf",
+            "node2-k96.conf",
+            "node3-k96.conf",
+            "node4-k96.conf",
+            "k96-runahead-guard.conf",
+            "k96-runahead-guard.sh",
+        ):
+            copy_file(
+                args.project_root / "vast_supervisor" / name,
+                stage / "orchestration" / "vast_supervisor" / name,
+            )
+        copy_file(
+            args.project_root / "systemd" / "glm52-full-coupled-k96tail-resume.service",
+            stage / "orchestration" / "systemd" / "glm52-full-coupled-k96tail-resume.service",
+        )
+        copy_file(
+            args.project_root / "hub" / "k96tail-staging" / "README.md",
+            stage / "hub-staging-model-card.md",
+        )
         copy_file(model / "COUPLED_REENCODE_MANIFEST.json", stage / "COUPLED_REENCODE_MANIFEST.json")
         copy_file(args.codec_receipt, stage / "model_codec_validation.json")
         copy_file(args.tail_analysis, stage / "kld_position_tail.json")
         copy_file(args.mtp3_smoke, stage / "mtp3_smoke_16tok.json")
         copy_file(receipt_path, stage / "FULL_ACCEPTANCE.json")
 
-        readme = f"""# GLM-5.2 coupled H512/H128 K96-tail SQG reproduction\n\nThis bundle reproduces and validates the distinct local model at `{model}`.\nThe shipped source checkpoint was decoded in place; the original BF16 model was not downloaded.\n\n- Hessian dataset: `brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians`\n- Pinned revision: `a05b3b92d749f6a641af5cfd52de2b4720380dfd`\n- Routed layers: 3 through 78, including MTP layer 78\n- Layer 3: 720 K3 + 48 K4 tensors (3.0625 bpw)\n- Layers 4-78: 672 K3 + 96 K4 tensors (3.125 bpw)\n- Actual routed-layer average: {assembly['routed_bits_per_weight']:.12f} bpw\n- Coordinates: residual H512, preactivation H128, postactivation H128\n- Activation: exact `silu(gate)*up`; local H13 alpha 0.25\n- Execution: route-packed direct-E4M3 full W4A8, no A16 fallback\n- Runtime image: `{args.image_ref}` (`{args.image_id}`)\n\nThe KLD allocation signal came from the sealed source model's worst 40 TP4/DCP1 positions and exact routes. It is an in-sample allocation heuristic, not acceptance evidence. The acceptance result is the full assembled model's end-to-end TP4/PP1/DCP1 run against the sealed BF16 logits. No positions are removed from the reported mean.\n\nFull mean KLD: {candidate_summary['mean']:.12g}\nMedian: {candidate_summary['median']:.12g}; p95: {candidate_summary['p95']:.12g}; p99: {candidate_summary['p99']:.12g}; max: {candidate_summary['max']:.12g}.\n\nSee `FULL_ACCEPTANCE.json` for the complete distribution, diagnostic removal ladder, aligned source-worst-40 comparison, image identity, layer oracles, and hashes.\n"""
+        readme = f"""# GLM-5.2 coupled H512/H128 K96-tail SQG reproduction\n\nThis bundle reproduces and validates the distinct local model at `{model}`.\nThe shipped source checkpoint was decoded in place; the original BF16 model was not downloaded.\n\n- Hessian dataset: `brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians`\n- Pinned revision: `a05b3b92d749f6a641af5cfd52de2b4720380dfd`\n- Routed layers: 3 through 78, including MTP layer 78\n- Layer 3: 720 K3 + 48 K4 tensors (3.0625 bpw)\n- Layers 4-77: 672 K3 + 96 K4 tensors (3.125 bpw)\n- MTP layer 78: preserved source 384 K3 + 384 K4 tensors (3.5 bpw)\n- Actual routed-layer average: {assembly['routed_bits_per_weight']:.12f} bpw\n- Coordinates: residual H512, preactivation H128, postactivation H128\n- Activation: exact `silu(gate)*up`; local H13 alpha 0.25\n- Execution: route-packed direct-E4M3 full W4A8, no A16 fallback\n- Runtime image: `{args.image_ref}` (`{args.image_id}`)\n\nThe KLD allocation signal came from the sealed source model's worst 40 TP4/DCP1 positions and exact routes. It is an in-sample allocation heuristic, not acceptance evidence. The acceptance result is the full assembled model's end-to-end TP4/PP1/DCP1 run against the sealed BF16 logits. No positions are removed from the reported mean.\n\nFull mean KLD: {candidate_summary['mean']:.12g}\nMedian: {candidate_summary['median']:.12g}; p95: {candidate_summary['p95']:.12g}; p99: {candidate_summary['p99']:.12g}; max: {candidate_summary['max']:.12g}.\n\nSee `FULL_ACCEPTANCE.json` for the complete distribution, diagnostic removal ladder, aligned source-worst-40 comparison, image identity, layer oracles, and hashes. See `K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md` for the exact no-shortcut method, distributed schedule, validation gates, incident record, and artifact layout.\n"""
         (stage / "README.md").write_text(readme, encoding="utf-8")
         files = sorted(path for path in stage.rglob("*") if path.is_file())
         with (stage / "SHA256SUMS").open("w", encoding="utf-8") as handle:

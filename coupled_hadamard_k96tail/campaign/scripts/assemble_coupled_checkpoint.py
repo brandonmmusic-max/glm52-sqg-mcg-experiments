@@ -15,7 +15,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-ROUTED_LAYERS = tuple(range(3, 79))
+MODEL_ROUTED_LAYERS = tuple(range(3, 79))
+COUPLED_TARGET_LAYERS = tuple(range(3, 78))
 NUM_EXPERTS = 256
 PROJECTIONS = ("gate_proj", "up_proj", "down_proj")
 ASSEMBLY_SCHEMA = "glm52-sqg-coupled-h512-h128-mixed-rate-checkpoint-v3"
@@ -58,9 +59,9 @@ def main() -> int:
     if (
         not layers
         or len(layers) != len(args.layers)
-        or any(layer not in ROUTED_LAYERS for layer in layers)
+        or any(layer not in COUPLED_TARGET_LAYERS for layer in layers)
     ):
-        raise ValueError("coupled layers must be unique members of 3..78")
+        raise ValueError("coupled layers must be unique target layers in 3..77")
     if destination.exists():
         raise FileExistsError(
             f"refusing existing checkpoint output: {destination}"
@@ -211,17 +212,43 @@ def main() -> int:
         quant = _load(source / "quantization_config.json")
         contract = quant["glm_sqg_w4a8"]
         layer_censuses = {layer: manifests[layer]["bit_census"] for layer in layers}
+        storage = quant["tensor_storage"]
+        source_layer_censuses: dict[int, dict[str, int]] = {}
+        for layer in MODEL_ROUTED_LAYERS:
+            counts = {3: 0, 4: 0}
+            for expert in range(NUM_EXPERTS):
+                for projection in PROJECTIONS:
+                    prefix = (
+                        f"model.layers.{layer}.mlp.experts.{expert}.{projection}"
+                    )
+                    bits = int(storage[prefix]["bits_per_weight"])
+                    if bits not in counts:
+                        raise ValueError(
+                            f"source routed tensor rate is not K3/K4: {prefix}={bits}"
+                        )
+                    counts[bits] += 1
+            source_layer_censuses[layer] = {
+                "k3": counts[3],
+                "k4": counts[4],
+                "total": counts[3] + counts[4],
+            }
+        combined_layer_censuses = {
+            layer: layer_censuses.get(layer, source_layer_censuses[layer])
+            for layer in MODEL_ROUTED_LAYERS
+        }
         all_k48 = all(
             census == {"k3": 720, "k4": 48, "total": 768}
             for census in layer_censuses.values()
         )
         hybrid_k96tail = (
-            layers == ROUTED_LAYERS
+            layers == COUPLED_TARGET_LAYERS
             and layer_censuses[3] == {"k3": 720, "k4": 48, "total": 768}
             and all(
                 layer_censuses[layer] == {"k3": 672, "k4": 96, "total": 768}
-                for layer in range(4, 79)
+                for layer in range(4, 78)
             )
+            and source_layer_censuses[78]
+            == {"k3": 384, "k4": 384, "total": 768}
         )
         if all_k48:
             rate_policy = {
@@ -245,7 +272,7 @@ def main() -> int:
                 "name": "no_shortcut_layer_native_k96_source_worst40_guarded_v1",
                 "uniform_rate": False,
                 "layer_3": {"k3": 720, "k4": 48, "bits_per_weight": 3.0625},
-                "layers_4_through_78": {
+                "layers_4_through_77": {
                     "k3": 672,
                     "k4": 96,
                     "bits_per_weight": 3.125,
@@ -253,10 +280,10 @@ def main() -> int:
                 "k4_assignment": "independent_per_tensor_gate_up_down",
                 "tail_signal": "sealed_source_tp4dcp1_worst40_exact_routes",
                 "tail_signal_role": "in_sample_allocation_fit_only_not_acceptance",
-                "layer_78_route_signal": "unavailable_use_layer_native_k96",
+                "layer_78_policy": "preserve_source_mtp_unchanged",
                 "calibration_total_regression_limit": 0.01,
                 "calibration_body_regression_limit": 0.01,
-                "per_layer_beta_profile_recipe_layers_4_through_78": True,
+                "per_layer_beta_profile_recipe_layers_4_through_77": True,
                 "owner_fixed_beta_bypassed": True,
                 "sealed_layer_3_preserved": True,
             }
@@ -302,7 +329,8 @@ def main() -> int:
                     "activation_dtype": "e4m3",
                     "a16_fallback_allowed": False,
                     "topology_neutral_construction": True,
-                    "mtp_layer_78_included": 78 in layers,
+                    "mtp_layer_78_included": False,
+                    "mtp_layer_78_policy": "preserve_source_unchanged",
                 },
                 "calibration_provenance": {
                     "dataset": HESSIAN_DATASET,
@@ -311,8 +339,8 @@ def main() -> int:
                     "original_bf16_downloaded": False,
                 },
                 "per_layer_bit_census": {
-                    str(layer): manifests[layer]["bit_census"]
-                    for layer in layers
+                    str(layer): combined_layer_censuses[layer]
+                    for layer in MODEL_ROUTED_LAYERS
                 },
                 "per_layer_selected_beta": {
                     str(layer): manifests[layer].get("selected_beta")
@@ -336,7 +364,6 @@ def main() -> int:
             "I32": "torch.int32",
             "F16": "torch.float16",
         }
-        storage = quant["tensor_storage"]
         for layer in layers:
             reader = readers[layer]
             for expert in range(NUM_EXPERTS):
@@ -385,13 +412,36 @@ def main() -> int:
             "source_model": str(source),
             "source_index_sha256": sha256_file(source / "model.safetensors.index.json"),
             "coupled_layers": list(layers),
-            "all_routed_layers_coupled": layers == ROUTED_LAYERS,
+            "all_routed_layers_coupled": layers == MODEL_ROUTED_LAYERS,
+            "all_target_routed_layers_coupled": layers == COUPLED_TARGET_LAYERS,
+            "mtp_layer_78_policy": "preserve_source_unchanged",
+            "preserved_mtp_layer_78": {
+                "shard_sha256": sha256_file(
+                    source / "r7-experts-layer-078.safetensors"
+                ),
+                "sidecar_sha256": sha256_file(
+                    source / "r7-experts-layer-078.json"
+                ),
+                "bit_census": source_layer_censuses[78],
+            },
             "routed_bits_per_weight": (
+                sum(
+                    (3 * census["k3"] + 4 * census["k4"])
+                    / census["total"]
+                    for census in combined_layer_censuses.values()
+                )
+                / len(combined_layer_censuses)
+            ),
+            "coupled_target_bits_per_weight": (
                 sum(manifests[layer]["bits_per_weight"] for layer in layers)
                 / len(layers)
             ),
             "routed_layer_average_rate_is_uniform": len(
-                {manifests[layer]["bits_per_weight"] for layer in layers}
+                {
+                    (3 * census["k3"] + 4 * census["k4"])
+                    / census["total"]
+                    for census in combined_layer_censuses.values()
+                }
             )
             == 1,
             "routed_tensor_rates_are_mixed": True,
@@ -399,10 +449,13 @@ def main() -> int:
             "codec_execution": contract["codec_execution"],
             "calibration_provenance": contract["calibration_provenance"],
             "per_layer_bits_per_weight": {
-                str(layer): manifests[layer]["bits_per_weight"] for layer in layers
+                str(layer): (3 * census["k3"] + 4 * census["k4"])
+                / census["total"]
+                for layer, census in combined_layer_censuses.items()
             },
             "per_layer_bit_census": {
-                str(layer): manifests[layer]["bit_census"] for layer in layers
+                str(layer): combined_layer_censuses[layer]
+                for layer in MODEL_ROUTED_LAYERS
             },
             "coupled_transform": contract["coupled_transform"],
             "layers": {
@@ -450,7 +503,9 @@ def main() -> int:
         rate_summary = (
             "- Layer 3 is the sealed K48 exception: 720 K3 + 48 K4 tensors "
             "(3.0625 bpw).\n"
-            "- Layers 4-78 use K96: 672 K3 + 96 K4 tensors (3.125 bpw)."
+            "- Layers 4-77 use K96: 672 K3 + 96 K4 tensors (3.125 bpw).\n"
+            "- MTP layer 78 is preserved byte-for-byte from the source checkpoint "
+            "at its existing 384 K3 + 384 K4 tensor census (3.5 bpw)."
             if hybrid_k96tail
             else "- Every routed layer has 720 K3 + 48 K4 tensors "
             "(3.0625 bpw exactly)."
@@ -473,13 +528,13 @@ This is a distinct, non-overwriting re-encode of `{SOURCE_CHECKPOINT}` using
 the frozen checkpoint as its weight source. The original BF16 model was not
 downloaded for this re-encode.
 
-- Routed layers 3-78 are coupled, including MTP layer 78.
+- Target routed layers 3-77 are coupled. MTP layer 78 is preserved unchanged.
 {rate_summary}
 - Actual routed-layer average: {assembly['routed_bits_per_weight']:.12f} bpw.
 - Coordinates: residual H512, preactivation H128, postactivation H128.
 - Activation: exact `silu(gate)*up`; H13 local alpha is 0.25.
 - Execution: route-packed direct-E4M3 full W4A8 with no A16 fallback.
-- Layers 4-78 use their own full profile search and seven-beta selection; the
+- Layers 4-77 use their own full profile search and seven-beta selection; the
   B300 owner-fixed-beta/identity-only rescue is explicitly bypassed. Layer 3
   is the preserved sealed exception.
 - Calibration: `{HESSIAN_DATASET}` at `{HESSIAN_REVISION}`.

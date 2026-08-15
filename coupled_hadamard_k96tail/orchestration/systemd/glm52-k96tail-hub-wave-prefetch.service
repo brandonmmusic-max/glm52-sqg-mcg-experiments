@@ -1,0 +1,17 @@
+[Unit]
+Description=Incrementally prefetch sealed remote K96 waves from the public Hub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/brandonmusic/.hf-cli/venv/bin/python /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/prefetch_k96tail_hub_waves.py
+Restart=on-failure
+RestartSec=15
+Nice=5
+IOSchedulingClass=best-effort
+IOSchedulingPriority=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

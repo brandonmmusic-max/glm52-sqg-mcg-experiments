@@ -1,0 +1,25 @@
+[Unit]
+Description=Resume GLM-5.2 coupled-Hadamard K96-tail campaign after host recovery
+Wants=network-online.target
+After=network-online.target docker.service local-fs.target
+Requires=docker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=brandonmusic
+Group=brandonmusic
+WorkingDirectory=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+Environment=HOME=/home/brandonmusic
+Environment=PATH=/home/brandonmusic/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=START_WAVE=3
+Environment=STOP_WAVE=75
+ExecStartPre=/bin/bash -c 'for attempt in $(seq 1 180); do /usr/bin/test -d /media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs && /usr/bin/docker info >/dev/null 2>&1 && /usr/bin/nvidia-smi -L 2>/dev/null | /usr/bin/grep -q "GPU 3:" && exit 0; /usr/bin/sleep 5; done; exit 1'
+ExecStart=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_full_coupled_3p0625_campaign.sh
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=30
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

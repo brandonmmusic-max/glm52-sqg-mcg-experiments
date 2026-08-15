@@ -1,0 +1,141 @@
+{
+  "schema": "glm52-coupled-k96tail-distributed-campaign-v1",
+  "complete": false,
+  "status": "live_encode_and_distributed_merge_pending",
+  "owner_goal": "019ffa7c-7914-7633-a7b8-a2f4b2e23fc0",
+  "model": {
+    "public_staging_repo": "brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail",
+    "source_repo": "brandonmusic/GLM-5.2-SQG-W4A8",
+    "source_revision": "593dd0d2de6f79ce4e65303930c22c75e1359d44",
+    "source_is_frozen_sqg_checkpoint": true,
+    "original_bf16_model_downloaded_for_reencode": false,
+    "coupled_target_layers": [3, 77],
+    "preserved_mtp_layer": 78,
+    "preserved_nonexpert_and_bf16_components": true
+  },
+  "rate_policy": {
+    "layer_3": {
+      "policy": "preserve_sealed_k48_exception",
+      "k3": 720,
+      "k4": 48,
+      "total": 768,
+      "bits_per_weight": 3.0625
+    },
+    "layers_4_through_77": {
+      "policy": "layer_native_k96",
+      "k3": 672,
+      "k4": 96,
+      "total": 768,
+      "bits_per_weight": 3.125
+    },
+    "layer_78": {
+      "policy": "preserve_source_mtp_unchanged",
+      "k3": 384,
+      "k4": 384,
+      "total": 768,
+      "bits_per_weight": 3.5
+    },
+    "all_routed_layer_average_bits_per_weight": 3.1291118421052633
+  },
+  "coupled_transform": {
+    "updated_qsrt": true,
+    "residual_hadamard_block": 512,
+    "preactivation_hadamard_block": 128,
+    "postactivation_hadamard_block": 128,
+    "activation": "silu(gate)*up",
+    "accumulation": "fp32",
+    "h13_local_alpha": 0.25,
+    "candidate_conditioned_down_h2": true,
+    "draw_candidates": [0, 6]
+  },
+  "no_shortcut_recipe": {
+    "bootstrap_beta": 0.0625,
+    "bootstrap_cells": 16,
+    "beta_selection_arms": 7,
+    "fresh_final_cells_if_beta_changes": 16,
+    "bootstrap_reused_byte_for_byte_if_beta_unchanged": true,
+    "no_fleet_beta_shortcut": true,
+    "no_b300_owner_speed_rescue": true,
+    "no_identity_only_rescue": true,
+    "profile_selection_precedes_rate_allocation": true,
+    "holdout_used_for_choice": false
+  },
+  "pins": {
+    "hessian_dataset": "brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians",
+    "hessian_revision": "a05b3b92d749f6a641af5cfd52de2b4720380dfd",
+    "qsrt_revision": "453b4834332d2735c5a326ca57fb6a8b36e776bf",
+    "qsrt_tracked_diff_sha256": "33982c45a93c9291a5e0e63a40dd638863dc018bf1dcb9987e235d93e2eb278d",
+    "encoder_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "sqg_extension_sha256": "d29010f6ad51caf2e1a22f07365ab3548fcdb3e0ed3ee15d88330cee24de9614",
+    "exllamav3_python_source_image_id": "sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82",
+    "exllamav3_extension_source_image_id": "sha256:12f86065d7fe64d30dad678585e68c91f47f1f2a32bed45ccaf108382f3928ac",
+    "exllamav3_extension_sha256": "e88bc24d2c292a0b69a7ee27bb701557c16e535c9980ee870c931a2b495033bd",
+    "final_runtime_image_ref": "verdictai/glm52-sqg-coupled-k96tail-sm120:goal019ffabf-final",
+    "final_runtime_image_id": "sha256:e5bdd0598179b7b695501a3d7a1ee33b04233eec7848e4f4588c6afebc402ee9",
+    "approved_kquant_backend_sha256": "fb63082016d2adc331be58f538622e1382c86390b0d1715c9a755433fb14c624",
+    "approved_kquant_tracked_diff_sha256": "82c994a6fa1e1c996f18c85f723c562fbe08bb8a7edf705ef9ece1ae1606958f",
+    "approved_kquant_status_sha256": "8ad2cf65ff6656fd4cbf01df725a8d6055229f90142997ae90176cf3b37909ed",
+    "source_kld_sha256": "5d8aedb462658c693f1ce790f48ce5ed3cd6876897b1367a5cd36e42c0e2d434",
+    "source_routes_sha256": "db43b66f74745d25dfcbe7bc4baea5960a0a6a36bd1fec21533a42a380fc4d02"
+  },
+  "assignments": [
+    {"worker": "local", "layers": [47, 50], "gpu_base": 0, "gpu_span": 4},
+    {"worker": "node1-wave-a", "layers": [51, 54], "gpu_base": 0, "gpu_span": 4},
+    {"worker": "node1-wave-b", "layers": [55, 58], "gpu_base": 4, "gpu_span": 4},
+    {"worker": "node2-wave-a", "layers": [59, 62], "gpu_base": 0, "gpu_span": 4},
+    {"worker": "node2-wave-b", "layers": [63, 66], "gpu_base": 4, "gpu_span": 4},
+    {"worker": "node3-wave-a", "layers": [67, 70], "gpu_base": 0, "gpu_span": 4},
+    {"worker": "node3-wave-b", "layers": [71, 74], "gpu_base": 4, "gpu_span": 4},
+    {"worker": "node4-wave-a", "layers": [75, 77], "gpu_base": 0, "gpu_span": 8}
+  ],
+  "validation": {
+    "recipe_schema": "glm52-updated-qsrt-coupled-no-shortcut-layer-recipe-v1",
+    "allocation_schema": "glm52-coupled-tail-aware-layer-native-allocation-v7",
+    "score_encode_parity_schema": "glm52-coupled-scorer-encoder-byte-parity-v1",
+    "runtime_layer_schema": "glm52-coupled-selected-layer-runtime-v3",
+    "quality_schema": "glm52-coupled-layer-quality-tails-v2",
+    "runtime_oracle_schema": "glm52-coupled-selected-layer-b12x-oracle-v2",
+    "runtime_endpoint": "route_packed_direct_e4m3_w4a8",
+    "allocation_total_regression_limit": 0.01,
+    "allocation_body_regression_limit": 0.01,
+    "score_encode_payload_parity_required": true,
+    "disjoint_selection_and_holdout_required": true,
+    "holdout_used_for_selection": false,
+    "full_kld_positions": 2047,
+    "full_kld_trim_fraction_per_side": 0.0,
+    "full_kld_topology": "tp4_pp1_dcp1"
+  },
+  "artifact_layout": {
+    "layer_files": [
+      "r7-experts-layer-NNN.safetensors",
+      "r7-experts-layer-NNN.json",
+      "r7-experts-layer-NNN.quality.json",
+      "runtime-oracle-layer-NNN.json"
+    ],
+    "remote_wave_reproduction_files": [
+      "reproduction/wave-AAA-BBB/SHA256SUMS",
+      "reproduction/wave-AAA-BBB/campaign.log",
+      "reproduction/wave-AAA-BBB/recipe-and-profiles.tgz",
+      "reproduction/wave-AAA-BBB/tail-scores.tgz",
+      "reproduction/wave-AAA-BBB/allocations.tgz",
+      "reproduction/wave-AAA-BBB/parity-proofs.tgz",
+      "reproduction/wave-AAA-BBB/candidate-metadata.tgz"
+    ]
+  },
+  "final_results": {
+    "hub_model_commit": null,
+    "assembly_manifest_id": null,
+    "assembly_manifest_sha256": null,
+    "model_codec_receipt_sha256": null,
+    "candidate_kld_sha256": null,
+    "candidate_mean_kld": null,
+    "candidate_median_kld": null,
+    "candidate_p95_kld": null,
+    "candidate_p99_kld": null,
+    "candidate_cvar_worst_1pct": null,
+    "candidate_max_kld": null,
+    "candidate_minus_source_mean_kld": null,
+    "mtp3_smoke_sha256": null,
+    "full_acceptance_sha256": null
+  }
+}

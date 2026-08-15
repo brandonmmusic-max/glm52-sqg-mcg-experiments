@@ -1,14 +1,14 @@
 # Publication validation
 
-## Coupled-Hadamard K96-tail source publication, 2026-08-14
+## Coupled-Hadamard K96-tail source publication, frozen 2026-08-15
 
 The K96-tail publication adds an exact measured-host source snapshot and
 compact evidence without claiming full-model completion or lower KLD.
 
 | Check | Result |
 |---|---:|
-| Snapshot SHA-256 manifest | 733 files passed |
-| Campaign source equivalence | 52 files passed |
+| Snapshot SHA-256 manifest | 1,579 files passed |
+| Campaign source equivalence | 101 exact active files passed; one documented publication-only test-path normalization |
 | Complete KQuant working source equivalence | 144 files passed |
 | Complete QSRT working source equivalence | 185 files passed |
 | Runtime source equivalence | 262 active files passed |
@@ -17,13 +17,19 @@ compact evidence without claiming full-model completion or lower KLD.
 | KQuant revision, diff, and exact patch application | 11 changed files passed |
 | Updated QSRT coupled tests | 5 passed |
 | Updated KQuant focused tests | 108 passed |
-| Coupled campaign focused tests | 35 passed |
-| Python syntax | 592 files passed before the final cache-free test run |
-| Shell syntax | 13 files passed |
-| Compact execution evidence | 16 layer oracles, 15 parity receipts, and 1,162 score receipt hashes passed |
-| Local links in the six edited entry-point documents | 64 checked, zero missing |
+| Current coupled campaign focused tests | 23 passed directly from this repository |
+| Compact execution evidence | 44 passing layer oracles, 43 exact parity receipts, 43 production-eligible guarded allocations, and 510 compact recipe/profile files passed |
+| Complete atomic score ledger | layers 4--50; 12,032 JSON/row-SSE pairs; 24,064 SHA-256 bindings; all embedded row-SSE hashes passed |
+| Active compact-evidence byte equivalence | 24,064 score receipts, 132 layer/quality/oracle files, 86 allocations, 43 parity receipts, 510 recipe files, and 11 wave archives passed |
+| Python syntax and published JSON parsing | 73 Python files and 843 JSON files passed |
+| Shell syntax | 25 shell files passed |
+| Local links in the six edited entry-point documents | 57 checked, zero missing |
 | Secret-pattern scan | passed |
 | Generated cache, compiled object, model tensor, and file-size scan | zero included; no file over 100 MB |
+
+The final Hub model commit and end-to-end candidate KLD remain **PENDING
+FINAL**. Layer-local oracles and score aggregates are not substituted for that
+measurement.
 
 The active runtime overlay checksum file included five Ruff cache entries. The
 publication excludes those generated files, preserves the exact active

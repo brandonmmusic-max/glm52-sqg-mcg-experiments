@@ -19,13 +19,17 @@ MODEL_ROOT=/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail
 REPRO_ROOT=/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-reproduction
 EVIDENCE_ROOT=$PROJECT_ROOT/evidence/full-coupled-k96tail-no-shortcut
 WAVE_ARCHIVE_ROOT=$REPRO_ROOT/wave-archives
-CAMPAIGN_LOG=$ACCEPTANCE_ROOT/RESULTS/full_coupled_k96tail_no_shortcut_campaign.log
+CAMPAIGN_LOG=${CAMPAIGN_LOG:-$ACCEPTANCE_ROOT/RESULTS/full_coupled_k96tail_no_shortcut_campaign.log}
 STOP_FILE=$ACCEPTANCE_ROOT/STOP_FULL_COUPLED_K96TAIL_NO_SHORTCUT
 KLD_JSON=$ACCEPTANCE_ROOT/RESULTS/coupled-tail-source-control-tp4dcp1-routes-v2/kld/kld_sm120_tp4dcp1.json
 ROUTES_NPZ=$ACCEPTANCE_ROOT/RESULTS/coupled-tail-source-control-tp4dcp1-routes-v2/kld/routed_experts_tp4dcp1.npz
 START_WAVE=${START_WAVE:-3}
 STOP_WAVE=${STOP_WAVE:-75}
 CLEANUP_VALIDATED_WAVES=${CLEANUP_VALIDATED_WAVES:-1}
+PARTIAL_ONLY=${PARTIAL_ONLY:-0}
+GPU_BASE=${GPU_BASE:-0}
+GPU_SPAN=${GPU_SPAN:-4}
+LAST_COUPLED_LAYER=77
 
 [[ "$START_WAVE" =~ ^[0-9]+$ && "$STOP_WAVE" =~ ^[0-9]+$ ]] || \
   die "START_WAVE and STOP_WAVE must be integers"
@@ -35,15 +39,27 @@ CLEANUP_VALIDATED_WAVES=${CLEANUP_VALIDATED_WAVES:-1}
   die "campaign wave starts must be congruent to 3 modulo 4"
 [[ "$CLEANUP_VALIDATED_WAVES" == 0 || "$CLEANUP_VALIDATED_WAVES" == 1 ]] || \
   die "CLEANUP_VALIDATED_WAVES must be 0 or 1"
+[[ "$PARTIAL_ONLY" == 0 || "$PARTIAL_ONLY" == 1 ]] || \
+  die "PARTIAL_ONLY must be 0 or 1"
+[[ "$GPU_BASE" =~ ^[0-9]+$ ]] || die "GPU_BASE must be a nonnegative integer"
+[[ "$GPU_SPAN" =~ ^[0-9]+$ ]] || die "GPU_SPAN must be a positive integer"
+((GPU_SPAN >= 1 && GPU_BASE + GPU_SPAN <= 8)) || \
+  die "GPU_BASE + GPU_SPAN must describe GPUs within 0..7"
 
-for root in "$PROJECT_ROOT" "$ACCEPTANCE_ROOT" "$SOURCE_SQG_ROOT" \
-  "$SEALED_LAYER3_ROOT" "$INPUT_BASE" "$RECIPE_ROOT"; do
+required_roots=("$PROJECT_ROOT" "$ACCEPTANCE_ROOT" "$SOURCE_SQG_ROOT" \
+  "$INPUT_BASE" "$RECIPE_ROOT")
+if ((PARTIAL_ONLY == 0)); then
+  required_roots+=("$SEALED_LAYER3_ROOT")
+fi
+for root in "${required_roots[@]}"; do
   [[ -d "$root" && ! -L "$root" ]] || die "required root is absent or unsafe: $root"
 done
 mkdir -p "$PROFILE_ROOT" "$SCORE_ROOT" "$ALLOCATION_ROOT" "$WORK_ROOT" \
   "$LAYER_ROOT" "$REPRO_ROOT" "$EVIDENCE_ROOT" "$WAVE_ARCHIVE_ROOT"
-[[ -f "$KLD_JSON" && ! -L "$KLD_JSON" ]] || die "sealed source KLD is absent: $KLD_JSON"
-[[ -f "$ROUTES_NPZ" && ! -L "$ROUTES_NPZ" ]] || die "sealed source routes are absent: $ROUTES_NPZ"
+if ((PARTIAL_ONLY == 0)); then
+  [[ -f "$KLD_JSON" && ! -L "$KLD_JSON" ]] || die "sealed source KLD is absent: $KLD_JSON"
+  [[ -f "$ROUTES_NPZ" && ! -L "$ROUTES_NPZ" ]] || die "sealed source routes are absent: $ROUTES_NPZ"
+fi
 exec >>"$CAMPAIGN_LOG" 2>&1
 
 seed_layer3() {
@@ -320,19 +336,22 @@ if [[ -e "$STOP_FILE" ]]; then
   die "stop file exists before launch: $STOP_FILE"
 fi
 
-seed_layer3
-layer3_seal_passes || die "preserved layer-3 K48 seal differs"
-if ! layer3_oracle_passes; then
-  log "regenerating the missing runtime oracle for preserved K48 layer 3"
-  LAYER_ROOT=$LAYER_ROOT GPU=0 \
-    "$PROJECT_ROOT/scripts/run_validate_coupled_runtime_layer.sh" 3
+if ((PARTIAL_ONLY == 0)); then
+  seed_layer3
+  layer3_seal_passes || die "preserved layer-3 K48 seal differs"
+  if ! layer3_oracle_passes; then
+    log "regenerating the missing runtime oracle for preserved K48 layer 3"
+    LAYER_ROOT=$LAYER_ROOT GPU=0 \
+      "$PROJECT_ROOT/scripts/run_validate_coupled_runtime_layer.sh" 3
+  fi
+  layer3_oracle_passes || die "preserved layer-3 runtime oracle failed"
 fi
-layer3_oracle_passes || die "preserved layer-3 runtime oracle failed"
 
-log "starting hybrid K48-layer3 / K96-layers4-78 campaign waves $START_WAVE..$STOP_WAVE"
+log "starting hybrid K48-layer3 / K96-layers4-77 campaign waves $START_WAVE..$STOP_WAVE; preserving source MTP layer 78"
 for start in $(seq "$START_WAVE" 4 "$STOP_WAVE"); do
   [[ ! -e "$STOP_FILE" ]] || die "stop file requested at wave boundary: $STOP_FILE"
   end=$((start + 3))
+  ((end <= LAST_COUPLED_LAYER)) || end=$LAST_COUPLED_LAYER
   wave=$(printf 'wave-%03d-%03d' "$start" "$end")
   input_root=$INPUT_BASE/$wave
   candidate_root=$WORK_ROOT/$wave
@@ -349,7 +368,7 @@ for start in $(seq "$START_WAVE" 4 "$STOP_WAVE"); do
     if layer_manifest_passes "$layer"; then
       parity_passes "$layer" || \
         die "layer $layer is materialized without its earlier parity seal"
-      ensure_oracle "$layer" $((layer - start))
+      ensure_oracle "$layer" $((GPU_BASE + layer - start))
     else
       padded=$(printf '%03d' "$layer")
       for suffix in .safetensors .json .quality.json; do
@@ -373,7 +392,7 @@ for start in $(seq "$START_WAVE" 4 "$STOP_WAVE"); do
     "$PROJECT_ROOT/scripts/download_coupled_wave_inputs.sh" "$start" "$end"
 
   log "sealing per-layer no-shortcut profile and beta recipe for $wave layers=$run_layers_csv"
-  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root \
+  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root GPU_BASE=$GPU_BASE \
     RECIPE_ROOT=$RECIPE_ROOT DETACH=0 \
     "$PROJECT_ROOT/scripts/run_coupled_recipe_wave.sh" "$start" "$end"
   for layer in "${pending_layers[@]}"; do
@@ -381,13 +400,13 @@ for start in $(seq "$START_WAVE" 4 "$STOP_WAVE"); do
   done
 
   log "scoring layer-native K3/K4 triplets for $wave layers=$run_layers_csv"
-  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root SCORE_ROOT=$SCORE_ROOT \
+  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root SCORE_ROOT=$SCORE_ROOT GPU_BASE=$GPU_BASE GPU_SPAN=$GPU_SPAN \
     PROFILE_ROOT=$PROFILE_ROOT \
     DETACH=0 "$PROJECT_ROOT/scripts/run_coupled_tail_score_wave.sh" "$start" "$end"
   for layer in "${pending_layers[@]}"; do ensure_allocations "$layer"; done
 
   log "encoding exact K96 allocations for $wave layers=$run_layers_csv"
-  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root OUTPUT_ROOT=$candidate_root \
+  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root OUTPUT_ROOT=$candidate_root GPU_BASE=$GPU_BASE GPU_SPAN=$GPU_SPAN \
     ALLOCATION_ROOT=$ALLOCATION_ROOT \
     PROFILE_ROOT=$PROFILE_ROOT \
     ALLOCATION_SUFFIX=.kld-route-v1-k096.allocation.json DETACH=0 \
@@ -405,7 +424,7 @@ for start in $(seq "$START_WAVE" 4 "$STOP_WAVE"); do
   done
 
   log "selecting coupled draws on disjoint selection/holdout for $wave"
-  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root \
+  RUN_LAYERS=$run_layers_csv WAVE_INPUT_ROOT=$input_root GPU_BASE=$GPU_BASE GPU_SPAN=$GPU_SPAN \
     CANDIDATE_ROOT=$candidate_root ALLOCATION_ROOT=$ALLOCATION_ROOT \
     ALLOCATION_SUFFIX=.kld-route-v1-k096.allocation.json DETACH=0 \
     "$PROJECT_ROOT/scripts/run_score_select_coupled_wave.sh" "$start" "$end"
@@ -419,7 +438,7 @@ for start in $(seq "$START_WAVE" 4 "$STOP_WAVE"); do
     "$PROJECT_ROOT/scripts/run_materialize_coupled_wave.sh" "$start" "$end"
   for layer in "${pending_layers[@]}"; do
     layer_manifest_passes "$layer" || die "materialized layer failed seal: $layer"
-    ensure_oracle "$layer" $((layer - start))
+    ensure_oracle "$layer" $((GPU_BASE + layer - start))
   done
 
   if ((CLEANUP_VALIDATED_WAVES)); then
@@ -428,9 +447,14 @@ for start in $(seq "$START_WAVE" 4 "$STOP_WAVE"); do
   log "$wave complete"
 done
 
+if ((PARTIAL_ONLY)); then
+  log "partial campaign waves $START_WAVE..$STOP_WAVE complete; global assembly and KLD intentionally deferred"
+  exit 0
+fi
+
 layer3_seal_passes || die "preserved layer-3 K48 seal is incomplete"
 layer3_oracle_passes || die "preserved layer-3 runtime oracle is incomplete"
-for layer in $(seq 4 78); do
+for layer in $(seq 4 "$LAST_COUPLED_LAYER"); do
   recipe_passes "$layer" || die "full no-shortcut recipe set is incomplete at $layer"
   layer_manifest_passes "$layer" || die "full layer set is incomplete at $layer"
   runtime_oracle_passes "$layer" || die "runtime oracle set is incomplete at $layer"
@@ -441,14 +465,14 @@ if [[ ! -e "$MODEL_ROOT" ]]; then
   log "assembling full coupled checkpoint at $MODEL_ROOT"
   python3 "$PROJECT_ROOT/scripts/assemble_coupled_checkpoint.py" \
     --source "$SOURCE_SQG_ROOT" --layer-root "$LAYER_ROOT" \
-    --output "$MODEL_ROOT" --layers $(seq 3 78)
+    --output "$MODEL_ROOT" --layers $(seq 3 "$LAST_COUPLED_LAYER")
 fi
 [[ -f "$MODEL_ROOT/COUPLED_REENCODE_MANIFEST.json" ]] || \
   die "full checkpoint assembly manifest is absent"
 log "running full-coupled K96 codec census"
 python3 "$ACCEPTANCE_ROOT/scripts/validate_model_codec.py" \
   --model "$MODEL_ROOT" --revision local-no-shortcut-k96tail-coupled-assembly \
-  --offline --quick --require-all-coupled \
+  --offline --quick --require-target-coupled-preserved-mtp78 \
   --result-json "$ACCEPTANCE_ROOT/RESULTS/full_coupled_k96tail_no_shortcut_model_codec_quick.json"
 
 log "running full untrimmed TP4/PP1/DCP1 KLD and distribution gates"

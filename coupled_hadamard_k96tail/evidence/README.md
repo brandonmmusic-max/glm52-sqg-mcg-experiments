@@ -19,3 +19,10 @@ It is not a live status feed.
 
 Large `.safetensors`, `.npz`, capture, model, log, and cache payloads are not
 copied. Their compact receipts and hashes are the publication boundary.
+
+`snapshot_2026-08-15T002639-0400/` is the later distributed-campaign snapshot.
+It extends compact sealed evidence through layer 46 and binds the complete
+atomic score set through layer 50. Unlike the earlier checkpoint, it includes
+a frozen campaign log while continuing to omit model tensors and row-SSE
+payload bytes. Its final model commit and end-to-end KLD remain **PENDING
+FINAL**.
