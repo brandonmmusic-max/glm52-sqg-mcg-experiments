@@ -7,7 +7,7 @@ model quality is **research-only** because candidate mean KLD
 `0.07583317451217256`. The hidden replay is **research-only** because its
 original preregistered maximum-position gate fails. The public file set is
 **unsupported** as a complete model until routed layers 3 through 50 finish
-uploading and an immutable revision passes anonymous hash verification. This
+uploading and a hash-bound revision passes anonymous verification. This
 dated document is the method, operations, incident, and reproduction ledger.
 
 The public repository is
@@ -62,10 +62,13 @@ allocation. For each routed `(gate, up, down)` expert triplet, the encoder uses:
 
 The pair of H128 transforms is the requested coupled or "double Hadamard"
 treatment around the nonlinear boundary; H512 closes the residual coordinate.
-The weight map is an exact self-inverse reparameterization and the H13/H2
-Hessians are transformed into the same coordinates. GLM dimensions close the
-blocks exactly: hidden 6144 is divisible by 512, interleaved gate/up width 4096
-is divisible by 128, and intermediate width 2048 is divisible by 128.
+The paired weight reparameterization and runtime boundary transforms are exact
+inverses and preserve the unquantized expert function. A plain block Hadamard
+is self-inverse. For a signed transform `D H`, the inverse is `H D`, with the
+matching gate/up interleave and split. H13 and H2 are transformed into those
+same coordinates. GLM dimensions close the blocks exactly: hidden 6144 is
+divisible by 512, interleaved gate/up width 4096 is divisible by 128, and
+intermediate width 2048 is divisible by 128.
 
 The final runtime still uses standard route-packed direct-E4M3 SQG W4A8
 payloads. Coupling changes the coordinates presented to quantization and the
@@ -133,13 +136,13 @@ parallel.
 | Native-SQG donor heads | vLLM PR #315 `ca966847`; B12X PR #197 `b234532` |
 | Supplemental MTP3 loader patch SHA-256 | `658cbdd678774b0a1167c6244ff78d627b77613709f610e26e8d0e1933cfa03e` |
 | Pre-LM-head capture patch SHA-256 | `d2521df3bed23f311ccd16c5ad46a20d46ae0d5674e1c34dd976bb88ebf002fd` |
-| Capture Dockerfile SHA-256 | `94d532ccf3c3a1c168f0afcc8544e2ee7cb4d8fd2fc58cf1f16d29cdcc2e28b6` |
+| Capture Dockerfile SHA-256 | `885b05cdcb4dd929549e86a6e438f5e0b25d0c470eb97893df29b6c29d196660` |
 | Final TP4/DCP4/MTP3 Compose SHA-256 | `c31f89f090e7f046bbd347a3b28d0c4f4486ad9b8e862645c4fcae1caa8c9c58` |
-| Five-run quality entrypoint SHA-256 | `54eaf5a7f4ef986e3b927a8624a6865db76466bacf92ecc690855b509d4a5784` |
-| Idempotent post-task sealer SHA-256 | `74f8070f081bade7180b9a20d18611174c092362c5d43d03c79621dd9f1af118` |
+| Five-run quality entrypoint SHA-256 | `807afc1518207faece5a378c391561e6a23fd5fbfada8c3ff1361a18574415eb` |
+| Idempotent post-task sealer SHA-256 | `68b59ddfe3fb667b60ac774135789bbc7d75ce462812659557607b50541c0b49` |
 | Combined quality summary SHA-256 | `4f19ba5e4a8676c80bc49e89d346b0985faa209f14bdd6d9713e9ee6c4397f57` |
 | Runtime MTP summary SHA-256 | `d8a7f22f6da05423a00d972e186deb17ba9f36133aae692c2477d53cd4f0f4ff` |
-| Combined run `SHA256SUMS` SHA-256 | `bf57161cec69b9e8e8ebb5e705c1c5c6ed88c80046364c2a07a8882e60d0e3a9` |
+| Measured combined run `SHA256SUMS` SHA-256 | `bf57161cec69b9e8e8ebb5e705c1c5c6ed88c80046364c2a07a8882e60d0e3a9`, preserved as the decompressed hash of `SHA256SUMS.measured.gz` |
 | Quality benchmark | `local-inference-lab/llm-inference-bench` v0.4.29, commit `0b4185b5b435e948b199c9077a00b084864aa963`, script SHA-256 `59dd767c933e06f9724a84a8883d2aac156252dbbc279ce155658005d27424d7` |
 | Final serving topology | TP4/DCP4/MTP3 |
 | Final serving context ceiling | `MAX_MODEL_LEN=262144` |
@@ -237,15 +240,13 @@ the already-valid task outputs without repeating them.
 
 The byte-bound publication helper
 `runtime/exact-ii-r11/deploy/accelerate-hf-routed-upload.sh` (SHA-256
-`78745c09917c492a434e51d9c73df0fafa9d4ce50c1f6647c2495bec848e8469`)
+`a4469e0f1fdcdba70b95e41fe442edd149bbabfc192b78c095115966c1a733bc`)
 uploads only local routed layers 003--050 and preserved MTP layer 078, skipping
-byte-identical layers 051--077. Two outer clients briefly measured 21.75
-Mbit/s, then each ramped to 16 internal streams. The resulting 32 CAS streams
-timed out and sustained transfer averaged about 9.6 Mbit/s. The incomplete
-targeted upload restarted with one outer client at
-`2026-08-15T05:26:59-04:00`; `UPLOAD_WORKERS=1` is the bound default. This
-first stage is not authoritative evidence of full checkpoint completeness or
-improved throughput.
+byte-identical layers 051--077. The active targeted upload restarted at
+`2026-08-15T05:39:16-04:00` with one outer client and default adaptive Xet.
+Adaptive concurrency began at 2. Early sustained evidence showed 22.09 Mbit/s,
+success ratio 1.0, and zero errors. This first stage is not authoritative
+evidence of full checkpoint completeness or a reproducible completion ETA.
 
 The authoritative resumable full-folder verification/upload stage is
 `runtime/exact-ii-r11/deploy/complete-final-model-upload.sh`, SHA-256
@@ -287,7 +288,7 @@ on the local machine.
 | Node 3 wave B | 71--74 | 4--7 |
 | Node 4 terminal wave | 75--77 | 0--7 |
 
-The terminal preparation contract is the immutable wave-074--077 input view,
+The terminal preparation contract is the sealed wave-074--077 input view,
 but `RUN_LAYERS=75,76,77`; no new layer-74 worker is launched on node 4. This
 allows the three-layer terminal wave to consume its pinned parent capture
 without duplicating layer 74.
@@ -337,6 +338,12 @@ remain null. The read-only audit entrypoint is:
 python3 scripts/audit_k96tail_campaign.py
 ```
 
+The completed local closure is checked with:
+
+```bash
+python3 scripts/audit_k96tail_campaign.py --strict-local
+```
+
 After every required result and publication field is sealed, update the manifest
 and run:
 
@@ -344,8 +351,9 @@ and run:
 python3 scripts/audit_k96tail_campaign.py --strict-complete
 ```
 
-The strict audit requires passing runtime oracles for all target layers 3--77,
-`complete=true`, and no null final-result field.
+The strict local audit requires passing runtime oracles for all target layers
+3--77 and every non-Hub final field. `--strict-complete` additionally requires
+`complete=true` and no null Hub publication field.
 
 ## 7. Merge, assembly, and acceptance sequence
 
@@ -408,6 +416,14 @@ Evidence sealed on 2026-08-15:
 - The final mixed-rate checkpoint assembly is complete.
 - The 76-routed-layer codec census passes with 75 coupled target layers and
   preserved MTP78.
+- All 75 target layers have complete mechanical manifests, quality receipts,
+  and passing runtime oracles. Exact K96 scorer/encoder parity covers the 74
+  K96 layers 4--77. Layer 3 is the sealed K48 exception and has no K96 parity
+  receipt.
+- `evidence/final-mechanical/MECHANICAL_EVIDENCE.json`, SHA-256
+  `e74fb8907a0002045d9ed66cdb16c69635c04d2bcef0fef7eb45beec72a48a94`,
+  binds those receipts, the assembly manifest, and the authoritative codec
+  receipt.
 - Exact-r11 TP4/DCP1 full-vocabulary KLD is sealed locally: mean
   `0.1401771516114036`, receipt SHA-256
   `7979c9c8b0c81714cd38e225646e42a88b2cb8eb03232be271373255c506a408`.
@@ -535,19 +551,14 @@ fit/allocation evidence only; remote workers still do not run final KLD.
 
 ### Hub Xet timeout/stall
 
-The large local layers-003--046 upload initially stopped making write progress
-and retained only a closing/stale connection pattern. It was restarted as a
-persistent user unit with `HF_HUB_DISABLE_XET=1`, four legacy large-folder
-workers, and restart-on-failure. Staging content was not rewritten. Remote
-layer and evidence uploads remain independently hash-gated, so transfer backend
-changes do not change accepted bytes.
-
-On 2026-08-15, two outer clients briefly measured 21.75 Mbit/s, then each
-ramped to 16 internal streams. The resulting 32 CAS streams timed out and
-sustained transfer averaged about 9.6 Mbit/s. At
-`2026-08-15T05:26:59-04:00`, the incomplete targeted upload restarted with one
-outer client. `UPLOAD_WORKERS=1` is the bound default. No completion ETA is
-sealed as a canonical property.
+Earlier transfer configurations are historical diagnostics, not the active
+setting. The active targeted upload restarted at
+`2026-08-15T05:39:16-04:00` with one outer client. The uploader unsets
+`HF_XET_HIGH_PERFORMANCE` and `HF_HUB_DISABLE_XET`, so Xet uses its default
+adaptive mode. Adaptive concurrency began at 2. Early sustained evidence
+showed 22.09 Mbit/s, success ratio 1.0, and zero errors. Remote layer and
+evidence bytes remain hash-gated. No completion ETA is sealed as a canonical
+property.
 
 ## 10. Runnable entrypoints
 
@@ -586,6 +597,25 @@ runtime/exact-ii-r11/deploy/verify-final-hf-model.py
 runtime/exact-ii-r11/deploy/wait-and-publish-hf-release.sh
 ```
 
+The measured benchmark source is stored exactly as
+`runtime/exact-ii-r11/benchmarks/llm_decode_bench.py.gz`. The quality runner
+extracts it to a temporary file and requires decompressed SHA-256
+`59dd767c933e06f9724a84a8883d2aac156252dbbc279ce155658005d27424d7`
+before execution. The adjacent `llm_decode_bench.ascii.py` is a readable
+ASCII-normalized derivative and is explicitly not byte-identical to the
+measured source.
+
+`verify_runtime.py` is an image gate, not an unqualified host static check. The
+host vLLM installation lacks the required exact-r11 symbol set. Re-run it only
+inside the hash-bound candidate image:
+
+```bash
+docker run --rm \
+  --entrypoint /opt/venv/bin/python \
+  verdictai/glm52-k96-ii-r11:20260815-tpfix-mtpfix \
+  /opt/ii-r11-k96/verify_runtime.py
+```
+
 The supervisor configs encode the exact assignment in section 5. Reproduction
 must supply valid Hub credentials, the pinned images/runtime dependencies, and
 the absolute storage layout expected by the scripts. It must not copy provider
@@ -615,10 +645,10 @@ Server-side copy commit
 files totaling 25,685,857,224 bytes from source revision
 `593dd0d2de6f79ce4e65303930c22c75e1359d44`. Layers 51--77 were already
 present and MTP78 was copied. Two outer clients briefly measured 21.75 Mbit/s,
-then each ramped to 16 internal streams. The resulting 32 CAS streams timed out
-and sustained transfer averaged about 9.6 Mbit/s. At
-`2026-08-15T05:26:59-04:00`, the incomplete targeted upload restarted with one
-outer client. `UPLOAD_WORKERS=1` is the bound default. No completion ETA is
+but that superseded configuration is not the active setting. The targeted
+upload restarted at `2026-08-15T05:39:16-04:00` with one outer client and
+default adaptive Xet. Adaptive concurrency began at 2. Early sustained evidence
+showed 22.09 Mbit/s, success ratio 1.0, and zero errors. No completion ETA is
 part of this canonical record.
 
 `wait-and-upload-final-model.sh` does not wait for the intentionally stopped
@@ -628,7 +658,7 @@ and runs `verify-final-hf-model.py`. The verifier compares every other local
 file to Hugging Face file metadata. It checks LFS SHA-256 plus size or Git blob
 SHA-1 plus size, writes the receipt atomically, and permits receipt upload only
 when `complete=true`. Wrapper SHA-256:
-`98fed5174cc349bd54a307e87d7ed9d7dcd4d9492548afbf0d3ae17d62adf36a`.
+`ce467eb1218cc8a5d9334916ea39d2d3d816b46df73cd5496b1e97b9576ac63a`.
 Verifier SHA-256:
 `aebc8b97fe332eb5b086e8f62b698e631fa10814f5fdf9504d201abb366efa11`.
 

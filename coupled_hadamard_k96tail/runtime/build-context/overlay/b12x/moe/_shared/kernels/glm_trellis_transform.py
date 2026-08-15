@@ -274,12 +274,25 @@ def run_glm_coupled_gate_up_output_transform_silu(
     *,
     ones_intermediate: torch.Tensor,
     ones_preactivation: torch.Tensor,
+    tp_rank: int = 0,
+    tp_size: int = 1,
 ) -> torch.Tensor:
-    """Close updated-QSRT's interleaved H128 SiLU activation boundary."""
+    """Close updated-QSRT's interleaved H128 SiLU activation boundary.
+
+    The encoded full-width preactivation vector is stored as one gate half
+    followed by one up half. Tensor parallelism slices both halves before the
+    two local projections execute. A TP rank must therefore gather the local
+    gate/up halves, restore the full encoded order, and select the contiguous
+    interleaved interval that corresponds to its down-projection partition.
+    """
 
     if gate_transformed.shape != up_transformed.shape or gate_transformed.ndim != 2:
         raise ValueError("coupled gate/up outputs must be aligned rank-2 tensors")
     routes, width = (int(value) for value in gate_transformed.shape)
+    tp_rank = int(tp_rank)
+    tp_size = int(tp_size)
+    if tp_size <= 0 or not 0 <= tp_rank < tp_size:
+        raise ValueError("coupled TP rank must identify one tensor-parallel shard")
     device = gate_transformed.device
     for name, value, expected in (
         ("gate_hadamard", gate_hadamard, (routes, width)),
@@ -333,6 +346,23 @@ def run_glm_coupled_gate_up_output_transform_silu(
         block_n=block_n,
         num_warps=4,
     )
+    if tp_size > 1:
+        from vllm.distributed import get_tp_group
+
+        gathered = get_tp_group().all_gather(pre_scaled, dim=1)
+        expected = (routes, 2 * width * tp_size)
+        if tuple(gathered.shape) != expected:
+            raise RuntimeError(
+                "coupled TP gate/up gather differs: "
+                f"{tuple(gathered.shape)} != {expected}"
+            )
+        full_encoded = (
+            gathered.view(routes, tp_size, 2, width)
+            .permute(0, 2, 1, 3)
+            .reshape(routes, 2 * width * tp_size)
+        )
+        start = 2 * tp_rank * width
+        pre_scaled.copy_(full_encoded[:, start : start + 2 * width])
     _run_trellis_dense_hadamard128(
         pre_scaled,
         pre_hadamard,

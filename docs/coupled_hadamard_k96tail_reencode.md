@@ -15,7 +15,7 @@ layer use the K4 trellis rate. It does not mean 96 bits or 96 layers.
 |---|---|---|
 | Coupled transform and GLM activation closure | implemented | Updated QSRT transform, exact `silu(gate) * up`, and transform closure tests |
 | Per-layer profile, beta, allocation, encode, selection, and materialization pipeline | implemented | Fail-closed campaign launchers and receipt validators |
-| Routed layers 3 through 77 | qualified | Hash-bound layer shards, layer manifests, scorer/encoder parity, and passing TP1 native B12X runtime oracles |
+| Routed layers 3 through 77 | qualified | All 75 target layers have hash-bound manifests, quality receipts, and passing TP1 native B12X runtime oracles. Exact K96 scorer/encoder parity covers the 74 K96 layers 4 through 77; layer 3 is the sealed K48 exception. |
 | Preserved source-SQG MTP layer 78 | qualified | Source layer is present in the assembled checkpoint and loaded/executed under the sealed TP4/DCP4/MTP3 runtime |
 | Full 76-layer assembled checkpoint | qualified | Assembly manifest and complete codec census pass at `/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail` |
 | Exact TP4/DCP1 full-vocabulary KLD | research-only | All 2,047 positions are finite, but candidate mean KLD is 84.849 percent worse than the frozen source |
@@ -164,8 +164,10 @@ A routed layer is `qualified` only when all of these conditions pass:
 2. The K96 allocation contains 672 K3 and 96 K4 tensors, 2,400 bit units, and
    3.125 bpw. Layer 3 uses its separate K48 contract.
 3. The candidate encoder writes 256 complete experts with no fallback.
-4. The scorer and encoder payloads match exactly for all 256 experts and all
-   768 projection payloads.
+4. For K96 layers 4 through 77, the scorer and encoder payloads match exactly
+   for all 256 experts and all 768 projection payloads. Layer 3 is instead
+   bound by its K48 manifest, quality receipt, and runtime oracle, with no K96
+   parity claim.
 5. The draw decision uses fit as a proposal and disjoint selection as the
    confirmation. Holdout is report-only.
 6. The selected layer shard and quality receipt are materialized without
@@ -225,6 +227,8 @@ the exact changed sources or patches and verifies the listed hashes.
 The [campaign source snapshot](../coupled_hadamard_k96tail/README.md) contains
 the active script closure, runtime build context, changed-file snapshots, exact
 QSRT and KQuant patches, compact evidence, and an automated equivalence check.
+The verifier reports byte-equal active files separately from the one finalized
+machine-contract normalization and validates the historical contract hash.
 
 See [the reproduction procedure](coupled_hadamard_k96tail_reproduction.md) for
 the command sequence and [the dated execution record](coupled_hadamard_k96tail_status_2026-08-14.md)

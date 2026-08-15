@@ -10,7 +10,7 @@ REPRO_ROOT=/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-repro
 RESULTS_ROOT=$ACCEPTANCE_ROOT/RESULTS/coupled-k96tail-full-tp4dcp1
 SOURCE_KLD=$ACCEPTANCE_ROOT/RESULTS/coupled-tail-source-control-tp4dcp1-routes-v2/kld/kld_sm120_tp4dcp1.json
 REFERENCE_DIR=/home/brandonmusic/klc-linux/glm52_hybrid_opt/kld_eval_current/reference_hf/reference-logits
-IMAGE=${IMAGE:-verdictai/glm52-sqg-coupled-k96tail-sm120:goal019ffabf-final}
+IMAGE=${IMAGE:-verdictai/glm52-sqg-coupled-k96tail-sm120:goal019ffabf-final3}
 CACHE_DIR=$ACCEPTANCE_ROOT/cache/coupled-k96tail-final
 ALLOCATION_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-k96tail-no-shortcut-allocations-v1
 PROFILE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles
@@ -133,6 +133,9 @@ if [[ ! -f "$KLD_JSON" ]]; then
 fi
 if ! jq_pass "$KLD_JSON" \
   '.complete == true and .total_positions == 2047 and
+   .token_sequence_sha256 == "d0be87a4909ad00c311e36fc5c81c7d6942216c16a8fbbbf77778edb273346f1" and
+   .reference.manifest_sha256 == "985120136741037918bcd4dc8da9813c1f6268b35a730302f99cf6b3eebb7606" and
+   .reference.logits_sha256 == "87f992a689c054a0548a4b3863da6c809f9239beacd5786d0401e45904fec063" and
    .runtime.tensor_parallel_size == 4 and
    .runtime.pipeline_parallel_size == 1 and
    .runtime.decode_context_parallel_size == 1 and

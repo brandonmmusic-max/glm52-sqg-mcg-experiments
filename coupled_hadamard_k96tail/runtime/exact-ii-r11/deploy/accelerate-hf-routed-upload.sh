@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo="${HF_MODEL_REPO:-brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail}"
 model_root="${MODEL_ROOT:-/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail}"
-# One high-performance Xet client already adapts to multiple internal streams.
+# One default adaptive Xet client already adapts to multiple internal streams.
 # Multiple outer clients drove the uplink into CAS timeouts and reduced the
 # measured end-to-end transfer rate.
 workers="${UPLOAD_WORKERS:-1}"
@@ -19,7 +19,8 @@ upload_layer() {
     return 1
   }
 
-  HF_XET_HIGH_PERFORMANCE=1 "${hf_cli}" upload \
+  env -u HF_XET_HIGH_PERFORMANCE -u HF_HUB_DISABLE_XET \
+    "${hf_cli}" upload \
     "${repo}" "${source}" "${name}" \
     --repo-type model --revision main --quiet \
     --commit-message "Upload final coupled-K96 routed layer ${layer}"

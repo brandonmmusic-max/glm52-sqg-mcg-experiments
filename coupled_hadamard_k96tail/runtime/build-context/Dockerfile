@@ -16,15 +16,17 @@ ARG RELEASE_IMAGE_REF=verdictai/glm52-sqg-w4a8-sm120:local-r1
 ARG ALLOW_EXPERIMENTAL_ACT_A16=0
 
 LABEL org.opencontainers.image.title="GLM-5.2 coupled SQG H512/H128 K96-tail W4A8 SM120 runtime" \
-      org.opencontainers.image.description="GLM-5.2 runtime with updated-QSRT coupled H512/H128 SiLU routed experts, sealed layer 3 at K48 and layers 4-78 at K96, direct-E4M3 W4A8, and native SQG K6 W6A16 non-routed tensors" \
+      org.opencontainers.image.description="GLM-5.2 runtime with updated-QSRT coupled H512/H128 SiLU routed experts, sealed layer 3 at K48 and layers 4-77 at K96, source MTP78 preserved, direct-E4M3 W4A8, and native SQG K6 W6A16 non-routed tensors" \
       ai.verdict.release.image-ref="${RELEASE_IMAGE_REF}" \
       ai.verdict.model.source-repo="brandonmusic/GLM-5.2-SQG-W4A8" \
       ai.verdict.model.source-revision="593dd0d2de6f79ce4e65303930c22c75e1359d44" \
       ai.verdict.arch="sm_120a" \
       ai.verdict.topology="topology-neutral-tp4dcp1-accepted" \
       ai.verdict.routed.endpoint="sqg-coupled-h512-h128-w4a8-direct-e4m3" \
-      ai.verdict.routed.bits-per-weight="3.1241776315789473" \
-      ai.verdict.routed.census="layer3:k3=720,k4=48;layers4-78:k3=672,k4=96" \
+      ai.verdict.routed.bits-per-weight="3.1291118421052633" \
+      ai.verdict.routed.coupled-target-bits-per-weight="3.1241666666666665" \
+      ai.verdict.routed.census="layer3:k3=720,k4=48;layers4-77:k3=672,k4=96;mtp78:k3=384,k4=384" \
+      ai.verdict.coupled.tp4-preactivation="all-gather-reassembly-v1" \
       ai.verdict.nonrouted.endpoint="native-sqg-k6-w6a16" \
       ai.verdict.routed.schedule="m128n64-blocks8-stages2" \
       ai.verdict.glm-w4a8.kernel-sha256="b95dde9347cf679836eedc1c76f0f569a4fb37dcc594a674e41666e4d0f162ad" \

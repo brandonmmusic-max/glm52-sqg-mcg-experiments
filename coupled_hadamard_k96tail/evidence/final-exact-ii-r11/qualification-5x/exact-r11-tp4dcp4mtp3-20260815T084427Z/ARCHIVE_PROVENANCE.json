@@ -1,0 +1,37 @@
+{
+  "schema": "glm52-exact-r11-quality-archive-provenance-v1",
+  "complete": true,
+  "reason": "preserve exact measured bytes while keeping the publication diff whitespace-clean",
+  "measured_manifest": {
+    "archive": "SHA256SUMS.measured.gz",
+    "archive_sha256": "bf5703a2278ce87b509cfae12166bdc7d2aec81359c4c45257996721630ac369",
+    "decompressed_name": "SHA256SUMS",
+    "decompressed_sha256": "bf57161cec69b9e8e8ebb5e705c1c5c6ed88c80046364c2a07a8882e60d0e3a9"
+  },
+  "compressed_exact_files": [
+    {
+      "archive": "estonia-c1-r5.log.gz",
+      "archive_sha256": "9106f61e022b4fbfad9e0081329f86a243a44c33fcdf492b59f6f3c8eefdba6c",
+      "decompressed_name": "estonia-c1-r5.log",
+      "decompressed_sha256": "f7d33c8f71a40609c91872348febe32d43cec8d0c6f4a381c407db744435e2d7"
+    },
+    {
+      "archive": "lavd-c5-r5.log.gz",
+      "archive_sha256": "2a2545a115899e8db899d788f9cd33f51b0d21c302af00b0f408ff32dc92ba78",
+      "decompressed_name": "lavd-c5-r5.log",
+      "decompressed_sha256": "b7bd12efa69980a98e52ab309a8e42a05396441dce0237a77e4055f0485b7bbc"
+    },
+    {
+      "archive": "runtime-metrics.final.prom.gz",
+      "archive_sha256": "369bef5ee28e259a987873165643f17ddde91e55915f534b8878dd00f87c59f7",
+      "decompressed_name": "runtime-metrics.final.prom",
+      "decompressed_sha256": "3202cd98ac8582ae101b6d89a6cb7266081e17aa449ed982e2940818eb8561eb"
+    },
+    {
+      "archive": "server.log.gz",
+      "archive_sha256": "668e0d557f4c14447e69ddf48d405aadf415a2ae1b70a711688dfa85a260a1d5",
+      "decompressed_name": "server.log",
+      "decompressed_sha256": "6cb9c46eb22e810f0266e4a43af46d1bb4d0ef071d074c99cf9c36fe1a5fbf58"
+    }
+  ]
+}

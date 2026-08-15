@@ -13,7 +13,7 @@ wave=$(printf '%03d-%03d' "$start" "$end")
 success="wave encoded, sealed, and persisted to Hub: $start..$end repo=$repo"
 log=/workspace/k96-logs/wave-${wave}-supervisor.log
 
-while ! grep -Fqx "$success" "$log" 2>/dev/null; do
+while ! grep -Fq "$success" "$log" 2>/dev/null; do
   state=$(supervisorctl status "$program" 2>/dev/null | awk '{print $2}' || true)
   case "$state" in
     RUNNING|STARTING|BACKOFF|STOPPED|EXITED) ;;

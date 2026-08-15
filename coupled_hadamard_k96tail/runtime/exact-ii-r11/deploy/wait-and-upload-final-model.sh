@@ -15,8 +15,8 @@ log() {
 # The server is intentionally stopped to release all four GPUs, so publication
 # has no live-serving dependency.
 
-log "starting resumable public tensor/config upload with Xet high-performance mode"
-export HF_XET_HIGH_PERFORMANCE=1
+log "starting resumable public tensor/config upload with default adaptive Xet mode"
+unset HF_XET_HIGH_PERFORMANCE
 unset HF_HUB_DISABLE_XET
 export HF_HOME=/home/brandonmusic/.cache/huggingface
 export HF_TOKEN_PATH=/home/brandonmusic/.cache/huggingface/token

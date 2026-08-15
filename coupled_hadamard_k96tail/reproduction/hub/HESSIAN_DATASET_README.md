@@ -14,7 +14,7 @@ tags:
 
 # GLM-5.2 BMM-Law SQG Hessian and calibration archive
 
-This is the complete immutable reproduction archive for the GLM-5.2 SQG
+This is the complete hash-bound reproduction archive for the GLM-5.2 SQG
 W4A8 build. It is **3.096 TB logical**, but only about **1.128 TB is unique
 local payload**. The larger displayed size comes from retaining the raw
 capture names and two canonical zero-copy views as separate repository paths.
@@ -23,16 +23,17 @@ For ordinary reuse, prefer the deduplicated **1.154 TB** canonical repository:
 
 [`brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians-Canonical`](https://huggingface.co/datasets/brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians-Canonical/tree/canonical-v1)
 
-The accepted full archive remains immutable at tag
+The accepted full archive remains sealed at tag
 `accepted-glm52-sqg-w4a8-b300-r1` and is the authority for exact frozen-path
 campaign replay.
 
 ## Coupled-Hadamard K96-tail reuse and result
 
-The GLM-5.2 coupled-Hadamard K96-tail campaign reused this dataset at exact
-revision `a05b3b92d749f6a641af5cfd52de2b4720380dfd`. The `main` branch
-describes that reuse. It does not modify the accepted
-immutable tag `accepted-glm52-sqg-w4a8-b300-r1`.
+The GLM-5.2 coupled-Hadamard K96-tail campaign consumed the dataset at pinned
+revision `a05b3b92d749f6a641af5cfd52de2b4720380dfd`. Publishing this card advances
+the dataset `main` branch, so `main` must not be described as remaining at that
+consumed revision. The accepted tag
+`accepted-glm52-sqg-w4a8-b300-r1` remains unchanged.
 
 The re-encode is implemented with residual H512, H128 before the nonlinear
 boundary, H128 after the nonlinear boundary, exact GLM `silu(gate) * up`, H13
@@ -76,7 +77,7 @@ gate. On the same fixed 2,048-token input, all 2,047 causal positions, full
 
 Candidate minus source mean is `0.06434397709923104`. The candidate is
 `1.84849x` the source mean, or 84.849 percent worse. The lower mean, lower p99,
-and lower worst-1% CVaR gates fail. This dataset remains a valid, immutable
+and lower worst-1% CVaR gates fail. This dataset remains a valid, hash-bound
 calibration archive; that validity does not imply that every model built from
 it improves end-to-end KLD.
 
@@ -94,8 +95,8 @@ post-observation `5e-3` operational limit passes and is research-only.
   `4f19ba5e4a8676c80bc49e89d346b0985faa209f14bdd6d9713e9ee6c4397f57`
 
 The public model file set remains unsupported as a complete model until routed
-layers 3 through 50 finish uploading and an immutable public revision passes
-anonymous hash verification.
+layers 3 through 50 finish uploading and a hash-bound public revision passes
+anonymous verification.
 
 ## START HERE: the actual numerical Hessian files
 
@@ -155,8 +156,8 @@ capture_view/layer_NNN/          # ordinary layers 003 through 077
 capture_view_mtp78/layer_078/    # MTP layer 078
 ```
 
-Use [`capture_view`](./capture_view) and
-[`capture_view_mtp78`](./capture_view_mtp78). Each ordinary layer provides
+Use [`capture_view`](https://huggingface.co/datasets/brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians/tree/main/capture_view) and
+[`capture_view_mtp78`](https://huggingface.co/datasets/brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians/tree/main/capture_view_mtp78). Each ordinary layer provides
 `hidden.bf16.bin`, `topk_ids.u8.bin`, `topk_weights.f32le.bin`, and canonical
 row-order metadata.
 

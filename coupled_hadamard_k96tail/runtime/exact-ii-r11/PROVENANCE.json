@@ -19,6 +19,28 @@
     "preregistered_journal_sha256": "380f3ed2e6c7ee8c46953a1fb3ab48678cdde813ceda489a348c7e8f6845c939",
     "preregistered_qualification_pass": false
   },
+  "archived_exact_sources": [
+    {
+      "path": "hidden-replay/exact_r11_pre_lm_head_capture.patch.gz",
+      "archive_sha256": "e3575d8f7401d1dbc36080c65f2678213059902790a80574957b76b4a2ffa95e",
+      "decompressed_sha256": "d2521df3bed23f311ccd16c5ad46a20d46ae0d5674e1c34dd976bb88ebf002fd"
+    },
+    {
+      "path": "patches/b12x-r11-sqg-k96.patch.gz",
+      "archive_sha256": "3391e69dfffd4486833edd6fdfef82856a920223fae59e1a67e87b6974d9b10e",
+      "decompressed_sha256": "43e502a0ef23e6932596e400f3dcfc14dc79b3e64243bc04a842e1e0f76ee38a"
+    },
+    {
+      "path": "patches/vllm-r11-mtp3-sqg-loader.patch.gz",
+      "archive_sha256": "ac2984882767550d171bfa6305cd245daffec02e8a779f6429279cba7e3017fb",
+      "decompressed_sha256": "658cbdd678774b0a1167c6244ff78d627b77613709f610e26e8d0e1933cfa03e"
+    },
+    {
+      "path": "patches/vllm-r11-sqg-k96.patch.gz",
+      "archive_sha256": "dffe5a16bd12b95bfc95e69bd572434b6c70d111de9dc2f6afa6c4ef197793ad",
+      "decompressed_sha256": "a357dc85bdb306927a4e6cf4a572a284688f86a62ee250fbcc0b33f2435e42f2"
+    }
+  ],
   "base_image": "voipmonitor/vllm@sha256:01b973d1ae132882bcc1bf62ea232f6aabe649dd4a89b961d81f3c41cc53f971",
   "base_release": "infernal-invocation-r11",
   "candidate_image": {
@@ -34,14 +56,16 @@
     "patch_sequence": [
       {
         "order": 1,
-        "path": "patches/vllm-r11-sqg-k96.patch",
-        "sha256": "a357dc85bdb306927a4e6cf4a572a284688f86a62ee250fbcc0b33f2435e42f2",
+        "path": "patches/vllm-r11-sqg-k96.patch.gz",
+        "archive_sha256": "dffe5a16bd12b95bfc95e69bd572434b6c70d111de9dc2f6afa6c4ef197793ad",
+        "decompressed_sha256": "a357dc85bdb306927a4e6cf4a572a284688f86a62ee250fbcc0b33f2435e42f2",
         "role": "complete_r11_native_sqg_k96_tp_dcp_overlay"
       },
       {
         "order": 2,
-        "path": "patches/vllm-r11-mtp3-sqg-loader.patch",
-        "sha256": "658cbdd678774b0a1167c6244ff78d627b77613709f610e26e8d0e1933cfa03e",
+        "path": "patches/vllm-r11-mtp3-sqg-loader.patch.gz",
+        "archive_sha256": "ac2984882767550d171bfa6305cd245daffec02e8a779f6429279cba7e3017fb",
+        "decompressed_sha256": "658cbdd678774b0a1167c6244ff78d627b77613709f610e26e8d0e1933cfa03e",
         "role": "supplemental_mtp3_sqg_loader_fix"
       }
     ],
@@ -96,10 +120,10 @@
   },
   "quality_runner": {
     "path": "deploy/run-quality-5x.sh",
-    "sha256": "54eaf5a7f4ef986e3b927a8624a6865db76466bacf92ecc690855b509d4a5784",
+    "sha256": "807afc1518207faece5a378c391561e6a23fd5fbfada8c3ff1361a18574415eb",
     "idempotent_sealer": {
       "path": "deploy/seal-quality-5x.sh",
-      "sha256": "74f8070f081bade7180b9a20d18611174c092362c5d43d03c79621dd9f1af118"
+      "sha256": "68b59ddfe3fb667b60ac774135789bbc7d75ce462812659557607b50541c0b49"
     },
     "historical_hidden_replay_characterization_launcher": {
       "path": "deploy/run-quality-after-hidden-measurement-exact-r11.sh",
@@ -111,6 +135,11 @@
       "version": "0.4.29",
       "commit": "0b4185b5b435e948b199c9077a00b084864aa963",
       "script_sha256": "59dd767c933e06f9724a84a8883d2aac156252dbbc279ce155658005d27424d7",
+      "exact_source_archive": "benchmarks/llm_decode_bench.py.gz",
+      "exact_source_archive_sha256": "ea6b898216417bff1b35f0522536c7c46b9ca2abb5ac340704675cd82830d520",
+      "ascii_derivative": "benchmarks/llm_decode_bench.ascii.py",
+      "ascii_derivative_sha256": "c4ed65e97219aefd09af2baee099b47ce0b1a00dca562a4908ed8501790499ae",
+      "ascii_derivative_is_byte_identical": false,
       "receipt_version_check_required": true
     },
     "rank_receipt_discovery": {
@@ -262,7 +291,7 @@
   "hf_routed_uploader": {
     "status": "implemented",
     "path": "deploy/accelerate-hf-routed-upload.sh",
-    "sha256": "78745c09917c492a434e51d9c73df0fafa9d4ce50c1f6647c2495bec848e8469",
+    "sha256": "a4469e0f1fdcdba70b95e41fe442edd149bbabfc192b78c095115966c1a733bc",
     "uploads_local_layer_range_inclusive": [3, 50],
     "uploads_preserved_mtp_layer": 78,
     "skips_byte_identical_public_layer_range_inclusive": [51, 77],
@@ -270,15 +299,14 @@
     "active": true,
     "final_uploader": false,
     "first_attempt_stopped_at_local_time": "04:56",
-    "restarted_at": "2026-08-15T05:26:59-04:00",
+    "restarted_at": "2026-08-15T05:39:16-04:00",
     "default_upload_workers": 1,
-    "prior_outer_workers": 2,
-    "internal_streams_per_outer_worker": 16,
-    "cas_streams_with_two_outer_workers": 32,
-    "transient_two_worker_mbps": 21.75,
-    "sustained_two_worker_mbps_approx": 9.6,
-    "baseline_resumable_mbps_approx_range": [20, 24],
-    "improved_throughput": false,
+    "outer_clients": 1,
+    "xet_mode": "default_adaptive",
+    "adaptive_initial_concurrency": 2,
+    "initial_transfer_mbps": 22.09,
+    "early_sustained_success_ratio": 1.0,
+    "early_sustained_errors": 0,
     "complete_routed_file_commit_claimed_at_snapshot": false,
     "role": "targeted_first_stage_only",
     "service": "glm52-k96tail-final-model-upload-routed.service",
@@ -299,8 +327,9 @@
     },
     "full_folder_upload": {
       "path": "deploy/wait-and-upload-final-model.sh",
-      "sha256": "98fed5174cc349bd54a307e87d7ed9d7dcd4d9492548afbf0d3ae17d62adf36a",
+      "sha256": "ce467eb1218cc8a5d9334916ea39d2d3d816b46df73cd5496b1e97b9576ac63a",
       "workers": 2,
+      "xet_mode": "default_adaptive",
       "waits_for_stopped_qualification_server": false,
       "excluded_paths": ["README.md", "HUB_FILE_VERIFICATION.json"]
     },

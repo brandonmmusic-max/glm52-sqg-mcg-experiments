@@ -8,7 +8,7 @@ die() { printf 'Vast K96 oracle recovery: %s\n' "$*" >&2; exit 2; }
 start=$1
 end=$2
 gpu_base=$3
-((start >= 3 && end <= 77 && start <= end && end - start <= 3)) || \
+((start >= 3 && end <= 77 && start <= end && end - start <= 7)) || \
   die "invalid recovery range: $start..$end"
 ((gpu_base >= 0 && gpu_base <= 7)) || die "GPU_BASE must lie in 0..7"
 

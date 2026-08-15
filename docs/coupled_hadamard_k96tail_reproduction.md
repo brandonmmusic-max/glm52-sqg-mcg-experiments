@@ -9,10 +9,14 @@ checkpoint construction and the TP4/DCP4/MTP3 runtime are `qualified`. Overall
 model quality is `research-only` because exact full-vocabulary KLD regresses
 against the frozen source. The
 [campaign source snapshot](../coupled_hadamard_k96tail/README.md) mirrors the
-active script closure, exact QSRT and KQuant patches, changed-file snapshots,
-and final runtime build context. Its automated integrity check passes against
-its `SOURCE_SHA256SUMS` manifest. The optional active-workspace comparison is
-fail-closed; inspect any difference before using an active tree. The repository
+active executable sources, exact QSRT and KQuant patches, changed-file
+snapshots, and final runtime build context. The verifier identifies byte-equal
+active files and validates the one finalized machine-contract normalization
+against the hash-bound historical contract. It does not claim that finalized
+documentation is byte-identical to pre-finalization active documentation. Its
+automated integrity check passes against `SOURCE_SHA256SUMS`. The optional
+active-workspace comparison is fail-closed; inspect any difference before
+using an active tree. The repository
 is not a standalone model payload: the
 pinned checkpoint, saved captures, container images, and compiled extensions
 remain external artifacts. Full cross-host execution is therefore
@@ -106,6 +110,7 @@ sha256sum \
 docker image inspect \
   sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82
 
+cd /path/to/glm52-sqg-mcg-experiments
 python3 coupled_hadamard_k96tail/verify_source_sync.py
 ```
 
@@ -324,11 +329,13 @@ refuses a partial or mismatched layer seal.
 The controller then runs the full codec census and
 `scripts/run_finalize_k96tail_model.sh`. The finalizer evaluates:
 
-1. All target layer manifests and TP1 runtime oracles for layers 3 through 77.
+1. All 75 target layer manifests and TP1 runtime oracles for layers 3 through
+   77, plus exact scorer/encoder parity for the 74 K96 layers 4 through 77.
+   Layer 3 is the sealed K48 exception and has no K96 parity receipt.
 2. A codec census that includes preserved source-SQG MTP layer 78.
 3. A complete untrimmed 2,047-position KLD receipt under TP4/PP1/DCP1.
 4. Mean, p99, and worst-one-percent CVaR below the sealed source checkpoint.
-5. A passing 16-token MTP3 smoke under TP1/PP4/DCP1.
+5. The sealed exact-r11 TP4/DCP4/MTP3 quality summary and runtime MTP summary.
 6. A sealed compact reproduction bundle with `SHA256SUMS`.
 
 `scripts/analyze_kld_position_tail.py` writes diagnostic tail concentrations.
@@ -357,7 +364,8 @@ because it uses these boundaries:
 - Expert score JSON and row-SSE files are atomic.
 - Existing recipe, profile, beta, allocation, parity, selection, layer, and
   oracle receipts are validated before they are reused.
-- A materialized layer without its parity receipt is rejected.
+- A materialized K96 layer without its parity receipt is rejected. Layer 3 is
+  checked against its separate K48 seal and oracle.
 - Partial layer output is rejected instead of overwritten.
 - A completed wave is skipped only after its layer and runtime gates pass.
 - Model assembly refuses an existing partial destination.
@@ -372,11 +380,14 @@ KQuant working source snapshots, their exact tracked patches and changed files,
 the final runtime build context, runtime dependency identities, and an
 automated hash check under
 [`coupled_hadamard_k96tail`](../coupled_hadamard_k96tail/README.md). This proves
-source equivalence to the measured host. It does not embed the checkpoint,
-saved captures, compiled extensions, or container images. The hash-bound
+the enumerated active-source equalities and the bounded finalized-contract
+normalization. It does not embed the checkpoint, saved captures, compiled
+extensions, or container images. The hash-bound
 runtime closure and measured receipts under
 `coupled_hadamard_k96tail/evidence/final-exact-ii-r11` are the compact execution
-record. Public model publication is `unsupported` until every local model file
+record. The completed 75-layer mechanical closure is under
+`coupled_hadamard_k96tail/evidence/final-mechanical`. Public model publication
+is `unsupported` until every local model file
 is present on the Hub and `HUB_FILE_VERIFICATION.json` reports a complete
 file-by-file verification. A transient upload rate is operational evidence,
 not a completion claim or a reproducible ETA.

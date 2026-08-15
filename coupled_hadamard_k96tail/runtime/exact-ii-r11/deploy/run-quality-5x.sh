@@ -5,7 +5,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 port="${PORT:-8000}"
 model="${SERVED_MODEL_NAME:-GLM-5.2-SQG-Coupled-K96Tail}"
 python=/home/brandonmusic/klc-env/bin/python
-bench=/home/brandonmusic/KLC_SANDBOXES/llm-inference-bench-v0.4.29/llm_decode_bench.py
+bench_archive="${root}/benchmarks/llm_decode_bench.py.gz"
 bench_commit=0b4185b5b435e948b199c9077a00b084864aa963
 bench_sha256=59dd767c933e06f9724a84a8883d2aac156252dbbc279ce155658005d27424d7
 image="${IMAGE:-verdictai/glm52-k96-ii-r11:20260815-tpfix-mtpfix}"
@@ -27,6 +27,11 @@ fi
 log() {
   printf 'GLM quality 5x: %s %s\n' "$(date --iso-8601=seconds)" "$*"
 }
+
+bench="$(mktemp --suffix=.llm_decode_bench.measured.py)"
+trap 'rm -f "${bench}"' EXIT
+gzip -dc "${bench_archive}" >"${bench}"
+printf '%s  %s\n' "${bench_sha256}" "${bench}" | sha256sum -c - >/dev/null
 
 mkdir -p "${results}"
 if [[ -z "${reuse_results}" ]]; then

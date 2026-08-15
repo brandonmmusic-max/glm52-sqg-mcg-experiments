@@ -11,12 +11,16 @@ from typing import Any
 
 
 DEFAULT_PROJECT = Path(__file__).resolve().parents[1]
+DEFAULT_ORCHESTRATION_ROOT = DEFAULT_PROJECT.parent / "orchestration/vast_supervisor"
 DEFAULT_LAYER_ROOT = Path(
     "/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-layers"
 )
 DEFAULT_ACCEPTANCE_ROOT = Path(
     "/home/brandonmusic/KLC_SANDBOXES/"
     "glm52_sqg_w4a8_sm120_local_acceptance_20260812"
+)
+HUB_PUBLICATION_FIELDS = frozenset(
+    {"hub_model_commit", "tensor_hub_revision", "model_card_hub_revision"}
 )
 
 
@@ -38,17 +42,26 @@ def load(path: Path) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, default=DEFAULT_PROJECT)
+    parser.add_argument(
+        "--orchestration-root", type=Path, default=DEFAULT_ORCHESTRATION_ROOT
+    )
     parser.add_argument("--layer-root", type=Path, default=DEFAULT_LAYER_ROOT)
     parser.add_argument("--acceptance-root", type=Path, default=DEFAULT_ACCEPTANCE_ROOT)
     parser.add_argument("--manifest", type=Path)
     parser.add_argument(
+        "--strict-local",
+        action="store_true",
+        help="require the complete local mechanical and quality closure",
+    )
+    parser.add_argument(
         "--strict-complete",
         action="store_true",
-        help="also require all 75 target oracles and every final-result field",
+        help="also require final Hub publication fields and complete=true",
     )
     args = parser.parse_args()
 
     project = args.project_root.resolve()
+    orchestration = args.orchestration_root.resolve()
     layer_root = args.layer_root.resolve()
     acceptance = args.acceptance_root.resolve()
     manifest_path = (
@@ -118,12 +131,12 @@ def main() -> int:
         project / "scripts" / "wait_merge_finalize_k96tail.sh",
         project / "scripts" / "run_finalize_k96tail_model.sh",
         project / "scripts" / "seal_coupled_k96tail_release.py",
-        project / "vast_supervisor" / "node1-k96.conf",
-        project / "vast_supervisor" / "node2-k96.conf",
-        project / "vast_supervisor" / "node3-k96.conf",
-        project / "vast_supervisor" / "node4-k96.conf",
-        project / "vast_supervisor" / "k96-runahead-guard.conf",
-        project / "vast_supervisor" / "k96-runahead-guard.sh",
+        orchestration / "node1-k96.conf",
+        orchestration / "node2-k96.conf",
+        orchestration / "node3-k96.conf",
+        orchestration / "node4-k96.conf",
+        orchestration / "k96-runahead-guard.conf",
+        orchestration / "k96-runahead-guard.sh",
     )
     for path in required:
         if not path.is_file() or path.is_symlink():
@@ -189,9 +202,30 @@ def main() -> int:
 
     final_results = manifest.get("final_results", {})
     pending_final = sorted(key for key, value in final_results.items() if value is None)
-    if args.strict_complete:
+    unexpected_pending = sorted(set(pending_final) - HUB_PUBLICATION_FIELDS)
+    if unexpected_pending:
+        errors.append(
+            f"non-Hub final fields remain pending: {unexpected_pending}"
+        )
+    if args.strict_local or args.strict_complete:
         if oracle_layers != list(range(3, 78)):
-            errors.append("strict mode requires passing runtime oracles for layers 3..77")
+            errors.append(
+                "strict local mode requires passing runtime oracles for layers 3..77"
+            )
+        phases = manifest.get("phase_completion", {})
+        for field in (
+            "encoding_complete",
+            "distributed_merge_complete",
+            "local_assembly_complete",
+            "codec_census_complete",
+            "final_mechanical_evidence_sealed",
+            "full_vocabulary_kld_sealed_locally",
+            "hidden_replay_kld_sealed_locally",
+            "exact_r11_tp4_dcp4_mtp3_qualified",
+        ):
+            if phases.get(field) is not True:
+                errors.append(f"strict local phase is not complete: {field}")
+    if args.strict_complete:
         if manifest.get("complete") is not True:
             errors.append("strict mode requires complete=true")
         if pending_final:
@@ -201,11 +235,15 @@ def main() -> int:
         "schema": "glm52-coupled-k96tail-campaign-audit-v1",
         "pass": not errors,
         "strict_complete": args.strict_complete,
+        "strict_local": args.strict_local,
         "manifest": str(manifest_path),
         "manifest_complete": manifest.get("complete"),
         "passing_runtime_oracle_count": len(oracle_layers),
         "passing_runtime_oracle_layers": oracle_layers,
         "pending_final_result_fields": pending_final,
+        "pending_hub_publication_fields": sorted(
+            set(pending_final) & HUB_PUBLICATION_FIELDS
+        ),
         "frozen_input_hashes": frozen_hashes,
         "errors": errors,
     }
