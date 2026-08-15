@@ -19,7 +19,7 @@ license: other
 > **Model status: research-only.** The checkpoint is mechanically complete and
 > its TP4/DCP4/MTP3 runtime is qualified, but full-vocabulary KLD is 84.849
 > percent worse than the frozen SQG source. The public file set is unsupported
-> as a complete model until routed layers 3 through 50 finish uploading and an
+> as a complete model until routed layers 3 through 50 finish uploading and a
 > hash-bound revision passes anonymous verification.
 
 This checkpoint re-encodes the routed experts from

@@ -62,9 +62,20 @@
     "upstream": "https://github.com/local-inference-lab/qsrt.git"
   },
   "reproduction_source": {
-    "file_count": 4,
+    "file_count": 5,
     "status": "current_publication_closure_not_claimed_byte_equal_to_historical_active_docs",
     "published_root": "reproduction"
+  },
+  "hub_documentation": {
+    "model_repo": "brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail",
+    "reproduction_closure_revision": "50f4c166b2061171117008a6704b62dccdd999a4",
+    "model_card_revision": "7b936cad625f1e0ec58038d48d90775c83e9b9bf",
+    "model_card_sha256": "ce4b6ea5ca697790b1262978b405b90a26a6dc3c2c58d84ec143bf73c9d1c344",
+    "dataset_repo": "brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians",
+    "dataset_main_card_revision": "be0f529acd36bda58e7770476343e8c1126f4882",
+    "dataset_card_sha256": "d6af2a4d9517f9d68be51765907ceec08ebc7868d2325d7f52645803916fa3cb",
+    "dataset_accepted_tag": "accepted-glm52-sqg-w4a8-b300-r1",
+    "dataset_accepted_tag_revision": "db55cc25ea16c49b458d1a3f1a4661095be96ba4"
   },
   "final_mechanical_evidence": {
     "published_root": "evidence/final-mechanical",

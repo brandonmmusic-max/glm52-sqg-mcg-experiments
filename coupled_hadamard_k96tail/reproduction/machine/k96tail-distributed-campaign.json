@@ -11,8 +11,8 @@
     "final_mechanical_evidence_sealed": true,
     "full_vocabulary_kld_sealed_locally": true,
     "hidden_replay_kld_sealed_locally": true,
-    "full_vocabulary_kld_published": false,
-    "hidden_replay_kld_published": false,
+    "full_vocabulary_kld_published": true,
+    "hidden_replay_kld_published": true,
     "exact_r11_tp4_dcp4_mtp3_qualified": true,
     "estonia_5x_complete": true,
     "lavd_5x_complete": true,
@@ -21,7 +21,7 @@
     "source_copy_commit_verified": true,
     "routed_layers_3_through_50_upload_complete": false,
     "public_tensor_revision_sealed": false,
-    "public_model_card_revision_sealed": false
+    "public_model_card_revision_sealed": true
   },
   "model": {
     "public_staging_repo": "brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail",
@@ -523,7 +523,7 @@
   "final_results": {
     "hub_model_commit": null,
     "tensor_hub_revision": null,
-    "model_card_hub_revision": null,
+    "model_card_hub_revision": "7b936cad625f1e0ec58038d48d90775c83e9b9bf",
     "assembly_manifest_id": "GLM-5.2-SQG-Coupled-H512-H128-K96Tail",
     "assembly_manifest_sha256": "5b4309289c69dc618da03d34e10f826b8a6e7ba3fc67969582cf5b81b825a123",
     "model_codec_receipt_sha256": "a2d0648abc05e883e90d1c0ba0bbbb4464bbe8658fcd77ea5400849a8582bf14",
