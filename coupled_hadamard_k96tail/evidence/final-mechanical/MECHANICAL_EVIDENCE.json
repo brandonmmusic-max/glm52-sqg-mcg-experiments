@@ -1,0 +1,49 @@
+{
+  "schema": "glm52-coupled-k96tail-final-mechanical-evidence-v1",
+  "complete": true,
+  "status": "implemented",
+  "target_layers": [3, 77],
+  "mechanical_layer_count": 75,
+  "mechanical_manifests": 75,
+  "quality_receipts": 75,
+  "passing_runtime_oracles": 75,
+  "k96_parity_layers": [4, 77],
+  "exact_k96_score_encode_parity_receipts": 74,
+  "layer_3_exception": {
+    "rate": "K48",
+    "bits_per_weight": 3.0625,
+    "k96_parity_receipt": false,
+    "receipt": "layer-003-k48-exception.json"
+  },
+  "archives": {
+    "layers": {
+      "path": "layers-003-077.tar.gz",
+      "sha256": "bc77337e26f93db4cabaea7938041c0984327a0faa9fbe53022296b06ce8baae",
+      "inner_manifest": "layers-003-077.sha256",
+      "inner_manifest_sha256": "7a132925fa4bc6e01e5a44112fb236889a13f30a6fba875d485c24ea2f1c6250",
+      "files": 225
+    },
+    "k96_parity": {
+      "path": "parity-004-077.tar.gz",
+      "sha256": "c2834976a7211bb29668e25a0f8e5011ed9dd649e6f7134598562fa2c2b4b371",
+      "inner_manifest": "parity-004-077.sha256",
+      "inner_manifest_sha256": "cf9360ddee41bc5c9dca5813dd12e36bea677a32717413cff0588b803a011e5a",
+      "files": 74
+    }
+  },
+  "assembly": {
+    "path": "COUPLED_REENCODE_MANIFEST.json",
+    "manifest_id": "8e12c1d9d98878e45ef8f1de8fb690756cae4deac2550269698708d9fb776e36",
+    "sha256": "5b4309289c69dc618da03d34e10f826b8a6e7ba3fc67969582cf5b81b825a123",
+    "complete": true
+  },
+  "codec": {
+    "path": "model_codec_validation.json",
+    "sha256": "a2d0648abc05e883e90d1c0ba0bbbb4464bbe8658fcd77ea5400849a8582bf14",
+    "routed_layer_count": 76,
+    "coupled_layer_count": 75,
+    "per_layer_census_ok": true,
+    "mtp_layer_78_preserved": true,
+    "pass": true
+  }
+}

@@ -8,10 +8,16 @@ LABEL ai.verdict.purpose="GLM-5.2 one-context pre-LM-head capture" \
       ai.verdict.capture.base-image="${BASE_IMAGE}" \
       ai.verdict.capture.runtime-lineage="exact-infernal-invocation-r11-tpfix"
 
-COPY hidden_replay/exact_r11_pre_lm_head_capture.patch \
-     /tmp/glm52-hidden-capture/exact_r11_pre_lm_head_capture.patch
+COPY hidden_replay/exact_r11_pre_lm_head_capture.patch.gz \
+     /tmp/glm52-hidden-capture/exact_r11_pre_lm_head_capture.patch.gz
 
 RUN set -eu; \
+    gzip -dc /tmp/glm52-hidden-capture/exact_r11_pre_lm_head_capture.patch.gz \
+      > /tmp/glm52-hidden-capture/exact_r11_pre_lm_head_capture.patch; \
+    printf '%s  %s\n' \
+      d2521df3bed23f311ccd16c5ad46a20d46ae0d5674e1c34dd976bb88ebf002fd \
+      /tmp/glm52-hidden-capture/exact_r11_pre_lm_head_capture.patch \
+      | sha256sum -c -; \
     site_packages="$(/opt/venv/bin/python -c \
       'import sysconfig; print(sysconfig.get_paths()["purelib"])')"; \
     for root in /opt/infernal-invocation/vllm/vllm "${site_packages}/vllm"; do \

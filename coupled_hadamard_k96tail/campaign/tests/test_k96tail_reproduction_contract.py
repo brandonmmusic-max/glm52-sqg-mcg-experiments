@@ -37,27 +37,28 @@ def test_rate_and_preservation_contract_is_explicit() -> None:
     assert campaign["model"]["original_bf16_model_downloaded_for_reencode"] is False
 
 
-def test_live_contract_seals_local_results_and_preserves_hub_placeholders() -> None:
+def test_publication_contract_seals_local_results_and_only_hub_is_open() -> None:
     campaign = json.loads(MANIFEST.read_text(encoding="utf-8"))
     assert campaign["complete"] is False
     results = campaign["final_results"]
-    assert results["hub_model_commit"] is None
-    assert results["tensor_hub_revision"] is None
-    assert results["model_card_hub_revision"] is None
-    assert results["full_acceptance_sha256"] is None
-    assert results["assembly_manifest_id"] == (
-        "GLM-5.2-SQG-Coupled-H512-H128-K96Tail"
+    pending = {key for key, value in results.items() if value is None}
+    assert pending == {
+        "hub_model_commit",
+        "tensor_hub_revision",
+        "model_card_hub_revision",
+    }
+    assert "mtp3_smoke_sha256" not in results
+    assert "full_acceptance_sha256" not in results
+    assert results["assembly_manifest_sha256"] == (
+        "5b4309289c69dc618da03d34e10f826b8a6e7ba3fc67969582cf5b81b825a123"
     )
-    assert results["candidate_kld_sha256"] == (
-        "7979c9c8b0c81714cd38e225646e42a88b2cb8eb03232be271373255c506a408"
+    assert results["model_codec_receipt_sha256"] == (
+        "a2d0648abc05e883e90d1c0ba0bbbb4464bbe8658fcd77ea5400849a8582bf14"
     )
+    assert results["mechanical_runtime_oracle_count"] == 75
+    assert results["exact_k96_parity_receipt_count"] == 74
     assert results["candidate_mean_kld"] == 0.1401771516114036
-    assert results["candidate_p99_kld"] == 2.480538845062256
-    assert results["candidate_cvar_worst_1pct"] == 4.160942645300002
     assert results["full_model_quality_gate_pass"] is False
-    assert results["exact_r11_tp4_dcp4_mtp3_acceptance_sha256"] == (
-        "4f19ba5e4a8676c80bc49e89d346b0985faa209f14bdd6d9713e9ee6c4397f57"
-    )
 
 
 def test_audit_entrypoint_parses() -> None:
@@ -88,7 +89,7 @@ def test_method_document_is_linked_from_project_and_hub_cards() -> None:
         "H512",
         "H128",
         "No-shortcut",
-        "PENDING FINAL",
+        "research-only",
         "Unsafe remote score run-ahead overlap",
     ):
         assert required in text
@@ -97,4 +98,4 @@ def test_method_document_is_linked_from_project_and_hub_cards() -> None:
         encoding="utf-8"
     )
     assert document.name in project_readme
-    assert "PENDING FINAL" in hub_readme
+    assert "0.1401771516114036" in hub_readme

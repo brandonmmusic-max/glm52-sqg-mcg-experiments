@@ -19,7 +19,7 @@ layers and final card are uploaded and verified.
 | Object | Status | Basis |
 |---|---|---|
 | Coupled H512/H128/H128 encoding implementation | implemented | Exact source snapshot, patches, campaign scripts, and focused tests are present. |
-| Routed layers 3 through 77 | qualified | Every target layer passed byte parity, materialization, and its TP1 native B12X oracle. |
+| Routed layers 3 through 77 | qualified | All 75 target layers have sealed manifests, quality receipts, and passing TP1 native B12X oracles. Exact K96 scorer/encoder parity covers layers 4 through 77. Layer 3 is the sealed K48 exception and has no K96 parity receipt. |
 | Local assembled checkpoint and 76-layer codec census | qualified | Assembly is complete at `/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail`; the codec census passes through MTP layer 78. |
 | Exact-r11 TP4/DCP4/MTP3 runtime and task bundle | qualified | Four rank receipts, no fatal audit matches, MTP3 metrics, Estonia 5/5, and LAVD 4 exact plus 1 near are sealed. |
 | Full-model KLD | research-only | Candidate mean `0.1401771516114036` exceeds source mean `0.07583317451217256`. |
@@ -43,12 +43,18 @@ frozen source.
 - `reproduction/` contains the human procedure, machine-readable contract, and
   model-card source. `reproduction/hub/HESSIAN_DATASET_README.md` is the
   upload-ready dataset-card source for the calibration archive `main` branch;
-  it does not modify the accepted immutable dataset tag.
+  it does not modify the accepted sealed dataset tag.
 - `orchestration/` contains the distributed supervisor and local systemd
   configuration without secret values.
 - `evidence/` contains compact layer evidence, full KLD, hidden replay,
   preregistered replay history, and the sealed TP4/DCP4/MTP3 qualification
   bundle.
+
+The final mechanical receipt is
+[`evidence/final-mechanical/MECHANICAL_EVIDENCE.json`](evidence/final-mechanical/MECHANICAL_EVIDENCE.json).
+It binds 75 manifests, 75 quality receipts, 75 runtime oracles, 74 K96 parity
+receipts, the layer-3 K48 exception, the assembly manifest, and the model codec
+receipt.
 
 `SOURCE_SHA256SUMS` binds every published file except itself. Verify the
 snapshot from the repository root:
@@ -176,23 +182,22 @@ Hugging Face destination:
 Server-side copy commit
 `0c38e683eda27ca84982e3d513c89dd780dcdb22` copied and verified 390 files,
 25,685,857,224 bytes, from the frozen source revision. Layers 51 through 77
-were already present, and MTP layer 78 was copied. Two outer clients briefly
-measured 21.75 Mbit/s, then each ramped to 16 internal streams. The resulting
-32 CAS streams timed out and sustained transfer averaged about 9.6 Mbit/s. At
-`2026-08-15T05:26:59-04:00`, the incomplete upload restarted with one outer
-client. `UPLOAD_WORKERS=1` is the bound default. No completion ETA is a
-canonical property.
+were already present, and MTP layer 78 was copied. The active targeted upload
+restarted at `2026-08-15T05:39:16-04:00` with one outer client and default
+adaptive Xet. Adaptive concurrency began at 2. Early sustained evidence showed
+22.09 Mbit/s, success ratio 1.0, and zero errors. This is operational evidence,
+not a completion claim or a canonical ETA.
 
 The public model remains unsupported until the upload finishes, the canonical
 full-folder verification passes, the research-only KLD result is disclosed on
-the card, and anonymous public hash verification seals an immutable revision.
+the card, and anonymous public hash verification seals a hash-bound revision.
 
 The follow-on wrapper does not wait for the intentionally stopped
 qualification server. It uploads with two workers while excluding `README.md`
 and `HUB_FILE_VERIFICATION.json`, then verifies every other local file against
 Hugging Face metadata. LFS files are checked by SHA-256 and size; Git files are
 checked by Git blob SHA-1 and size. The wrapper and verifier SHA-256 values are
-`98fed5174cc349bd54a307e87d7ed9d7dcd4d9492548afbf0d3ae17d62adf36a`
+`ce467eb1218cc8a5d9334916ea39d2d3d816b46df73cd5496b1e97b9576ac63a`
 and `aebc8b97fe332eb5b086e8f62b698e631fa10814f5fdf9504d201abb366efa11`.
 The receipt is uploaded only after it records `complete=true`.
 

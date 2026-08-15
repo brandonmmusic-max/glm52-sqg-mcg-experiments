@@ -71,4 +71,3 @@ done
 log "FATAL: server did not become ready within two hours"
 docker logs --tail 300 "${container}" || true
 exit 1
-

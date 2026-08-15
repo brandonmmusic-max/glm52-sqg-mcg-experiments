@@ -1,0 +1,16 @@
+{
+  "schema": "glm52-coupled-k96tail-layer3-exception-v1",
+  "complete": true,
+  "layer": 3,
+  "rate_policy": "preserve_sealed_k48_exception",
+  "k3": 720,
+  "k4": 48,
+  "total": 768,
+  "bits_per_weight": 3.0625,
+  "mechanical_manifest_sha256": "07f4b1ab1a122f84b1ad948055f4b74bef8a9b4fb22ffe268df126f4435d4303",
+  "quality_receipt_sha256": "d2d7728383292dd7a8fb928bcb2df754c86ee6bd3308de31c33c7fb4eec34908",
+  "runtime_oracle_sha256": "b21353178925fa67f55d665ec6cef3830b4a00a750120807b3fd5ce73cf88865",
+  "k96_score_encode_parity_receipt": null,
+  "parity_disposition": "not_applicable_layer3_is_k48_not_k96",
+  "claim_boundary": "mechanical seal and runtime oracle only"
+}

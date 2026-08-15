@@ -9,8 +9,10 @@ acceptance=/home/brandonmusic/KLC_SANDBOXES/glm52_sqg_w4a8_sm120_local_acceptanc
 repo=brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail
 layer_root=/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-layers
 merge_stage=/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-hub-merge
+final_model=/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail
 local_stage=/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-hub-staging/local-047-050
 local_upload_unit=glm52-k96tail-hub-local-047-050.service
+persist_local_stage=${K96TAIL_PERSIST_LOCAL_STAGE:-0}
 recipe=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1
 scores=/media/brandonmusic/nvme1n1p3/glm52-coupled-tail-rate-scores-no-shortcut-v5
 allocations=/media/brandonmusic/nvme1n1p3/glm52-coupled-k96tail-no-shortcut-allocations-v1
@@ -22,9 +24,15 @@ local_unit=glm52-full-coupled-k96tail-no-shortcut-goal019ffa7c.service
 state_root=$acceptance/RESULTS/k96tail-distributed-merge-state
 hf_python=/home/brandonmusic/.hf-cli/venv/bin/python
 
+[[ "$persist_local_stage" == 0 || "$persist_local_stage" == 1 ]] || \
+  die "K96TAIL_PERSIST_LOCAL_STAGE must be 0 or 1"
+
 export HF_HOME=${HF_HOME:-/home/brandonmusic/.cache/huggingface}
 export HF_TOKEN_PATH=${HF_TOKEN_PATH:-$HF_HOME/token}
-export HF_XET_HIGH_PERFORMANCE=1
+# Xet can leave the final range workers in CLOSE_WAIT when many multi-gigabyte
+# shards are requested together.  Standard LFS is resumable here and avoids
+# that end-of-transfer deadlock.
+export HF_HUB_DISABLE_XET=1
 mkdir -p "$state_root" "$merge_stage" "$reproduction/remote-campaign-logs"
 exec 9>"$state_root/finalizer.lock"
 flock -n 9 || die "another merge finalizer already holds the lock"
@@ -35,6 +43,14 @@ oracle_passes() {
   path=$layer_root/runtime-oracle-layer-${padded}.json
   [[ -f "$path" && ! -L "$path" ]] || return 1
   jq -e --argjson layer "$layer" \
+    '.schema == "glm52-coupled-selected-layer-b12x-oracle-v2" and
+     .complete == true and .pass == true and .finite == true and
+     .nonzero == true and .layer == $layer and
+     .bit_census == {"k3": 672, "k4": 96, "total": 768} and
+     .bits_per_weight == 3.125 and
+     .production_endpoint == "route_packed_direct_e4m3_w4a8"' \
+    "$path" >/dev/null 2>&1 ||
+  sudo -n jq -e --argjson layer "$layer" \
     '.schema == "glm52-coupled-selected-layer-b12x-oracle-v2" and
      .complete == true and .pass == true and .finite == true and
      .nonzero == true and .layer == $layer and
@@ -54,6 +70,20 @@ while :; do
   sleep 60
 done
 
+if [[ -f "$state_root/remote-051-077-merge.complete" &&
+      -f "$final_model/COUPLED_REENCODE_MANIFEST.json" ]] &&
+   jq -e '.complete == true and .all_target_routed_layers_coupled == true and
+     .mtp_layer_78_policy == "preserve_source_unchanged"' \
+     "$final_model/COUPLED_REENCODE_MANIFEST.json" >/dev/null 2>&1; then
+  log "sealed merge and assembled checkpoint already exist; resuming at validation/KLD"
+  CAMPAIGN_LOG="$acceptance/RESULTS/full_coupled_k96tail_distributed_finalize.log" \
+  START_WAVE=3 STOP_WAVE=75 CLEANUP_VALIDATED_WAVES=1 PARTIAL_ONLY=0 \
+    bash "$project/scripts/run_full_coupled_3p0625_campaign.sh"
+  touch "$state_root/final-kld.complete"
+  log "distributed K96-tail validation and KLD complete"
+  exit 0
+fi
+
 if [[ ! -f "$state_root/local-047-050-upload.complete" ]]; then
   log "staging sealed local layers 47..50"
   sudo -n env LAYER_ROOT="$layer_root" \
@@ -61,7 +91,8 @@ if [[ ! -f "$state_root/local-047-050-upload.complete" ]]; then
   sudo -n cp "$project/hub/k96tail-staging/README.md" "$local_stage/README.md"
   sudo -n chmod a+r "$local_stage"/*
   sudo -n chown brandonmusic:brandonmusic "$local_stage" "$local_stage/README.md"
-  if ! systemctl --user is-active --quiet "$local_upload_unit"; then
+  if [[ "$persist_local_stage" == 1 ]] && \
+     ! systemctl --user is-active --quiet "$local_upload_unit"; then
     systemctl --user reset-failed "$local_upload_unit" >/dev/null 2>&1 || true
     systemd-run --user --collect --unit="$local_upload_unit" \
       --description="Upload sealed local K96-tail layers 47 through 50" \
@@ -70,7 +101,11 @@ if [[ ! -f "$state_root/local-047-050-upload.complete" ]]; then
       /usr/bin/bash "$project/scripts/upload_k96tail_hub_stage_and_mark.sh" \
       "$local_stage" "$state_root/local-047-050-upload.complete"
   fi
-  log "local layers 47..50 are uploading asynchronously via $local_upload_unit"
+  if [[ "$persist_local_stage" == 1 ]]; then
+    log "local layers 47..50 are uploading asynchronously via $local_upload_unit"
+  else
+    log "local layers 47..50 are sealed locally; optional Hub archival is deferred"
+  fi
 fi
 
 log "waiting for all remote layer seals and reproduction bundles on the public Hub"
@@ -88,7 +123,7 @@ for layer in $(seq 51 77); do
 done
 includes+=(--include 'reproduction/*')
 log "downloading the complete remote layer/evidence set"
-hf download "$repo" --local-dir "$merge_stage" --max-workers 8 "${includes[@]}"
+hf download "$repo" --local-dir "$merge_stage" --max-workers 4 "${includes[@]}"
 
 for layer in $(seq 51 77); do
   padded=$(printf '%03d' "$layer")
@@ -183,8 +218,13 @@ done
 for layer in $(seq 51 77); do oracle_passes "$layer" || die "merged oracle failed: $layer"; done
 touch "$state_root/remote-051-077-merge.complete"
 
-[[ -f "$stop_file" ]] || die "expected local boundary stop marker is absent"
-rm -- "$stop_file"
+if [[ -f "$stop_file" ]]; then
+  rm -- "$stop_file"
+elif [[ -f "$state_root/remote-051-077-merge.complete" ]]; then
+  log "local boundary stop marker was already cleared after the sealed merge"
+else
+  die "expected local boundary stop marker is absent"
+fi
 log "all layers/evidence merged; launching full validation, assembly, and KLD"
 CAMPAIGN_LOG="$acceptance/RESULTS/full_coupled_k96tail_distributed_finalize.log" \
 START_WAVE=3 STOP_WAVE=75 CLEANUP_VALIDATED_WAVES=1 PARTIAL_ONLY=0 \

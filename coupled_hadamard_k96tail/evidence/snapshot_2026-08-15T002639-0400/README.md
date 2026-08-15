@@ -24,4 +24,5 @@ finished model.
 
 No `.safetensors`, row-SSE `.npz`, activation capture, Hessian payload, cache,
 container layer, credential, SSH endpoint, token, or provider secret is copied.
-The final Hub model commit and end-to-end candidate KLD are **PENDING FINAL**.
+This historical snapshot predates final assembly and KLD measurement. Current
+sealed results are in `../final-mechanical/` and `../final-exact-ii-r11/`.

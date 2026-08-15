@@ -389,18 +389,26 @@ def prepare_weights(
         stored_draws = coupled_rotation_draws.detach().to(
             device=device, copy=True
         ).contiguous()
-        coupled_pre_signs = _coupled_rotation_signs(
-            2 * intermediate_size,
+        global_pre_signs = _coupled_rotation_signs(
+            2 * global_intermediate_size,
             coupled_rotation_draws,
             axis=1,
             device=device,
         )
-        coupled_post_signs = _coupled_rotation_signs(
-            intermediate_size,
+        pre_start = 2 * tp_rank * intermediate_size
+        coupled_pre_signs = global_pre_signs[
+            :, pre_start : pre_start + 2 * intermediate_size
+        ].contiguous()
+        global_post_signs = _coupled_rotation_signs(
+            global_intermediate_size,
             coupled_rotation_draws,
             axis=2,
             device=device,
         )
+        post_start = tp_rank * intermediate_size
+        coupled_post_signs = global_post_signs[
+            :, post_start : post_start + intermediate_size
+        ].contiguous()
 
     gate = prepare_glm_route_packed_w4a8_projection(
         gate_trellis,
@@ -718,6 +726,8 @@ def _run_impl(
             activated,
             ones_intermediate=runtime.ones_intermediate,
             ones_preactivation=runtime.ones_preactivation,
+            tp_rank=weights.tp_rank,
+            tp_size=weights.tp_size,
         )
     else:
         run_glm_gate_up_output_transform_silu(

@@ -74,7 +74,7 @@
     "disposition": "incomplete staging bus, not a runnable final model"
   },
   "final_results": {
-    "status": "PENDING FINAL",
+    "status": "historical_snapshot_pre_finalization",
     "hub_model_commit": null,
     "assembly_manifest_id": null,
     "candidate_end_to_end_kld": null,

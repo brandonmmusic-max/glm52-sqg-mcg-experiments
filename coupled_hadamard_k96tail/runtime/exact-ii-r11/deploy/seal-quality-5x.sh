@@ -6,6 +6,7 @@ model="${SERVED_MODEL_NAME:-GLM-5.2-SQG-Coupled-K96Tail}"
 image="${IMAGE:-verdictai/glm52-k96-ii-r11:20260815-tpfix-mtpfix}"
 bench_commit=0b4185b5b435e948b199c9077a00b084864aa963
 bench_sha256=59dd767c933e06f9724a84a8883d2aac156252dbbc279ce155658005d27424d7
+bench_archive="${root}/benchmarks/llm_decode_bench.py.gz"
 results="${1:-${QUALITY_RUN_DIR:-}}"
 
 log() {
@@ -16,6 +17,15 @@ if [[ -z "${results}" || ! -d "${results}" ]]; then
   log "FATAL: pass an existing qualification run directory"
   exit 2
 fi
+[[ -f "${bench_archive}" ]] || {
+  log "FATAL: exact measured benchmark archive is absent"
+  exit 1
+}
+observed_bench_sha256="$(gzip -dc "${bench_archive}" | sha256sum | awk '{print $1}')"
+[[ "${observed_bench_sha256}" == "${bench_sha256}" ]] || {
+  log "FATAL: exact measured benchmark hash differs"
+  exit 1
+}
 results="$(realpath "${results}")"
 run_id="$(basename "${results}")"
 results_root="$(dirname "${results}")"

@@ -5,7 +5,7 @@ coupled-Hadamard K96Tail checkpoint. The final serving base is **Infernal
 Invocation r11 with MTP3**. Infernal Invocation r13 contributes native-SQG
 donor changes only; neither r13 nor any v20 image is a permitted serving base.
 
-## Immutable identity
+## Hash-bound identity
 
 - base digest:
   `sha256:01b973d1ae132882bcc1bf62ea232f6aabe649dd4a89b961d81f3c41cc53f971`;
@@ -29,16 +29,37 @@ claimed.
 The TP4 fix reassembles global gate/up coordinates before the coupled H128
 closure and exact `silu(gate) * up` activation.
 
+`verify_runtime.py` is an image gate. The host vLLM ABI lacks the required
+exact-r11 symbols, so an unqualified host invocation is not valid. Re-run the
+gate inside the candidate image:
+
+```bash
+docker run --rm \
+  --entrypoint /opt/venv/bin/python \
+  verdictai/glm52-k96-ii-r11:20260815-tpfix-mtpfix \
+  /opt/ii-r11-k96/verify_runtime.py
+```
+
+The archival patches are stored as deterministic `.patch.gz` files. Extract
+each with `gzip -dc`, verify its documented decompressed SHA-256, and apply the
+extracted bytes to the pinned base. The readable repository contains no
+silently normalized patch presented as exact.
+
 ## Evaluation contract and sealed results
 
 `deploy/run-quality-5x.sh` runs Estonia five times sequentially and LAVD five
 times at concurrency five with `local-inference-lab/llm-inference-bench`
 v0.4.29, commit `0b4185b5b435e948b199c9077a00b084864aa963`, script SHA-256
 `59dd767c933e06f9724a84a8883d2aac156252dbbc279ce155658005d27424d7`.
+The exact measured bytes are in deterministic archive
+`benchmarks/llm_decode_bench.py.gz`, archive SHA-256
+`ea6b898216417bff1b35f0522536c7c46b9ca2abb5ac340704675cd82830d520`.
+The runner extracts and verifies the decompressed hash before execution. The
+adjacent ASCII derivative is readable but explicitly not byte-identical.
 The bound reuse-capable runner SHA-256 is
-`54eaf5a7f4ef986e3b927a8624a6865db76466bacf92ecc690855b509d4a5784`;
+`807afc1518207faece5a378c391561e6a23fd5fbfada8c3ff1361a18574415eb`;
 the idempotent post-task sealer SHA-256 is
-`74f8070f081bade7180b9a20d18611174c092362c5d43d03c79621dd9f1af118`.
+`68b59ddfe3fb667b60ac774135789bbc7d75ce462812659557607b50541c0b49`.
 The historical hidden-replay-gated characterization launcher is retained for
 audit at `deploy/run-quality-after-hidden-measurement-exact-r11.sh`, SHA-256
 `d9195e5a8b7142e2bd70891b73fae6e377b47cb52f7d5ac027f957b876a962cd`;
@@ -49,9 +70,11 @@ The sealed run is
 `4f19ba5e4a8676c80bc49e89d346b0985faa209f14bdd6d9713e9ee6c4397f57`,
 its MTP summary SHA-256 is
 `d8a7f22f6da05423a00d972e186deb17ba9f36133aae692c2477d53cd4f0f4ff`,
-and its run-manifest SHA-256 is
+and its original measured run-manifest SHA-256 is
 `bf57161cec69b9e8e8ebb5e705c1c5c6ed88c80046364c2a07a8882e60d0e3a9`.
-`qualification.complete` is present and every manifest entry verifies. The four
+That exact manifest is stored as `SHA256SUMS.measured.gz` and the listed value
+is its decompressed hash. `qualification.complete` is present and the
+publication `SHA256SUMS` verifies every stored file. The four
 rank receipts (PIDs 767, 825, 926, and 1030) are complete TP4,
 `full-w4a8`, routed-expert, no-A16-fallback receipts for loaded/executed layers
 3--78. The fatal-audit file has zero matches.
@@ -104,13 +127,13 @@ verification receipt exists.
 
 `deploy/accelerate-hf-routed-upload.sh` is only a targeted routed first stage.
 Its SHA-256 is
-`78745c09917c492a434e51d9c73df0fafa9d4ce50c1f6647c2495bec848e8469`
-and its bound default is `UPLOAD_WORKERS=1`. Two outer clients briefly measured
-21.75 Mbit/s, then each ramped to 16 internal streams. The resulting 32 CAS
-streams timed out and sustained transfer averaged about 9.6 Mbit/s. The
-incomplete targeted upload restarted with one outer client at
-`2026-08-15T05:26:59-04:00`. The brief two-client rate is transient evidence,
-not a steady throughput claim. The targeted stage did not prove full checkpoint
+`a4469e0f1fdcdba70b95e41fe442edd149bbabfc192b78c095115966c1a733bc`.
+The active targeted upload restarted at `2026-08-15T05:39:16-04:00` with one
+outer client. It unsets `HF_XET_HIGH_PERFORMANCE` and
+`HF_HUB_DISABLE_XET`, so Xet uses default adaptive mode. Adaptive concurrency
+began at 2. Early sustained evidence showed 22.09 Mbit/s, success ratio 1.0,
+and zero errors. This is operational evidence, not a completion claim or a
+reproducible ETA. The targeted stage did not prove full checkpoint
 completeness. The
 authoritative full-folder stage is `deploy/complete-final-model-upload.sh`,
 SHA-256
@@ -129,7 +152,7 @@ bytes, then promotes and publishes final provenance. The readiness marker is
 intentionally absent until local card/provenance/manifests are finalized.
 
 The follow-on wrapper `deploy/wait-and-upload-final-model.sh`, SHA-256
-`98fed5174cc349bd54a307e87d7ed9d7dcd4d9492548afbf0d3ae17d62adf36a`,
+`ce467eb1218cc8a5d9334916ea39d2d3d816b46df73cd5496b1e97b9576ac63a`,
 does not wait for the intentionally stopped qualification server. It uploads
 with two workers while excluding `README.md` and
 `HUB_FILE_VERIFICATION.json`, then invokes

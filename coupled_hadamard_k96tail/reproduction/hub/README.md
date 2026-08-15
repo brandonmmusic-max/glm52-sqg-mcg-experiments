@@ -20,20 +20,22 @@ license: other
 > its TP4/DCP4/MTP3 runtime is qualified, but full-vocabulary KLD is 84.849
 > percent worse than the frozen SQG source. The public file set is unsupported
 > as a complete model until routed layers 3 through 50 finish uploading and an
-> immutable revision passes anonymous hash verification.
+> hash-bound revision passes anonymous verification.
 
 This checkpoint re-encodes the routed experts from
 `brandonmusic/GLM-5.2-SQG-W4A8@593dd0d2de6f79ce4e65303930c22c75e1359d44`
 using saved calibration captures and Hessians from
 `brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians@a05b3b92d749f6a641af5cfd52de2b4720380dfd`.
 The encode did not download or read the official BF16 routed weight shards.
+The KLD methods did use BF16 reference logits and the unchanged BF16 LM head;
+that evaluation use is not an official BF16 routed-weight read.
 
 ## Status
 
 | Object | Status | Result |
 |---|---|---|
 | Coupled encoding implementation | implemented | Residual H512, H128 before and after the activation, exact `silu(gate) * up`, H13 alpha 0.25, and candidate-conditioned H2 are bound in the receipts. |
-| Routed layers 3 through 77 | qualified | Every target layer passed materialization, exact scorer/encoder parity, and a TP1 native runtime oracle. |
+| Routed layers 3 through 77 | qualified | All 75 target layers have sealed manifests, quality receipts, and passing TP1 native runtime oracles. Exact K96 scorer/encoder parity covers layers 4 through 77. Layer 3 is the sealed K48 exception and has no K96 parity receipt. |
 | Local assembly and codec census | qualified | All 76 routed layers pass, including preserved source MTP layer 78. |
 | Exact-r11 TP4/DCP4/MTP3 runtime | qualified | Four rank receipts, loaded and executed layers 3 through 78, no fatal audit matches, and sealed MTP3 metrics. |
 | Estonia and LAVD task runs | qualified | Estonia is 5/5 correct. LAVD is 4 exact plus 1 near under the published tolerance. |
@@ -179,10 +181,15 @@ The browsable reproduction closure contains:
 - the no-shortcut campaign controller and per-wave scripts;
 - exact QSRT and KQuant source snapshots and patches;
 - layer allocation, parity, materialization, and TP1 oracle validators;
+- the final mechanical receipt binding 75 manifests/oracles, 74 K96 parity
+  receipts, the layer-3 K48 exception, assembly manifest, and codec receipt;
 - checkpoint assembly and 76-layer codec validation;
 - full-vocabulary KLD and hidden-replay tools;
 - the exact-r11 image build, MTP3 prefix patch, Compose configuration, and
   qualification scripts;
+- the exact measured v0.4.29 benchmark bytes in a deterministic gzip archive,
+  with decompressed SHA-256 verification and a clearly labeled non-identical
+  ASCII derivative;
 - Estonia, LAVD, rank, server-audit, and MTP3 receipts; and
 - SHA-256 manifests.
 
@@ -197,16 +204,14 @@ Server-side copy commit
 `0c38e683eda27ca84982e3d513c89dd780dcdb22` copied and verified 390
 byte-identical files totaling 25,685,857,224 bytes from the frozen source
 revision. Routed layers 51 through 77 were already present, and MTP layer 78
-was copied. Two outer clients briefly measured 21.75 Mbit/s, then each ramped
-to 16 internal streams. The resulting 32 CAS streams timed out and sustained
-transfer averaged about 9.6 Mbit/s. At `2026-08-15T05:26:59-04:00`, the
-incomplete targeted upload restarted with one outer client.
-`UPLOAD_WORKERS=1` is the bound default. No completion ETA is part of this
-card.
+was copied. The active targeted upload restarted at
+`2026-08-15T05:39:16-04:00` with one outer client and default adaptive Xet.
+Adaptive concurrency began at 2. Early sustained evidence showed 22.09 Mbit/s,
+success ratio 1.0, and zero errors. No completion ETA is part of this card.
 
 The repository is unsupported as a complete downloadable model until all
 missing layers finish, the canonical full-folder verification passes, this
-research-only quality disclosure is published, and an immutable public
+research-only quality disclosure is published, and a hash-bound public
 revision passes anonymous representative-file hash checks.
 
 The follow-on upload does not wait for the intentionally stopped qualification
