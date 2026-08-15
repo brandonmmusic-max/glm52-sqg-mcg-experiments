@@ -31,31 +31,34 @@ routed weights, and selects profiles, beta values, and rates independently for
 each layer.
 
 The implemented rate is hybrid. Layer 3 preserves its sealed 720-K3/48-K4
-exception at 3.0625 bpw. Layers 4 through 77 are the new layer-native
+exception at 3.0625 bpw. Layers 4 through 77 are the layer-native
 672-K3/96-K4 targets at 3.125 bpw. MTP layer 78 is not re-encoded: its source
 384-K3/384-K4 payload remains at 3.5 bpw. Across all 76 routed layers the exact
 average is `3.1291118421052633` bpw, not a uniform 3.0625-bpw or K96 model.
 
-The frozen publication snapshot at `2026-08-15T00:26:39-04:00` contains
-passing layer artifacts through layer 46, complete atomic score receipts
-through layer 50, the current distributed-machine contract, and the local and
-Vast orchestration used for the remaining work. The full model, candidate KLD,
-and release remain **PENDING FINAL** until every layer and full-model gate
-passes.
+The local checkpoint is mechanically complete and its codec census passes.
+Exact TP4/DCP1 full-vocabulary KLD is finite at all 2,047 positions, but mean
+KLD is `0.1401771516114036`, versus `0.07583317451217256` for the frozen source.
+The candidate is 84.849 percent worse, so overall model quality is
+`research-only`. The sealed TP4/DCP4/MTP3 runtime is `qualified`: Estonia is
+5/5 correct, and LAVD is 5/5 correct under tolerance with four exact answers
+and one near answer. The public Hugging Face checkpoint is `unsupported` until
+the incomplete upload finishes and a file-by-file Hub receipt passes.
 
 - [Coupled transform and rate specification](docs/coupled_hadamard_k96tail_reencode.md)
 - [Exact reproduction procedure](docs/coupled_hadamard_k96tail_reproduction.md)
 - [Measured execution record for 2026-08-14](docs/coupled_hadamard_k96tail_status_2026-08-14.md)
-- [Current distributed method and machine contract](coupled_hadamard_k96tail/reproduction/docs/K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md)
+- [Distributed method and machine contract](coupled_hadamard_k96tail/reproduction/docs/K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md)
 - [Campaign source, patches, runtime context, and compact evidence](coupled_hadamard_k96tail/README.md)
 
 ## Bottom line
 
-The original conditional gate was **NO-GO**. The native SQG W4A8 checkpoint
+The original MCG comparison gate was **NO-GO**. The native SQG W4A8 checkpoint
 `brandonmusic/GLM-5.2-SQG-W4A8` is published without final-logit KLD or runtime
 acceptance. That frozen checkpoint is the source for the separately
-specified coupled-Hadamard K96-tail re-encode. No coupled full-model KLD, LAVD,
-Estonia, integrated serving result, or lower-KLD claim exists yet.
+specified coupled-Hadamard K96-tail re-encode. The re-encode is mechanically
+complete and serves under the qualified runtime, but it fails the source-
+relative KLD quality gate and must not be presented as a quality improvement.
 
 The [native W4A8 construction record](docs/full_w4a8_construction_status_2026-08-11.md)
 documents an earlier local construction contract. It is not evidence of how the

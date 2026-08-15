@@ -37,20 +37,27 @@ def test_rate_and_preservation_contract_is_explicit() -> None:
     assert campaign["model"]["original_bf16_model_downloaded_for_reencode"] is False
 
 
-def test_live_contract_has_explicit_final_placeholders() -> None:
+def test_live_contract_seals_local_results_and_preserves_hub_placeholders() -> None:
     campaign = json.loads(MANIFEST.read_text(encoding="utf-8"))
     assert campaign["complete"] is False
-    required = {
-        "hub_model_commit",
-        "assembly_manifest_id",
-        "candidate_kld_sha256",
-        "candidate_mean_kld",
-        "candidate_p99_kld",
-        "candidate_cvar_worst_1pct",
-        "full_acceptance_sha256",
-    }
-    assert required <= campaign["final_results"].keys()
-    assert all(campaign["final_results"][key] is None for key in required)
+    results = campaign["final_results"]
+    assert results["hub_model_commit"] is None
+    assert results["tensor_hub_revision"] is None
+    assert results["model_card_hub_revision"] is None
+    assert results["full_acceptance_sha256"] is None
+    assert results["assembly_manifest_id"] == (
+        "GLM-5.2-SQG-Coupled-H512-H128-K96Tail"
+    )
+    assert results["candidate_kld_sha256"] == (
+        "7979c9c8b0c81714cd38e225646e42a88b2cb8eb03232be271373255c506a408"
+    )
+    assert results["candidate_mean_kld"] == 0.1401771516114036
+    assert results["candidate_p99_kld"] == 2.480538845062256
+    assert results["candidate_cvar_worst_1pct"] == 4.160942645300002
+    assert results["full_model_quality_gate_pass"] is False
+    assert results["exact_r11_tp4_dcp4_mtp3_acceptance_sha256"] == (
+        "4f19ba5e4a8676c80bc49e89d346b0985faa209f14bdd6d9713e9ee6c4397f57"
+    )
 
 
 def test_audit_entrypoint_parses() -> None:
