@@ -1,0 +1,10 @@
+[program:k96-score-runahead-57]
+command=/usr/bin/env RUN_LAYERS=57 GPU_OVERRIDE=6 SCORE_START=0 SCORE_END=32 SCORE_SHARDS_PER_LAYER=8 WAVE_INPUT_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/wave-055-058 PROFILE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles SCORE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-tail-rate-scores-no-shortcut-v5 /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_coupled_tail_score_wave.sh 55 58
+directory=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+autostart=true
+autorestart=false
+startsecs=1
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/workspace/k96-logs/score-runahead-057.log
+stderr_logfile=/workspace/k96-logs/score-runahead-057.err.log

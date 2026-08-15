@@ -1,0 +1,13 @@
+[Unit]
+Description=Wait, merge, validate, assemble, and KLD the distributed GLM-5.2 K96-tail encode
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/wait_merge_finalize_k96tail.sh
+Restart=on-failure
+RestartSec=60
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target

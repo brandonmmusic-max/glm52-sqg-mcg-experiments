@@ -1,0 +1,23 @@
+[Unit]
+Description=Resume GLM-5.2 coupled-Hadamard K48-layer3 K96-tail campaign
+After=default.target
+
+[Service]
+Type=exec
+WorkingDirectory=/home/brandonmusic/KLC_SANDBOXES
+Environment=START_WAVE=43
+Environment=STOP_WAVE=75
+Environment=CLEANUP_VALIDATED_WAVES=1
+Environment=PATH=/home/brandonmusic/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStartPre=/usr/bin/test -d /media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs
+ExecStartPre=/usr/bin/test -x /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_full_coupled_3p0625_campaign.sh
+ExecStartPre=/usr/bin/sudo -n /usr/bin/nvidia-smi -i 0 -pl 250
+ExecStartPre=/usr/bin/sudo -n /usr/bin/nvidia-smi -i 0 --lock-gpu-clocks=0,1650
+ExecStart=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_full_coupled_3p0625_campaign.sh
+Restart=no
+RestartSec=30
+TimeoutStopSec=30
+KillMode=control-group
+
+[Install]
+WantedBy=default.target

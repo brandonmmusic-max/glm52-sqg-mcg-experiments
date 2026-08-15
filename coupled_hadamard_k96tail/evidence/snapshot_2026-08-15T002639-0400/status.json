@@ -1,0 +1,85 @@
+{
+  "schema": "glm52-coupled-k96tail-publication-snapshot-v1",
+  "snapshot_at": "2026-08-15T00:26:39-04:00",
+  "complete": false,
+  "campaign_status": "distributed_encode_and_merge_pending",
+  "model_contract": {
+    "coupled_target_layers": [3, 77],
+    "new_k96_layers": [4, 77],
+    "preserved_mtp_layer": 78,
+    "routed_layer_average_bits_per_weight": 3.1291118421052633
+  },
+  "sealed_layers": {
+    "range": [3, 46],
+    "count": 44,
+    "holes": [],
+    "k48_exception_layers": [3],
+    "k96_layers": [4, 46],
+    "k96_count": 43
+  },
+  "score_receipts": {
+    "complete_layer_range": [4, 50],
+    "complete_layers": 47,
+    "experts_per_layer": 256,
+    "json_receipts": 12032,
+    "row_sse_receipts": 12032,
+    "paired_receipts": 12032,
+    "one_sided_pairs": 0,
+    "ledger": "score_ledger.json",
+    "sha256_manifest": "score_receipts_layers_004_050.sha256"
+  },
+  "sealed_validation": {
+    "passing_runtime_oracles": 44,
+    "runtime_oracle_range": [3, 46],
+    "exact_k96_score_encode_parity": 43,
+    "parity_range": [4, 46],
+    "production_eligible_guarded_k96_allocations": 43,
+    "allocation_range": [4, 46],
+    "oracle_mean_cosine": {
+      "mean": 0.9989899491721933,
+      "min": 0.9988675117492676,
+      "max": 0.9992380142211914
+    },
+    "oracle_relative_rmse": {
+      "mean": 0.0449653732675043,
+      "min": 0.03991738334298134,
+      "max": 0.04780655726790428
+    }
+  },
+  "source_comparator": {
+    "positions": 2047,
+    "trim_fraction_per_side": 0.0,
+    "mean_kld": 0.07583317451217256,
+    "median_kld": 0.0006116087315604091,
+    "kld_sha256": "5d8aedb462658c693f1ce790f48ce5ed3cd6876897b1367a5cd36e42c0e2d434",
+    "routes_sha256": "db43b66f74745d25dfcbe7bc4baea5960a0a6a36bd1fec21533a42a380fc4d02",
+    "disposition": "source comparator and allocation signal, not candidate quality"
+  },
+  "omitted_bound_payloads": {
+    "atomic_score_bytes": 2154247428,
+    "atomic_score_json_bytes": 208104635,
+    "atomic_score_row_sse_bytes": 1946142793,
+    "score_receipt_manifest_sha256": "1041a6f71399466fdce47543d615501faf6549d5a5073ebc08142b7dafdf2a93",
+    "candidate_metadata_wave_archives": 11,
+    "candidate_metadata_wave_archive_bytes": 78249961,
+    "wave_archive_sha256_manifest": "wave_archives.sha256",
+    "atomic_score_payloads_copied": false,
+    "model_tensors_copied": false
+  },
+  "public_staging_repo": {
+    "repo_id": "brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail",
+    "observed_commit": "2f885a60bf0feb896a980eccef587dddb1bcfdc5",
+    "observed_files": 2,
+    "private": false,
+    "disposition": "incomplete staging bus, not a runnable final model"
+  },
+  "final_results": {
+    "status": "PENDING FINAL",
+    "hub_model_commit": null,
+    "assembly_manifest_id": null,
+    "candidate_end_to_end_kld": null,
+    "codec_census": null,
+    "mtp3_smoke": null,
+    "full_acceptance": null
+  }
+}

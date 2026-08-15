@@ -12,11 +12,14 @@ end_layer=$2
 
 PROJECT_ROOT=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
 wave=$(printf 'wave-%03d-%03d' "$start_layer" "$end_layer")
+preflight_wave=$wave
+if ((start_layer == 75 && end_layer == 77)); then preflight_wave=wave-074-077; fi
 INPUT_ROOT=${WAVE_INPUT_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/$wave}
 PREPARATION_ROOT=$INPUT_ROOT/derived/wave_preflights/$wave
 CAPTURE_ROOT=$INPUT_ROOT/capture_view
 RECIPE_ROOT=${RECIPE_ROOT:-/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1}
 DETACH=${DETACH:-0}
+GPU_BASE=${GPU_BASE:-0}
 SOURCE_SQG_ROOT=/home/brandonmusic/models/GLM-5.2-SQG-W4A8
 QSRT_ROOT=/home/brandonmusic/KLC_SANDBOXES/qsrt-glm52-port
 SQG_EXTENSION_ROOT=/home/brandonmusic/KLC_SANDBOXES/fresh-sqg-extension-r33-saturation.VUybIb/sealed
@@ -26,8 +29,11 @@ EXLLAMA_EXTENSION_SHA256=e88bc24d2c292a0b69a7ee27bb701557c16e535c9980ee870c931a2
 IMAGE=sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82
 EXTENSION_SHA256=d29010f6ad51caf2e1a22f07365ab3548fcdb3e0ed3ee15d88330cee24de9614
 [[ "$DETACH" == 0 || "$DETACH" == 1 ]] || die "DETACH must be 0 or 1"
+[[ "$GPU_BASE" =~ ^[0-9]+$ ]] || die "GPU_BASE must be a nonnegative integer"
 
 selected_layers=$(seq -s, "$start_layer" "$end_layer")
+contract_layers=$selected_layers
+if ((start_layer == 75 && end_layer == 77)); then contract_layers=74,75,76,77; fi
 run_layers_csv=${RUN_LAYERS:-$selected_layers}
 IFS=, read -r -a run_layers <<< "$run_layers_csv"
 (( ${#run_layers[@]} >= 1 && ${#run_layers[@]} <= 4 )) || \
@@ -76,7 +82,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 for layer in "${run_layers[@]}"; do
-  gpu=$((layer - start_layer))
+  gpu=$((GPU_BASE + layer - start_layer))
   padded=$(printf '%03d' "$layer")
   name=glm52-goal019ffa7c-recipe-${wave}-l${layer}-r${BASHPID}
   names+=("$name")
@@ -96,9 +102,9 @@ for layer in "${run_layers[@]}"; do
     --shm-size 16g --cpus 6 \
     --mount "type=bind,src=$PROJECT_ROOT,dst=/work,readonly" \
     --mount "type=bind,src=$PREPARATION_ROOT,dst=/output,readonly" \
-    --mount "type=bind,src=$PREPARATION_ROOT,dst=/workspace/sqg-run/wave_preflights/$wave,readonly" \
-    --mount "type=bind,src=$PREPARATION_ROOT/bit-contract.json,dst=/workspace/sqg-run/wave_preflight_inputs/$wave/bit-contract.json,readonly" \
-    --mount "type=bind,src=$PREPARATION_ROOT/source-seal.json,dst=/workspace/sqg-run/wave_preflight_inputs/$wave/source-seal.json,readonly" \
+    --mount "type=bind,src=$PREPARATION_ROOT,dst=/workspace/sqg-run/wave_preflights/$preflight_wave,readonly" \
+    --mount "type=bind,src=$PREPARATION_ROOT/bit-contract.json,dst=/workspace/sqg-run/wave_preflight_inputs/$preflight_wave/bit-contract.json,readonly" \
+    --mount "type=bind,src=$PREPARATION_ROOT/source-seal.json,dst=/workspace/sqg-run/wave_preflight_inputs/$preflight_wave/source-seal.json,readonly" \
     --mount "type=bind,src=$CAPTURE_ROOT,dst=/capture,readonly" \
     --mount "type=bind,src=$CAPTURE_ROOT,dst=/workspace/glm52-w4a8/capture/bf16-pp8-production-r1/sqg-view,readonly" \
     --mount "type=bind,src=$RECIPE_ROOT,dst=/recipe" \
@@ -122,7 +128,7 @@ for layer in "${run_layers[@]}"; do
     -e "KQUANT_SQG_EXTENSION_SHA256=$EXTENSION_SHA256" \
     -e KQUANT_SQG_REQUIRE_PREBUILT=1 -e TORCH_CUDA_ARCH_LIST=12.0 \
     -e FRESH_SQG_RANK_PRIVATE_TRITON=1 \
-    -e "FRESH_SQG_SELECTED_LAYERS=$selected_layers" \
+    -e "FRESH_SQG_SELECTED_LAYERS=$contract_layers" \
     -e FRESH_SQG_PLAN_CONTRACT=/work/evidence/contiguous_document_plan_r1.json \
     -e FRESH_SQG_BF16_MANIFEST=/output/wave-bf16-shard-manifest.json \
     -e "FRESH_SQG_BIT_CONTRACT_SHA256=$BIT_CONTRACT_SHA256" \

@@ -92,6 +92,14 @@ def main() -> None:
         action="store_true",
         help="require every routed target/draft layer 3..78 to use coupled coordinates",
     )
+    parser.add_argument(
+        "--require-target-coupled-preserved-mtp78",
+        action="store_true",
+        help=(
+            "require target routed layers 3..77 to use coupled coordinates and "
+            "require source MTP layer 78 to remain uncoupled at its sealed census"
+        ),
+    )
     parser.add_argument("--sample-shards", type=int, default=6)
     parser.add_argument("--result-json", default="")
     args = parser.parse_args()
@@ -131,6 +139,7 @@ def main() -> None:
         if contract.get(key) != value:
             problems.append(f"contract {key}={contract.get(key)!r} != {value!r}")
     routed_layers = set(range(3, 79))
+    target_routed_layers = set(range(3, 78))
     coupled_layers: set[int] = set()
     if coupled:
         expected_transform = {
@@ -186,7 +195,17 @@ def main() -> None:
                 "full coupled release requires layers 3..78; "
                 f"observed {len(coupled_layers)} layers"
             )
+        if (
+            args.require_target_coupled_preserved_mtp78
+            and coupled_layers != target_routed_layers
+        ):
+            problems.append(
+                "target-coupled release requires layers 3..77 and preserves "
+                f"MTP78; observed {sorted(coupled_layers)}"
+            )
     elif args.require_all_coupled:
+        problems.append("checkpoint is not the coupled updated-QSRT schema")
+    elif args.require_target_coupled_preserved_mtp78:
         problems.append("checkpoint is not the coupled updated-QSRT schema")
 
     census = contract.get("per_layer_bit_census")
@@ -221,6 +240,29 @@ def main() -> None:
                     )
     elif census != {"k3": 384, "k4": 384, "total": 768}:
         problems.append(f"sealed census mismatch: {census}")
+    if args.require_target_coupled_preserved_mtp78:
+        assembly_path = root / "COUPLED_REENCODE_MANIFEST.json"
+        if not assembly_path.is_file():
+            problems.append("coupled assembly manifest is absent")
+        else:
+            assembly = json.loads(assembly_path.read_text())
+            preserved = assembly.get("preserved_mtp_layer_78", {})
+            mtp_shard = root / "r7-experts-layer-078.safetensors"
+            mtp_sidecar = root / "r7-experts-layer-078.json"
+            if (
+                assembly.get("all_target_routed_layers_coupled") is not True
+                or assembly.get("mtp_layer_78_policy")
+                != "preserve_source_unchanged"
+                or preserved.get("bit_census")
+                != {"k3": 384, "k4": 384, "total": 768}
+                or not mtp_shard.is_file()
+                or not mtp_sidecar.is_file()
+                or sha256_file(mtp_shard) != preserved.get("shard_sha256")
+                or sha256_file(mtp_sidecar) != preserved.get("sidecar_sha256")
+            ):
+                problems.append(
+                    "MTP layer 78 does not match its preserved source hashes/census"
+                )
     sealed_parallel = contract.get("parallelism", {})
     sealed_regime = (
         sealed_parallel.get("tensor_parallel_size"),
@@ -431,6 +473,11 @@ def main() -> None:
         },
         "dense_rate_census": dict(dense_bits),
         "mtp_layer78_routed": per_layer.get(78, Counter())[3] + per_layer.get(78, Counter())[4],
+        "mtp_layer78_preserved": (
+            coupled_layers == target_routed_layers
+            and per_layer.get(78, Counter())[3] == 384
+            and per_layer.get(78, Counter())[4] == 384
+        ),
         "revision_checked": revision_checked,
         "problems": problems,
         "pass": not problems,

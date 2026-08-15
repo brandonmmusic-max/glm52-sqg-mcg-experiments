@@ -61,11 +61,11 @@ layer_sealed() {
 
 while :; do
   sealed=0
-  for layer in $(seq 3 78); do
+  for layer in $(seq 3 77); do
     layer_sealed "$layer" && sealed=$((sealed + 1))
   done
-  printf 'finalizer waiting: %s/76 selected layers have passing runtime oracles\n' "$sealed"
-  [[ "$sealed" == 76 ]] && break
+  printf 'finalizer waiting: %s/75 target layers have passing runtime oracles; MTP78 is preserved\n' "$sealed"
+  [[ "$sealed" == 75 ]] && break
   sleep 60
 done
 
@@ -75,7 +75,7 @@ mkdir -p "$RESULTS_ROOT/kld" "$CACHE_DIR" "$REPRO_ROOT"
 
 # Oracle containers normally create world-readable receipts. Normalize only
 # an exact oracle file if a restrictive container umask made it unreadable.
-for layer in $(seq 3 78); do
+for layer in $(seq 3 77); do
   padded=$(printf '%03d' "$layer")
   oracle=$LAYER_ROOT/runtime-oracle-layer-${padded}.json
   if [[ ! -r "$oracle" ]]; then
@@ -87,11 +87,12 @@ done
 if [[ ! -e "$FINAL_MODEL" ]]; then
   python3 "$PROJECT_ROOT/scripts/assemble_coupled_checkpoint.py" \
     --source "$SOURCE_MODEL" --layer-root "$LAYER_ROOT" \
-    --output "$FINAL_MODEL" --layers $(seq 3 78) \
+    --output "$FINAL_MODEL" --layers $(seq 3 77) \
     >"$RESULTS_ROOT/assembly.log"
 elif [[ ! -f "$FINAL_MODEL/COUPLED_REENCODE_MANIFEST.json" ]] ||
      ! jq_pass "$FINAL_MODEL/COUPLED_REENCODE_MANIFEST.json" \
-       '.complete == true and .all_routed_layers_coupled == true and
+       '.complete == true and .all_target_routed_layers_coupled == true and
+        .mtp_layer_78_policy == "preserve_source_unchanged" and
         .routed_layer_average_rate_is_uniform == false and
         .per_layer_bit_census["3"] == {"k3":720,"k4":48,"total":768} and
         .per_layer_bit_census["4"] == {"k3":672,"k4":96,"total":768}'; then
@@ -102,11 +103,13 @@ fi
 if [[ ! -f "$CODEC_JSON" ]]; then
   python3 "$ACCEPTANCE_ROOT/scripts/validate_model_codec.py" \
     --model "$FINAL_MODEL" --revision local-k96tail-coupled-assembly \
-    --offline --require-all-coupled --sample-shards 76 \
+    --offline --require-target-coupled-preserved-mtp78 --sample-shards 76 \
     --result-json "$CODEC_JSON" >"$RESULTS_ROOT/model-codec.log"
 fi
 jq_pass "$CODEC_JSON" \
-  '.pass == true and .routed_layer_count == 76 and .mtp_layer78_routed == 768'
+  '.pass == true and .routed_layer_count == 76 and
+   .mtp_layer78_routed == 768 and .mtp_layer78_preserved == true and
+   (.coupled_layers | length) == 75'
 
 KLD_COMMAND_STATUS=0
 if [[ ! -f "$KLD_JSON" ]]; then

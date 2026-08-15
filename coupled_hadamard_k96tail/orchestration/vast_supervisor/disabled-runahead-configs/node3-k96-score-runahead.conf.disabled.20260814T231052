@@ -1,0 +1,54 @@
+[program:k96-score-runahead-69]
+command=/usr/bin/env RUN_LAYERS=69 GPU_OVERRIDE=2 SCORE_START=0 SCORE_END=32 SCORE_SHARDS_PER_LAYER=8 WAVE_INPUT_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/wave-067-070 PROFILE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles SCORE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-tail-rate-scores-no-shortcut-v5 /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_coupled_tail_score_wave.sh 67 70
+directory=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+autostart=true
+autorestart=false
+startsecs=1
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/workspace/k96-logs/score-runahead-069.log
+stderr_logfile=/workspace/k96-logs/score-runahead-069.err.log
+
+[program:k96-score-runahead-71]
+command=/usr/bin/env RUN_LAYERS=71 GPU_OVERRIDE=4 SCORE_START=0 SCORE_END=32 SCORE_SHARDS_PER_LAYER=8 WAVE_INPUT_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/wave-071-074 PROFILE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles SCORE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-tail-rate-scores-no-shortcut-v5 /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_coupled_tail_score_wave.sh 71 74
+directory=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+autostart=true
+autorestart=false
+startsecs=1
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/workspace/k96-logs/score-runahead-071.log
+stderr_logfile=/workspace/k96-logs/score-runahead-071.err.log
+
+[program:k96-score-runahead2-68]
+command=/usr/bin/env RUN_LAYERS=68 GPU_OVERRIDE=1 SCORE_START=0 SCORE_END=8 SCORE_SHARDS_PER_LAYER=8 WAVE_INPUT_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/wave-067-070 PROFILE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles SCORE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-tail-rate-scores-no-shortcut-v5 /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_coupled_tail_score_wave.sh 67 70
+directory=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+autostart=true
+autorestart=false
+startsecs=1
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/workspace/k96-logs/score-runahead2-068.log
+stderr_logfile=/workspace/k96-logs/score-runahead2-068.err.log
+
+[program:k96-score-runahead2-69]
+command=/usr/bin/env RUN_LAYERS=69 GPU_OVERRIDE=2 SCORE_START=8 SCORE_END=16 SCORE_SHARDS_PER_LAYER=8 WAVE_INPUT_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/wave-067-070 PROFILE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles SCORE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-tail-rate-scores-no-shortcut-v5 /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_coupled_tail_score_wave.sh 67 70
+directory=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+autostart=true
+autorestart=false
+startsecs=1
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/workspace/k96-logs/score-runahead2-069.log
+stderr_logfile=/workspace/k96-logs/score-runahead2-069.err.log
+
+[program:k96-score-runahead2-71]
+command=/usr/bin/env RUN_LAYERS=71 GPU_OVERRIDE=4 SCORE_START=8 SCORE_END=16 SCORE_SHARDS_PER_LAYER=8 WAVE_INPUT_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-wave-inputs/wave-071-074 PROFILE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-no-shortcut-recipe-v1/final_profiles SCORE_ROOT=/media/brandonmusic/nvme1n1p3/glm52-coupled-tail-rate-scores-no-shortcut-v5 /home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625/scripts/run_coupled_tail_score_wave.sh 71 74
+directory=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+autostart=true
+autorestart=false
+startsecs=1
+stopasgroup=true
+killasgroup=true
+stdout_logfile=/workspace/k96-logs/score-runahead2-071.log
+stderr_logfile=/workspace/k96-logs/score-runahead2-071.err.log

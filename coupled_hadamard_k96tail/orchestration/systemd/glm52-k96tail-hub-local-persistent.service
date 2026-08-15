@@ -1,0 +1,18 @@
+[Unit]
+Description=Persist sealed local GLM-5.2 K96-tail layers 003 through 046 to public Hub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=HF_XET_HIGH_PERFORMANCE=1
+Environment=HF_HUB_DISABLE_XET=1
+Environment=HF_HOME=/home/brandonmusic/.cache/huggingface
+Environment=HF_TOKEN_PATH=/home/brandonmusic/.cache/huggingface/token
+ExecStart=/home/brandonmusic/.local/bin/hf upload-large-folder brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail /home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-hub-staging/local-003-046 --num-workers 4 --no-bars
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target

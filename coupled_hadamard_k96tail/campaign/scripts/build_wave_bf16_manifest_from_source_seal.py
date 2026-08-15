@@ -56,13 +56,16 @@ def main() -> None:
     if args.source_seal.is_symlink() or not source_path.is_file():
         raise ValueError("source seal must be a plain file")
     layers = tuple(args.layers)
+    terminal_subset = layers == (75, 76, 77)
     if (
-        len(layers) != 4
+        (len(layers) != 4 and not terminal_subset)
         or tuple(sorted(layers)) != layers
         or len(set(layers)) != len(layers)
         or any(layer < 3 or layer > 78 for layer in layers)
     ):
-        raise ValueError("layers must be four unique ascending routed layers")
+        raise ValueError(
+            "layers must be four unique ascending routed layers or terminal 75,76,77"
+        )
 
     source_raw = source_path.read_bytes()
     source = json.loads(source_raw)
@@ -71,7 +74,8 @@ def main() -> None:
         or source.get("schema") != SOURCE_SCHEMA
         or source.get("repo") != REPO
         or source.get("revision") != REVISION
-        or source.get("layers") != list(layers)
+        or source.get("layers")
+        != ([74, 75, 76, 77] if terminal_subset else list(layers))
         or not isinstance(source.get("index"), dict)
         or source["index"].get("sha256") != INDEX_SHA256
         or source.get("complete_index_header_binding_validated") is not True
@@ -101,11 +105,13 @@ def main() -> None:
         }
         selected_tensor_count += selected_count
 
+    source_layers = tuple(int(layer) for layer in source["layers"])
+    source_expected_selected = len(source_layers) * 256 * 3
     expected_selected = len(layers) * 256 * 3
     total_bytes = sum(int(record["bytes"]) for record in records.values())
     if (
-        selected_tensor_count != expected_selected
-        or source.get("target_tensor_count") != expected_selected
+        selected_tensor_count != source_expected_selected
+        or source.get("target_tensor_count") != source_expected_selected
         or source.get("total_shard_bytes") != total_bytes
     ):
         raise ValueError("wave source-seal tensor or byte census differs")
@@ -116,7 +122,7 @@ def main() -> None:
         "revision": REVISION,
         "index_sha256": INDEX_SHA256,
         "layers": list(layers),
-        "selected_tensor_count": selected_tensor_count,
+        "selected_tensor_count": expected_selected,
         "shards": records,
         "total_shard_bytes": total_bytes,
     }
