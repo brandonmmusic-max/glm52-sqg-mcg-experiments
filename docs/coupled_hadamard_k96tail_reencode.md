@@ -90,8 +90,8 @@ inverses and preserve the unquantized expert function. A plain block Hadamard
 is self-inverse. For the signed form, the inverse of `D H` is `H D`, and the
 gate/up path also performs the matching interleave and split. Quantization error
 can change because the K3 and K4 trellis encoders see a different coordinate
-system. A claim that the transform lowers final-logit KLD still requires the
-full-model KLD gate.
+system. The measured full-model KLD gate, reported below, is the authority for
+whether that coordinate change improves final-logit quality.
 
 ## Rate contract
 
