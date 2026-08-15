@@ -1,0 +1,14 @@
+[Unit]
+Description=Complete and verify final public GLM-5.2 coupled K96Tail model upload
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/brandonmusic/KLC_SANDBOXES/ii-r11-k96-runtime/deploy/complete-final-model-upload.sh
+Restart=on-failure
+RestartSec=60
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target

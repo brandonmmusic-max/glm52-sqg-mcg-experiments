@@ -15,11 +15,12 @@ layer use the K4 trellis rate. It does not mean 96 bits or 96 layers.
 |---|---|---|
 | Coupled transform and GLM activation closure | implemented | Updated QSRT transform, exact `silu(gate) * up`, and transform closure tests |
 | Per-layer profile, beta, allocation, encode, selection, and materialization pipeline | implemented | Fail-closed campaign launchers and receipt validators |
-| Routed layers 3 through 18 | qualified | Hash-bound layer shards, layer manifests, quality receipts, exact scorer/encoder parity for layers 4 through 18, and passing native B12X runtime oracles |
-| Routed layers 19 through 78 | unsupported | No complete, qualified shard set exists for these layers |
-| Full 76-layer assembled checkpoint | unsupported | Assembly is forbidden until every routed layer passes the layer gates |
-| End-to-end KLD improvement | research-only | The candidate TP4/PP1/DCP1 KLD run has not completed |
-| Release checkpoint | unsupported | Codec census, full KLD distribution gates, MTP3 smoke, and sealed reproduction bundle remain open |
+| Routed layers 3 through 77 | qualified | Hash-bound layer shards, layer manifests, scorer/encoder parity, and passing TP1 native B12X runtime oracles |
+| Preserved source-SQG MTP layer 78 | qualified | Source layer is present in the assembled checkpoint and loaded/executed under the sealed TP4/DCP4/MTP3 runtime |
+| Full 76-layer assembled checkpoint | qualified | Assembly manifest and complete codec census pass at `/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail` |
+| Exact TP4/DCP1 full-vocabulary KLD | research-only | All 2,047 positions are finite, but candidate mean KLD is 84.849 percent worse than the frozen source |
+| TP4/DCP4/MTP3 runtime and task suite | qualified | Four rank receipts cover loaded/executed layers 3 through 78; Estonia is 5/5 correct and LAVD is 5/5 correct under tolerance |
+| Public Hugging Face checkpoint | unsupported | Routed-layer upload is incomplete and no complete Hub verification receipt exists |
 
 `implemented` means the code path and its fail-closed checks exist.
 `qualified` means the named artifact passed the stated measurements.
@@ -100,13 +101,18 @@ the original 3.0625-bpw target, but the implemented K96-tail contract is:
 | Routed layers | K3 tensors per layer | K4 tensors per layer | Per-layer bpw |
 |---|---:|---:|---:|
 | Layer 3 | 720 | 48 | 3.0625 |
-| Layers 4 through 78 | 672 | 96 | 3.125 |
+| Layers 4 through 77 | 672 | 96 | 3.125 |
+| Preserved source-SQG MTP layer 78 | Source SQG rate | Source SQG rate | 3.5 |
 
 Each layer has 256 experts and three independently rated projection tensors per
-expert, for 768 rated tensors. The 76-layer arithmetic mean is
-`3.124177631579` bpw. The artifact is not a uniform 3.0625-bpw routed model.
+expert, for 768 rated tensors. The arithmetic mean across re-encoded layers 3
+through 77 is `3.1241666666666665` bpw. Including preserved source-SQG MTP
+layer 78, the arithmetic mean across all 76 routed layers is
+`3.1291118421052633` bpw. The artifact is not a uniform 3.0625-bpw routed
+model.
 
-Layer 3 is the sealed K48 coupled layer artifact. Layers 4 through 78 use K96.
+Layer 3 is the sealed K48 coupled layer artifact. Layers 4 through 77 use K96.
+MTP layer 78 remains at the source SQG rate.
 The final assembly manifest must report `routed_layer_average_rate_is_uniform`
 as false and must preserve the per-layer census.
 
@@ -146,9 +152,9 @@ positions. The guard may exchange K4 assignments while enforcing one percent
 total and body regression limits on the calibration objective.
 
 The source-worst-40 signal is `research-only`. It is an in-sample allocation
-signal, not end-to-end acceptance evidence. Layer 78 has no source route signal
-and therefore uses its unguarded layer-native K96 allocation. No position is
-removed from the final KLD measurement.
+signal, not end-to-end acceptance evidence. No position is removed from the
+final KLD measurement. Preserved source-SQG MTP layer 78 does not use a K96
+allocation.
 
 ## Layer qualification gates
 
@@ -170,30 +176,33 @@ A routed layer is `qualified` only when all of these conditions pass:
 Passing these gates establishes layer construction and runtime closure. It does
 not establish final-logit KLD quality.
 
-## Full-model acceptance gates
+## Full-model acceptance result
 
-The full checkpoint remains `unsupported` until all 76 routed layers pass the
-layer gates and these model gates pass:
+The mechanical checkpoint is `qualified`, the sealed TP4/DCP4/MTP3 runtime is
+`qualified`, and overall model quality is `research-only`. The measured result
+for each model gate is:
 
-1. Assemble routed layers 3 through 78 over the unchanged frozen source
-   checkpoint and write `COUPLED_REENCODE_MANIFEST.json`.
-2. Run a full codec census over all 76 routed layers, including all 768 routed
-   tensors in MTP layer 78.
-3. Run the candidate against the same sealed BF16 logits as the source under
-   TP4, PP1, and DCP1 for all 2,047 positions.
-4. Require zero nonfinite positions and zero trimmed positions.
-5. Require candidate mean KLD, p99 KLD, and worst-one-percent CVaR to be lower
-   than the source checkpoint.
-6. Run a 16-token MTP3 production smoke under TP1, PP4, and DCP1.
-7. Seal the scripts, compact receipts, runtime identity, model manifest, and
-   SHA-256 manifest into a reproduction bundle.
+1. The assembled checkpoint and `COUPLED_REENCODE_MANIFEST.json` exist.
+2. The full codec census passes across routed layers 3 through 78.
+3. Exact TP4/DCP1 full-vocabulary KLD covers 2,047 of 2,047 positions with no
+   nonfinite or trimmed positions.
+4. The KLD improvement gate fails. Candidate mean is
+   `0.1401771516114036`, median is `0.0015440876595675945`, p95 is
+   `0.6778242588043213`, p99 is `2.480538845062256`, worst-one-percent CVaR
+   is `4.160942645300002`, and maximum is `8.928885459899902`.
+5. Candidate mean KLD is `0.06434397709923104` higher than source, or
+   `1.84849x` source and 84.849 percent worse.
+6. Sealed TP4/DCP4/MTP3 runtime evidence covers four ranks and layers 3 through
+   78 with no fatal audit matches. Estonia passes 5/5. LAVD passes 5/5 under
+   its published tolerance, with four exact answers and one near answer.
+7. The reproduction bundle contains hash-bound runtime and evaluation evidence.
 
 The source checkpoint's measured untrimmed TP4/PP1/DCP1 distribution is mean
 `0.075833174512`, median `0.000611608732`, p95 `0.380242288113`, p99
 `1.397577404976`, worst-one-percent CVaR `2.207112874304`, and maximum
 `5.978030681610`. The 40 largest positions contain 43.433 percent of the total
-KLD. Those values explain the tail gates. They do not predict the candidate's
-result.
+KLD. The measured candidate does not pass the source-relative quality gate and
+must not be promoted as a quality-passing release.
 
 ## Runtime and code bindings
 

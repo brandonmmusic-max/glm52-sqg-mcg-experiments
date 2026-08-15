@@ -1,0 +1,23 @@
+{
+  "schema": "glm52-k96-exact-r11-mtp3-metrics-v1",
+  "created_at": "2026-08-15T05:09:45-04:00",
+  "image_id": "sha256:ab6bd60716b0a8e453b6345cb10e43e79726d92729b1f29058e31d7cc1c67def",
+  "container_id": "8c41c0586c8d18871abd3248e183016f09e86c30417187e374c797c987e8237f",
+  "topology": "TP4/DCP4/MTP3",
+  "speculative_depth": 3,
+  "draft_sequences": 29568.0,
+  "draft_tokens": 88704.0,
+  "accepted_tokens": 76631.0,
+  "aggregate_acceptance_rate": 0.863895652958153,
+  "accepted_tokens_per_position": [
+    27329.0,
+    25498.0,
+    23804.0
+  ],
+  "acceptance_rate_per_position": [
+    0.9242762445887446,
+    0.8623511904761905,
+    0.8050595238095238
+  ],
+  "generation_tokens": 106204.0
+}
