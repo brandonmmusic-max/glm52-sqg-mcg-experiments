@@ -1,0 +1,24 @@
+{
+  "candidate_checkpoint": "/model",
+  "candidate_index_sha256": "98d8c371ba5ec8aaf2e326b228bcd36a5df4cad600085a8f4dd2e098f2474e9f",
+  "candidate_shard": "direct-bf16-00001-of-00282.safetensors",
+  "candidate_shard_sha256": "32448fb3c149fb8024efd99c3d0e0df7f33ae09f0f3173234f32fcbf4b6f2316",
+  "checkpoint_tensor_key": "lm_head.weight",
+  "complete": true,
+  "dtype": "BF16",
+  "file": "weight.safetensors",
+  "file_sha256": "f56e1020446f4eaf73b418dd62ef853eb51e4f5c502d09ec0301086a90557969",
+  "key": "weight",
+  "raw_tensor_sha256": "a012be05e7716292407d418b408222de256d4dbe2fe2143a44d27d8e3553bfba",
+  "schema": "glm52-canonical-bf16-lm-head-v1",
+  "shape": [
+    154880,
+    6144
+  ],
+  "size_bytes": 1903165672,
+  "source_candidate_byte_identity": true,
+  "source_checkpoint": "/source",
+  "source_index_sha256": "62182715e5ef3eb0069b38ff710a38e7a118154278768a8c7ab8efed60c501f5",
+  "source_shard": "direct-bf16-00001-of-00282.safetensors",
+  "source_shard_sha256": "32448fb3c149fb8024efd99c3d0e0df7f33ae09f0f3173234f32fcbf4b6f2316"
+}

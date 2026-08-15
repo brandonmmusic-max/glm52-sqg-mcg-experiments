@@ -1,0 +1,14 @@
+[Unit]
+Description=Publish final K96Tail model card, scripts, and results after tensor upload
+After=network-online.target glm52-k96tail-final-model-upload.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/brandonmusic/KLC_SANDBOXES/ii-r11-k96-runtime/deploy/wait-and-publish-hf-release.sh
+Restart=on-failure
+RestartSec=60
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target

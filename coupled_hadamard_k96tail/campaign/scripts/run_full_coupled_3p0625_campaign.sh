@@ -476,6 +476,6 @@ python3 "$ACCEPTANCE_ROOT/scripts/validate_model_codec.py" \
   --result-json "$ACCEPTANCE_ROOT/RESULTS/full_coupled_k96tail_no_shortcut_model_codec_quick.json"
 
 log "running full untrimmed TP4/PP1/DCP1 KLD and distribution gates"
-"$PROJECT_ROOT/scripts/run_finalize_k96tail_model.sh"
+bash "$PROJECT_ROOT/scripts/run_finalize_k96tail_model.sh"
 
 log "campaign encode, per-layer validation, assembly, codec census, and KLD complete"

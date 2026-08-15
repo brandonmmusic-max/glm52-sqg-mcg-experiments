@@ -8,6 +8,10 @@ layer=$1
 padded=$(printf '%03d' "$layer")
 
 PROJECT_ROOT=/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625
+if [[ -x /workspace/k96-runtime/bundle/rootfs/lib64/ld-linux-x86-64.so.2 &&
+      -x "$PROJECT_ROOT/scripts/run_validate_coupled_runtime_layer_vast_native.sh" ]]; then
+  exec "$PROJECT_ROOT/scripts/run_validate_coupled_runtime_layer_vast_native.sh" "$layer"
+fi
 OVERLAY_ROOT=/home/brandonmusic/KLC_SANDBOXES/glm52_sqg_w4a8_sm120_local_acceptance_20260812/build-context/overlay
 QSRT_ROOT=/home/brandonmusic/KLC_SANDBOXES/qsrt-glm52-port
 EXLLAMA_ROOT=${FRESH_SQG_EXLLAMA_EXTENSION_ROOT:-$PROJECT_ROOT/runtime-dependencies/v39_ext/exllamav3}

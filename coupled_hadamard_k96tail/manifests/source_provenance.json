@@ -1,10 +1,35 @@
 {
   "campaign_source": {
-    "active_equal_file_count": 101,
-    "file_count": 102,
+    "active_equal_file_count": 96,
+    "file_count": 103,
     "measured_host_root": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625",
-    "publication_normalization": "campaign/tests/conftest.py adds the adjacent complete published QSRT source root to sys.path",
-    "published_root": "campaign"
+    "published_root": "campaign",
+    "active_historical_test_archive": "campaign/tests/archive/test_k96tail_reproduction_contract.active.py.gz",
+    "active_historical_test_archive_sha256": "c5e29cf8eaf3b40160cd690dbed2970fc57bd618e2e7cc04e932fd981768d3c2",
+    "active_historical_test_decompressed_sha256": "6829a54dcc8eed37b7190c86d6345aa2ee7b6eb803c03e4268a2205b46badf39",
+    "finalized_contract_normalization": {
+      "reason": "replace the active pre-finalization ledger with sealed local mechanical, KLD, hidden-replay, runtime, and publication facts while preserving Hub tensor placeholders",
+      "active_historical_path": "reproduction/k96tail-distributed-campaign.json",
+      "active_historical_sha256": "9f3a30e7454d2ceb03bcd45dc0635294b54798bafed09e253ef675ebec1da6ce",
+      "published_path": "reproduction/machine/k96tail-distributed-campaign.json",
+      "allowed_changed_top_level_keys": [
+        "final_results",
+        "model",
+        "phase_completion",
+        "pins",
+        "qualification_contract",
+        "rate_policy",
+        "status"
+      ]
+    },
+    "publication_specific_files": [
+      "docs/K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md",
+      "hub/k96tail-staging/README.md",
+      "reproduction/README.md",
+      "reproduction/k96tail-distributed-campaign.json",
+      "scripts/audit_k96tail_campaign.py",
+      "tests/test_k96tail_reproduction_contract.py"
+    ]
   },
   "compact_evidence": {
     "atomic_score_bytes_bound": 2154247428,
@@ -37,9 +62,29 @@
     "upstream": "https://github.com/local-inference-lab/qsrt.git"
   },
   "reproduction_source": {
-    "file_count": 4,
-    "measured_host_root": "/home/brandonmusic/KLC_SANDBOXES/glm52_fresh_sqg_3p0625",
+    "file_count": 5,
+    "status": "current_publication_closure_not_claimed_byte_equal_to_historical_active_docs",
     "published_root": "reproduction"
+  },
+  "hub_documentation": {
+    "model_repo": "brandonmusic/GLM-5.2-SQG-Coupled-H512-H128-K96Tail",
+    "reproduction_closure_revision": "50f4c166b2061171117008a6704b62dccdd999a4",
+    "model_card_revision": "7b936cad625f1e0ec58038d48d90775c83e9b9bf",
+    "model_card_sha256": "ce4b6ea5ca697790b1262978b405b90a26a6dc3c2c58d84ec143bf73c9d1c344",
+    "dataset_repo": "brandonmusic/GLM-5.2-BMM-Law-SQG-Hessians",
+    "dataset_main_card_revision": "be0f529acd36bda58e7770476343e8c1126f4882",
+    "dataset_card_sha256": "d6af2a4d9517f9d68be51765907ceec08ebc7868d2325d7f52645803916fa3cb",
+    "dataset_accepted_tag": "accepted-glm52-sqg-w4a8-b300-r1",
+    "dataset_accepted_tag_revision": "db55cc25ea16c49b458d1a3f1a4661095be96ba4"
+  },
+  "final_mechanical_evidence": {
+    "published_root": "evidence/final-mechanical",
+    "mechanical_target_layers": 75,
+    "layer_manifest_quality_oracle_files": 225,
+    "exact_k96_parity_receipts": 74,
+    "layer_3_k48_exception_bound": true,
+    "assembly_manifest_sha256": "5b4309289c69dc618da03d34e10f826b8a6e7ba3fc67969582cf5b81b825a123",
+    "model_codec_receipt_sha256": "a2d0648abc05e883e90d1c0ba0bbbb4464bbe8658fcd77ea5400849a8582bf14"
   },
   "orchestration_source": {
     "file_count": 15,
@@ -48,13 +93,24 @@
     "published_root": "orchestration"
   },
   "runtime_source": {
-    "active_overlay_manifest_sha256": "5918792700a68deba1e35b6a1b41b8c61d23e911251b19b0aa380b4415b83111",
+    "active_overlay_manifest_sha256": "6c8cd37ddf7f2c431e02998352e1ddb50a62c524136d068d1449b0bbb3535dea",
     "file_count": 262,
     "filtered_overlay_file_count": 248,
-    "filtered_overlay_manifest_sha256": "a38176b93fa7c78f3e07fb1aa02f14d7e908b29e92a654c49ccd2c1d379a9431",
+    "filtered_overlay_manifest_sha256": "6e4026f8e637f7b84b5a8297bf2841842bcc69dbd41e91de41da45cc685060c4",
     "measured_host_root": "/home/brandonmusic/KLC_SANDBOXES/glm52_sqg_w4a8_sm120_local_acceptance_20260812",
     "published_root": "runtime",
     "publication_normalization": "removed_five_ruff_cache_files_and_regenerated_overlay_manifest"
+  },
+  "exact_runtime_source": {
+    "active_root": "/home/brandonmusic/KLC_SANDBOXES/ii-r11-k96-runtime",
+    "active_equal_files": [
+      "deploy/accelerate-hf-routed-upload.sh",
+      "deploy/wait-and-upload-final-model.sh"
+    ],
+    "measured_benchmark_root": "/home/brandonmusic/KLC_SANDBOXES/llm-inference-bench-v0.4.29",
+    "measured_benchmark_decompressed_sha256": "59dd767c933e06f9724a84a8883d2aac156252dbbc279ce155658005d27424d7",
+    "exact_bytes_are_compressed": true,
+    "readable_ascii_derivative_is_byte_identical": false
   },
   "schema": "glm52-coupled-k96tail-source-provenance-v2"
 }

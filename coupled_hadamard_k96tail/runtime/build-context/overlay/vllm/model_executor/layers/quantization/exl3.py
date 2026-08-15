@@ -657,14 +657,24 @@ class Exl3Config(QuantizationConfig):
                 )
         if coupled:
             transform = contract.get("coupled_transform")
-            if transform != {
+            expected_transform = {
                 "residual_policy": "coupled_block_hadamard",
                 "residual_block_size": 512,
                 "residual_draw": 0,
                 "preactivation_block_size": 128,
                 "postactivation_block_size": 128,
                 "activation": "silu",
-            }:
+            }
+            if (
+                not isinstance(transform, dict)
+                or any(
+                    transform.get(name) != value
+                    for name, value in expected_transform.items()
+                )
+                or transform.get(
+                    "activation_equation", "silu(gate)*up"
+                ) != "silu(gate)*up"
+            ):
                 raise ValueError(
                     "coupled GLM W4A8 requires exact updated-QSRT "
                     "H512/H128/H128 SiLU semantics"

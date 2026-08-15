@@ -4,15 +4,24 @@ This procedure builds the coupled H512/H128 routed-expert checkpoint from the
 frozen SQG W4A8 model and the saved calibration dataset. It does not download
 or read the official BF16 routed weight shards.
 
-The procedure is `implemented` in the local campaign workspace. The
+The procedure is `implemented` in the local campaign workspace. Mechanical
+checkpoint construction and the TP4/DCP4/MTP3 runtime are `qualified`. Overall
+model quality is `research-only` because exact full-vocabulary KLD regresses
+against the frozen source. The
 [campaign source snapshot](../coupled_hadamard_k96tail/README.md) mirrors the
-active script closure, exact QSRT and KQuant patches, changed-file snapshots,
-and final runtime build context. Its automated equivalence check passes against
-the active workspaces. The repository is not a standalone model payload: the
+active executable sources, exact QSRT and KQuant patches, changed-file
+snapshots, and final runtime build context. The verifier identifies byte-equal
+active files and validates the one finalized machine-contract normalization
+against the hash-bound historical contract. It does not claim that finalized
+documentation is byte-identical to pre-finalization active documentation. Its
+automated integrity check passes against `SOURCE_SHA256SUMS`. The optional
+active-workspace comparison is fail-closed; inspect any difference before
+using an active tree. The repository
+is not a standalone model payload: the
 pinned checkpoint, saved captures, container images, and compiled extensions
 remain external artifacts. Full cross-host execution is therefore
 `unsupported` until a second host proves access to those pinned artifacts. Do
-not substitute the older vendored sources already in the repository.
+not substitute source trees that lack the listed revision and patch hashes.
 
 ## Required artifacts
 
@@ -101,6 +110,7 @@ sha256sum \
 docker image inspect \
   sha256:fdde59fed7f9fc12f9fd5ef1b3b3ea8d5097bf10ebad54b348497102c3a83f82
 
+cd /path/to/glm52-sqg-mcg-experiments
 python3 coupled_hadamard_k96tail/verify_source_sync.py
 ```
 
@@ -134,8 +144,9 @@ each layer. The recipe must report
 ## Run the campaign
 
 The complete controller is `scripts/run_full_coupled_3p0625_campaign.sh` in the
-coupled re-encode source tree. The filename reflects the initial target. The
-controller enforces the hybrid K48 layer-3 and K96 layers-4-through-78 contract.
+coupled re-encode source tree. The filename reflects the project directory,
+not the final mixed-rate average. The controller enforces K48 layer 3, K96
+layers 4 through 77, and byte-preserved source-SQG MTP layer 78.
 
 Run all 19 four-layer waves in the foreground:
 
@@ -300,33 +311,50 @@ and the wave archive remain.
 
 ## Assemble and validate the model
 
-After all 76 routed layers pass, the controller runs:
+After target layers 3 through 77 pass their layer gates, the controller runs:
 
 ```bash
 python3 scripts/assemble_coupled_checkpoint.py \
   --source "$COUPLED_SOURCE_SQG_ROOT" \
   --layer-root /home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail-layers \
   --output /home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail \
-  --layers $(seq 3 78)
+  --layers $(seq 3 77)
 ```
 
 Assembly hard-links unchanged source files, replaces only the selected routed
-layer shards, and writes `COUPLED_REENCODE_MANIFEST.json`. It refuses an
-existing output directory and refuses a partial or mismatched layer seal.
+layer shards, preserves source-SQG MTP layer 78 byte for byte, and writes
+`COUPLED_REENCODE_MANIFEST.json`. It refuses an existing output directory and
+refuses a partial or mismatched layer seal.
 
 The controller then runs the full codec census and
-`scripts/run_finalize_k96tail_model.sh`. The finalizer requires:
+`scripts/run_finalize_k96tail_model.sh`. The finalizer evaluates:
 
-1. All 76 layer manifests and runtime oracles.
-2. A codec census that includes MTP layer 78.
+1. All 75 target layer manifests and TP1 runtime oracles for layers 3 through
+   77, plus exact scorer/encoder parity for the 74 K96 layers 4 through 77.
+   Layer 3 is the sealed K48 exception and has no K96 parity receipt.
+2. A codec census that includes preserved source-SQG MTP layer 78.
 3. A complete untrimmed 2,047-position KLD receipt under TP4/PP1/DCP1.
 4. Mean, p99, and worst-one-percent CVaR below the sealed source checkpoint.
-5. A passing 16-token MTP3 smoke under TP1/PP4/DCP1.
+5. The sealed exact-r11 TP4/DCP4/MTP3 quality summary and runtime MTP summary.
 6. A sealed compact reproduction bundle with `SHA256SUMS`.
 
 `scripts/analyze_kld_position_tail.py` writes diagnostic tail concentrations.
 Its removal ladder does not remove positions from acceptance. The final seal is
 written by `scripts/seal_coupled_k96tail_release.py`.
+
+The assembled checkpoint and codec census pass. Exact TP4/DCP1 KLD covers all
+2,047 positions with no nonfinite values. Candidate mean KLD is
+`0.1401771516114036`, compared with source mean `0.07583317451217256`.
+The delta is `0.06434397709923104`, the ratio is `1.84849x`, and the candidate
+is 84.849 percent worse. Candidate p99 is `2.480538845062256` and
+worst-one-percent CVaR is `4.160942645300002`. The source-relative quality gate
+therefore fails and the model remains `research-only`.
+
+The separate exact Infernal Invocation r11 runtime bundle is `qualified` at
+TP4/DCP4/MTP3. Its four rank receipts cover loaded and executed layers 3
+through 78 with no fatal audit matches. Estonia is 5/5 correct. LAVD is 5/5
+correct under its published tolerance, with four exact answers and one near
+answer of `71,45.75` versus `72,46`.
 
 ## Resume guarantees
 
@@ -336,7 +364,8 @@ because it uses these boundaries:
 - Expert score JSON and row-SSE files are atomic.
 - Existing recipe, profile, beta, allocation, parity, selection, layer, and
   oracle receipts are validated before they are reused.
-- A materialized layer without its parity receipt is rejected.
+- A materialized K96 layer without its parity receipt is rejected. Layer 3 is
+  checked against its separate K48 seal and oracle.
 - Partial layer output is rejected instead of overwritten.
 - A completed wave is skipped only after its layer and runtime gates pass.
 - Model assembly refuses an existing partial destination.
@@ -351,7 +380,14 @@ KQuant working source snapshots, their exact tracked patches and changed files,
 the final runtime build context, runtime dependency identities, and an
 automated hash check under
 [`coupled_hadamard_k96tail`](../coupled_hadamard_k96tail/README.md). This proves
-source equivalence to the measured host. It does not embed the checkpoint,
-saved captures, compiled extensions, or container images. The final
-reproduction bundle created by the acceptance seal becomes the authoritative
-compact execution record only after the model gates pass.
+the enumerated active-source equalities and the bounded finalized-contract
+normalization. It does not embed the checkpoint, saved captures, compiled
+extensions, or container images. The hash-bound
+runtime closure and measured receipts under
+`coupled_hadamard_k96tail/evidence/final-exact-ii-r11` are the compact execution
+record. The completed 75-layer mechanical closure is under
+`coupled_hadamard_k96tail/evidence/final-mechanical`. Public model publication
+is `unsupported` until every local model file
+is present on the Hub and `HUB_FILE_VERIFICATION.json` reports a complete
+file-by-file verification. A transient upload rate is operational evidence,
+not a completion claim or a reproducible ETA.

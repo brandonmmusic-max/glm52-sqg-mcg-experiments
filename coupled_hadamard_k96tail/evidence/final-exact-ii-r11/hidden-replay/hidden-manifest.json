@@ -1,0 +1,34 @@
+{
+  "complete": true,
+  "created_utc": "2026-08-15T08:08:33.506748+00:00",
+  "dtype": "BF16",
+  "file": "hidden_states.safetensors",
+  "file_sha256": "50781f1192645e13899d11f2181717ea05e028688db0201ede6d7e88360ee874",
+  "full_kld_receipt": "/capture/capture-full-kld.json",
+  "full_kld_receipt_sha256": "a67e896ffc1f879cdb3320042c50981532ce7837e0375fe34bcb0729fe685fc7",
+  "hidden_width": 6144,
+  "interpretation": "Raw prompt capture retains all 2,048 rows; rows 0..2,046 are scored against next-token reference logits and row 2,047 is retained but not scored because its continuation target is absent.",
+  "key": "hidden_states",
+  "raw_chunks": [
+    {
+      "file": "0-811bfa3b/hidden.rows-000000-002048.safetensors",
+      "row_end": 2048,
+      "row_start": 0,
+      "sha256": "0bc36a066b48662418e2f5b92c469b1bfbbbd22e0130b5617450a974635e2977",
+      "size_bytes": 25166048
+    }
+  ],
+  "raw_rows": 2048,
+  "request_id": "0-811bfa3b",
+  "schema": "glm52-pre-lm-head-hidden-one-context-v1",
+  "scored_rows": 2047,
+  "semantic_point": "after_final_rmsnorm_before_lm_head",
+  "shape": [
+    2048,
+    6144
+  ],
+  "size_bytes": 25166120,
+  "token_file": "/tokens.json",
+  "token_file_sha256": "d0be87a4909ad00c311e36fc5c81c7d6942216c16a8fbbbf77778edb273346f1",
+  "token_sequence_sha256": "d0be87a4909ad00c311e36fc5c81c7d6942216c16a8fbbbf77778edb273346f1"
+}

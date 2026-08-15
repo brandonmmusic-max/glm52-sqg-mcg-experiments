@@ -1,0 +1,80 @@
+services:
+  glm52-k96:
+    image: ${IMAGE:-verdictai/glm52-k96-ii-r11:20260815-tpfix-mtpfix}
+    container_name: ${NAME:-glm52-k96-ii-r11-tp4dcp4mtp3}
+    entrypoint: ["/usr/local/bin/serve-infernal-invocation.sh"]
+    command:
+      - --disable-custom-all-reduce
+    network_mode: host
+    ipc: host
+    privileged: true
+    init: true
+    shm_size: 32gb
+    gpus: all
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 1048576
+        hard: 1048576
+      stack: 67108864
+    environment:
+      MODEL_FAMILY: glm52-exl3
+      GPUS: ${GPUS:-0,1,2,3}
+      PORT: ${PORT:-8000}
+      MODEL: /model
+      MODEL_REVISION: ""
+      SERVED_MODEL_NAME: ${SERVED_MODEL_NAME:-GLM-5.2-SQG-Coupled-K96Tail}
+      TP: 4
+      DCP: 4
+      MTP: 3
+      MAX_NUM_SEQS: ${MAX_NUM_SEQS:-8}
+      GRAPH: ${GRAPH:-32}
+      # Exact tokenizer census: Estonia is 133,186 input tokens and the frozen
+      # characterization allows up to 60,000 output tokens. The serving ceiling
+      # covers the complete 193,186-token request envelope.
+      MAX_MODEL_LEN: ${MAX_MODEL_LEN:-262144}
+      MAX_BATCHED_TOKENS: ${MAX_BATCHED_TOKENS:-2048}
+      GPU_MEMORY_UTILIZATION: ${GPU_MEMORY_UTILIZATION:-0.96}
+      MOE_MODE: a8
+      MOE_BACKEND: b12x
+      MTP_MOE_BACKEND: triton
+      MTP_DRAFT_SAMPLE_METHOD: greedy
+      QUANTIZATION: exl3
+      ONLINE_QUANT: none
+      KV_CACHE_DTYPE: ${KV_CACHE_DTYPE:-nvfp4_ds_mla}
+      VLLM_EXL3_PREFILL_CAPACITY: ${VLLM_EXL3_PREFILL_CAPACITY:-2048}
+      LOAD_FORMAT: instanttensor
+      INSTANTTENSOR_BACKEND: BUFFERED
+      INSTANTTENSOR_COPY: 0
+      INSTANTTENSOR_BUFFER_SIZE: 536870912
+      INSTANTTENSOR_MAX_FREE_MEM_USAGE: 0.05
+      ASYNC_SCHEDULING: 0
+      F8_DMA: 0
+      DCP_BACKEND: a2a
+      DCP_A2A_MAX_TOKENS: 16
+      DCP_A2A_LARGE_BACKEND: ag_rs
+      DCP_KV_CACHE_INTERLEAVE_SIZE: 64
+      DCP_QUERY_SPLIT: 0
+      DCP_CKV_GATHER: 1
+      DCP_CKV_GATHER_MAX_TOKENS: 140000
+      DCP_CKV_PREFETCH_DEPTH: 0
+      DCP_PREFILL_WORKSPACE: 0
+      B12X_PCIE_DMA: 0
+      PCIE_CALIBRATION: off
+      VLLM_DCP_GLOBAL_TOPK: 1
+      VLLM_DCP_SHARD_DRAFT: 1
+      VLLM_USE_DIRECT_DCP_A2A: 0
+      VLLM_USE_DIRECT_DCP_Q_GATHER: 0
+      VLLM_USE_DIRECT_DCP_KV_GATHER: 0
+      VLLM_GLM_SQG_W4A8_TOPOLOGY_ATTESTATION: tp4dcp4mtp3
+      VLLM_GLM_SQG_W4A8_EVIDENCE_DIR: /results/runtime-evidence
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - ${MODEL_DIR:-/home/brandonmusic/models/GLM-5.2-SQG-Coupled-H512-H128-K96Tail}:/model:ro
+      - ${HF_CACHE:-/home/brandonmusic/.cache/huggingface}:/root/.cache/huggingface
+      - ${JIT_CACHE:-/home/brandonmusic/KLC_SANDBOXES/ii-r11-k96-runtime/cache}:/cache
+      - ${RESULTS_DIR:-/home/brandonmusic/KLC_SANDBOXES/ii-r11-k96-runtime/results}:/results
+      - ${CONTAINER_TMP:-/home/brandonmusic/KLC_SANDBOXES/ii-r11-k96-runtime/cache/tmp}:/container-tmp

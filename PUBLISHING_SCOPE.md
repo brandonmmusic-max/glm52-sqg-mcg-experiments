@@ -30,7 +30,7 @@ bulky per-sample arrays whose compact results are published separately:
 | `fresh-sqg-contig-late-alpha{000,050,075,100}-r1` | model-scale per-arm payloads | completed alpha-panel expert/model tensors and working state | all-arm aggregate/per-layer JSON, Markdown, support analysis, layerwise follow-up, receipts, and all four run seals |
 | alpha-panel and Test 8b per-position NPZ arrays | about 32 MB | bulky per-position/per-layer analysis arrays | aggregate and per-layer JSON/Markdown plus exact path, byte count, and SHA-256 manifest |
 | `results/glm52_sqg_w4a8_core_benchmark_l077_r1.json` | 3,516,542 | 126-case raw timing arrays with 200 samples per arm | compact Test 8c report, exact benchmark/test/kernel snapshots, and raw-result path/SHA-256 receipt |
-| Coupled-Hadamard K96-tail model, saved captures, atomic expert score JSON, score row-SSE arrays, layer score manifests, wave archives, and rolling candidate tensors | model-scale; the frozen atomic score set is 2,154,247,428 bytes across 12,032 JSON and 12,032 row-SSE files | active model, calibration, and bulky reproducible intermediate payloads | exact campaign/orchestration source, complete QSRT/KQuant working snapshots, compact layer/quality/oracle/parity/allocation/recipe evidence through sealed layer 46, aggregate score metrics through layer 50, and SHA-256 bindings for all 24,064 atomic score files under `coupled_hadamard_k96tail/` |
+| Coupled-Hadamard K96-tail model, saved captures, atomic expert score JSON, score row-SSE arrays, layer score manifests, wave archives, and rolling candidate tensors | model-scale; the frozen atomic score set is 2,154,247,428 bytes across 12,032 JSON and 12,032 row-SSE files | model, calibration, and bulky reproducible intermediate payloads | exact campaign/orchestration source, complete QSRT/KQuant working snapshots, 75 target-layer manifests, quality receipts, and passing runtime oracles, 74 exact K96 parity receipts for layers 4--77, the sealed layer-3 K48 exception, assembly and codec receipts, full-model KLD and qualification evidence, and SHA-256 bindings for all 24,064 frozen atomic score files under `coupled_hadamard_k96tail/` |
 | Coupled-Hadamard compiled extensions and container layers | external runtime artifacts | compiled and image payloads | pinned image IDs, extension SHA-256 values, source overlay, Docker build context, and runtime dependency manifest |
 
 The omitted tensors cannot be reconstructed from this Git repository alone.
@@ -67,12 +67,15 @@ logs are preserved as historical provenance and refer to the original machine.
   policy, rolling fixed-point DAG, production-v2/storage/runtime static
   integration boundary, and first-wave construction status. No live model
   payload, raw capture, runtime cache, or secret is included.
-- `coupled_hadamard_k96tail/`: 102-file campaign/test closure (101 exact active
-  bytes plus one documented test-path normalization), complete
+- `coupled_hadamard_k96tail/`: 103-file campaign/test closure (96 exact active
+  files, an exact archived copy of the historical active contract test, and
+  publication-specific documentation, audit, test, and finalized-ledger
+  normalization), complete
   active QSRT and KQuant working source snapshots, tracked patches, runtime
   source context, current reproduction contract, Vast/systemd orchestration,
-  timestamped compact evidence through sealed layer 46 and score-complete layer
-  50, and automated source/evidence equivalence validation. Generated caches,
+  timestamped pre-finalization evidence, complete 75-layer mechanical evidence,
+  full-model KLD and exact-r11 qualification evidence, and automated
+  source/evidence equivalence validation. Generated caches,
   compiled objects, container layers, model tensors, saved activation captures,
   atomic score payloads, row-SSE arrays, and wave archives are excluded.
 

@@ -5,10 +5,11 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+import gzip
 import hashlib
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import tarfile
@@ -20,6 +21,7 @@ ROOT = Path(__file__).resolve().parent
 MANIFEST = ROOT / "SOURCE_SHA256SUMS"
 PROVENANCE = ROOT / "manifests" / "source_provenance.json"
 SNAPSHOT = ROOT / "evidence" / "snapshot_2026-08-15T002639-0400"
+FINAL_MECHANICAL = ROOT / "evidence" / "final-mechanical"
 SOURCE_EXCLUDED_PARTS = frozenset(
     {
         ".git",
@@ -153,18 +155,244 @@ def read_sha256_manifest(path: Path) -> dict[str, str]:
     return result
 
 
+def read_exact_archive(archive: Path, expected_sha256: str) -> bytes:
+    if sha256(archive) != expected_sha256:
+        raise ValueError(f"archive hash differs: {archive}")
+    with gzip.open(archive, "rb") as handle:
+        return handle.read()
+
+
+def read_tar_archive(
+    archive: Path,
+    expected_archive_sha256: str,
+    inner_manifest: Path,
+    expected_manifest_sha256: str,
+) -> dict[str, bytes]:
+    if sha256(archive) != expected_archive_sha256:
+        raise ValueError(f"tar archive hash differs: {archive}")
+    if sha256(inner_manifest) != expected_manifest_sha256:
+        raise ValueError(f"inner manifest hash differs: {inner_manifest}")
+    expected = read_sha256_manifest(inner_manifest)
+    observed: dict[str, bytes] = {}
+    with tarfile.open(archive, mode="r:gz") as handle:
+        for member in handle.getmembers():
+            path = PurePosixPath(member.name)
+            if (
+                not member.isfile()
+                or path.is_absolute()
+                or ".." in path.parts
+                or member.name in observed
+            ):
+                raise ValueError(f"unsafe tar member: {member.name}")
+            stream = handle.extractfile(member)
+            if stream is None:
+                raise ValueError(f"tar member has no bytes: {member.name}")
+            observed[member.name] = stream.read()
+    if set(observed) != set(expected):
+        raise ValueError(f"tar member set differs: {archive}")
+    for name, payload in observed.items():
+        if hashlib.sha256(payload).hexdigest() != expected[name]:
+            raise ValueError(f"tar member hash differs: {archive}:{name}")
+    return observed
+
+
+def json_bytes(payload: bytes, label: str) -> dict[str, Any]:
+    value = json.loads(payload.decode("utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"JSON archive member is not an object: {label}")
+    return value
+
+
+def verify_final_mechanical() -> dict[str, Any]:
+    receipt = load_json(FINAL_MECHANICAL / "MECHANICAL_EVIDENCE.json")
+    if (
+        receipt.get("schema")
+        != "glm52-coupled-k96tail-final-mechanical-evidence-v1"
+        or receipt.get("complete") is not True
+        or receipt.get("mechanical_layer_count") != 75
+        or receipt.get("passing_runtime_oracles") != 75
+        or receipt.get("exact_k96_score_encode_parity_receipts") != 74
+    ):
+        raise ValueError("final mechanical summary differs")
+
+    layer_archive = receipt["archives"]["layers"]
+    layers = read_tar_archive(
+        FINAL_MECHANICAL / layer_archive["path"],
+        layer_archive["sha256"],
+        FINAL_MECHANICAL / layer_archive["inner_manifest"],
+        layer_archive["inner_manifest_sha256"],
+    )
+    parity_archive = receipt["archives"]["k96_parity"]
+    parity = read_tar_archive(
+        FINAL_MECHANICAL / parity_archive["path"],
+        parity_archive["sha256"],
+        FINAL_MECHANICAL / parity_archive["inner_manifest"],
+        parity_archive["inner_manifest_sha256"],
+    )
+    if len(layers) != 225 or len(parity) != 74:
+        raise ValueError("final mechanical archive counts differ")
+
+    for layer in range(3, 78):
+        padded = f"{layer:03d}"
+        manifest = json_bytes(
+            layers[f"r7-experts-layer-{padded}.json"], f"layer {layer} manifest"
+        )
+        quality = json_bytes(
+            layers[f"r7-experts-layer-{padded}.quality.json"],
+            f"layer {layer} quality",
+        )
+        oracle = json_bytes(
+            layers[f"runtime-oracle-layer-{padded}.json"],
+            f"layer {layer} oracle",
+        )
+        census = (
+            {"k3": 720, "k4": 48, "total": 768}
+            if layer == 3
+            else {"k3": 672, "k4": 96, "total": 768}
+        )
+        bpw = 3.0625 if layer == 3 else 3.125
+        if not (
+            manifest.get("complete") is True
+            and manifest.get("layer") == layer
+            and manifest.get("bit_census") == census
+            and manifest.get("bits_per_weight") == bpw
+            and quality.get("complete") is True
+            and quality.get("layer") == layer
+            and oracle.get("complete") is True
+            and oracle.get("pass") is True
+            and oracle.get("layer") == layer
+            and oracle.get("bit_census") == census
+            and oracle.get("bits_per_weight") == bpw
+        ):
+            raise ValueError(f"final mechanical layer evidence differs: {layer}")
+
+    for layer in range(4, 78):
+        name = f"layer-{layer:03d}-k096-score-encode-parity.json"
+        value = json_bytes(parity[name], f"layer {layer} parity")
+        if not (
+            value.get("complete") is True
+            and value.get("all_exact") is True
+            and value.get("experts_checked") == 256
+            and value.get("projection_payloads_checked") == 768
+        ):
+            raise ValueError(f"final K96 parity differs: {layer}")
+
+    exception = load_json(FINAL_MECHANICAL / "layer-003-k48-exception.json")
+    if not (
+        exception.get("complete") is True
+        and exception.get("layer") == 3
+        and exception.get("k96_score_encode_parity_receipt") is None
+        and exception.get("parity_disposition")
+        == "not_applicable_layer3_is_k48_not_k96"
+    ):
+        raise ValueError("layer-3 K48 exception differs")
+    assembly = load_json(FINAL_MECHANICAL / receipt["assembly"]["path"])
+    codec = load_json(FINAL_MECHANICAL / receipt["codec"]["path"])
+    if (
+        sha256(FINAL_MECHANICAL / receipt["assembly"]["path"])
+        != receipt["assembly"]["sha256"]
+        or assembly.get("complete") is not True
+        or assembly.get("manifest_id") != receipt["assembly"]["manifest_id"]
+    ):
+        raise ValueError("assembly manifest binding differs")
+    if (
+        sha256(FINAL_MECHANICAL / receipt["codec"]["path"])
+        != receipt["codec"]["sha256"]
+        or codec.get("pass") is not True
+        or codec.get("per_layer_census_ok") is not True
+        or codec.get("coupled_layers") != list(range(3, 78))
+        or codec.get("mtp_layer78_preserved") is not True
+    ):
+        raise ValueError("model codec receipt binding differs")
+    return {
+        "exact_k96_parity_receipts": len(parity),
+        "layer_3_k48_exception": True,
+        "mechanical_layer_files": len(layers),
+        "passing_runtime_oracles": 75,
+        "model_codec_receipt": "pass",
+    }
+
+
+def verify_exact_runtime_archives() -> dict[str, Any]:
+    runtime_root = ROOT / "runtime" / "exact-ii-r11"
+    provenance = load_json(runtime_root / "PROVENANCE.json")
+    benchmark = provenance["quality_runner"]["benchmark"]
+    benchmark_bytes = read_exact_archive(
+        runtime_root / benchmark["exact_source_archive"],
+        benchmark["exact_source_archive_sha256"],
+    )
+    if hashlib.sha256(benchmark_bytes).hexdigest() != benchmark["script_sha256"]:
+        raise ValueError("measured benchmark decompressed hash differs")
+    derivative = runtime_root / benchmark["ascii_derivative"]
+    if (
+        sha256(derivative) != benchmark["ascii_derivative_sha256"]
+        or benchmark["ascii_derivative_is_byte_identical"] is not False
+        or derivative.read_bytes() == benchmark_bytes
+    ):
+        raise ValueError("benchmark ASCII derivative binding differs")
+
+    exact_sources = provenance["archived_exact_sources"]
+    for record in exact_sources:
+        payload = read_exact_archive(
+            runtime_root / record["path"], record["archive_sha256"]
+        )
+        if hashlib.sha256(payload).hexdigest() != record["decompressed_sha256"]:
+            raise ValueError(f"archived exact source differs: {record['path']}")
+
+    qualification = (
+        ROOT
+        / "evidence/final-exact-ii-r11/qualification-5x"
+        / "exact-r11-tp4dcp4mtp3-20260815T084427Z"
+    )
+    archive_provenance = load_json(qualification / "ARCHIVE_PROVENANCE.json")
+    measured = archive_provenance["measured_manifest"]
+    measured_manifest = read_exact_archive(
+        qualification / measured["archive"], measured["archive_sha256"]
+    )
+    if hashlib.sha256(measured_manifest).hexdigest() != measured["decompressed_sha256"]:
+        raise ValueError("measured quality manifest archive differs")
+    for record in archive_provenance["compressed_exact_files"]:
+        payload = read_exact_archive(
+            qualification / record["archive"], record["archive_sha256"]
+        )
+        if hashlib.sha256(payload).hexdigest() != record["decompressed_sha256"]:
+            raise ValueError(
+                f"compressed qualification evidence differs: {record['archive']}"
+            )
+    publication_manifest = read_sha256_manifest(qualification / "SHA256SUMS")
+    observed = {
+        path.relative_to(qualification).as_posix(): path
+        for path in qualification.rglob("*")
+        if path.is_file() and path.name != "SHA256SUMS"
+    }
+    if set(publication_manifest) != set(observed):
+        raise ValueError("qualification publication manifest file set differs")
+    for relative, path in observed.items():
+        if sha256(path) != publication_manifest[relative]:
+            raise ValueError(f"qualification publication hash differs: {relative}")
+    return {
+        "archived_exact_runtime_sources": len(exact_sources),
+        "benchmark_decompressed_sha256": benchmark["script_sha256"],
+        "benchmark_derivative_byte_identical": False,
+        "qualification_archived_exact_files": len(
+            archive_provenance["compressed_exact_files"]
+        ),
+        "qualification_publication_files": len(publication_manifest),
+    }
+
+
 def verify_compact_evidence() -> dict[str, Any]:
     status = load_json(SNAPSHOT / "status.json")
     ledger = load_json(SNAPSHOT / "score_ledger.json")
     if status["schema"] != "glm52-coupled-k96tail-publication-snapshot-v1":
         raise ValueError("compact evidence status schema differs")
     if status["complete"] is not False:
-        raise ValueError("live compact evidence must not claim completion")
+        raise ValueError("historical compact evidence must not claim completion")
     final = status["final_results"]
-    if final["status"] != "PENDING FINAL" or any(
+    if final["status"] != "historical_snapshot_pre_finalization" or any(
         value is not None for key, value in final.items() if key != "status"
     ):
-        raise ValueError("final KLD/model fields are not explicitly pending")
+        raise ValueError("historical snapshot disposition differs")
 
     receipt_path = SNAPSHOT / ledger["receipt_manifest"]["path"]
     if sha256(receipt_path) != ledger["receipt_manifest"]["sha256"]:
@@ -456,39 +684,130 @@ def compare_compact_evidence_active(args: argparse.Namespace) -> dict[str, int]:
     }
 
 
+def compare_final_mechanical_active(args: argparse.Namespace) -> dict[str, int]:
+    receipt = load_json(FINAL_MECHANICAL / "MECHANICAL_EVIDENCE.json")
+    layer_record = receipt["archives"]["layers"]
+    layers = read_tar_archive(
+        FINAL_MECHANICAL / layer_record["path"],
+        layer_record["sha256"],
+        FINAL_MECHANICAL / layer_record["inner_manifest"],
+        layer_record["inner_manifest_sha256"],
+    )
+    for name, payload in layers.items():
+        active = args.active_layer_root / name
+        if not active.is_file() or active.read_bytes() != payload:
+            raise ValueError(f"final mechanical active layer file differs: {name}")
+    parity_record = receipt["archives"]["k96_parity"]
+    parity = read_tar_archive(
+        FINAL_MECHANICAL / parity_record["path"],
+        parity_record["sha256"],
+        FINAL_MECHANICAL / parity_record["inner_manifest"],
+        parity_record["inner_manifest_sha256"],
+    )
+    for name, payload in parity.items():
+        active = args.active_parity_root / name
+        if not active.is_file() or active.read_bytes() != payload:
+            raise ValueError(f"final mechanical active parity file differs: {name}")
+    compare_file(
+        FINAL_MECHANICAL / "COUPLED_REENCODE_MANIFEST.json",
+        args.active_model_root / "COUPLED_REENCODE_MANIFEST.json",
+        "final mechanical assembly manifest",
+    )
+    compare_file(
+        FINAL_MECHANICAL / "model_codec_validation.json",
+        args.active_codec_receipt,
+        "final mechanical codec receipt",
+    )
+    return {
+        "layer_manifest_quality_oracle_files_equal": len(layers),
+        "parity_files_equal": len(parity),
+        "assembly_manifest_equal": 1,
+        "codec_receipt_equal": 1,
+    }
+
+
+def verify_finalized_contract_normalization(
+    active_path: Path,
+    provenance: dict[str, Any],
+) -> dict[str, Any]:
+    published_path = ROOT / "reproduction/machine/k96tail-distributed-campaign.json"
+    campaign_path = ROOT / "campaign/reproduction/k96tail-distributed-campaign.json"
+    compare_file(published_path, campaign_path, "published finalized contracts")
+    active = load_json(active_path)
+    published = load_json(published_path)
+    normalization = provenance["campaign_source"]["finalized_contract_normalization"]
+    if sha256(active_path) != normalization["active_historical_sha256"]:
+        raise ValueError("active historical contract hash differs")
+    allowed = set(normalization["allowed_changed_top_level_keys"])
+    for key in set(active) | set(published):
+        if key not in allowed and active.get(key) != published.get(key):
+            raise ValueError(f"finalized contract changed disallowed key: {key}")
+    changed = sorted(
+        key for key in set(active) | set(published) if active.get(key) != published.get(key)
+    )
+    if changed != sorted(allowed):
+        raise ValueError(
+            f"finalized contract normalization set differs: {changed}"
+        )
+    final = published["final_results"]
+    pending = sorted(key for key, value in final.items() if value is None)
+    if pending != ["hub_model_commit", "tensor_hub_revision"]:
+        raise ValueError(f"finalized contract has non-Hub pending fields: {pending}")
+    if not (
+        published.get("complete") is False
+        and published.get("status") == "research-only"
+        and published["phase_completion"]["final_mechanical_evidence_sealed"] is True
+        and final["mechanical_target_layer_count"] == 75
+        and final["mechanical_runtime_oracle_count"] == 75
+        and final["exact_k96_parity_receipt_count"] == 74
+        and final["model_card_hub_revision"]
+        == "7b936cad625f1e0ec58038d48d90775c83e9b9bf"
+        and final["full_model_quality_gate_pass"] is False
+    ):
+        raise ValueError("finalized publication contract semantics differ")
+    return {
+        "active_historical_sha256": sha256(active_path),
+        "allowed_changed_top_level_keys": changed,
+        "normalizations": 1,
+        "pending_fields_are_hub_only": True,
+    }
+
+
 def compare_active(args: argparse.Namespace, provenance: dict[str, Any]) -> dict[str, Any]:
     campaign_count = compare_subtree(
         ROOT / "campaign",
         args.active_project,
         "campaign",
-        skip=frozenset({"tests/conftest.py"}),
+        skip=frozenset(
+            {
+                "docs/K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md",
+                "hub/k96tail-staging/README.md",
+                "reproduction/README.md",
+                "reproduction/k96tail-distributed-campaign.json",
+                "scripts/audit_k96tail_campaign.py",
+                "tests/archive/test_k96tail_reproduction_contract.active.py.gz",
+                "tests/test_k96tail_reproduction_contract.py",
+            }
+        ),
     )
     if campaign_count != provenance["campaign_source"]["active_equal_file_count"]:
         raise ValueError("campaign source file count differs from provenance")
-    reproduction_count = 0
-    reproduction_files = (
-        (
-            ROOT / "reproduction" / "docs" / "K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md",
-            args.active_project / "docs" / "K96_COUPLED_DISTRIBUTED_REPRODUCTION_20260814.md",
-        ),
-        (
-            ROOT / "reproduction" / "machine" / "README.md",
-            args.active_project / "reproduction" / "README.md",
-        ),
-        (
-            ROOT / "reproduction" / "machine" / "k96tail-distributed-campaign.json",
-            args.active_project / "reproduction" / "k96tail-distributed-campaign.json",
-        ),
-        (
-            ROOT / "reproduction" / "hub" / "README.md",
-            args.active_project / "hub" / "k96tail-staging" / "README.md",
-        ),
+    active_test_archive = (
+        ROOT
+        / "campaign/tests/archive"
+        / "test_k96tail_reproduction_contract.active.py.gz"
     )
-    for published, active in reproduction_files:
-        compare_file(published, active, f"reproduction/{published.name}")
-        reproduction_count += 1
-    if reproduction_count != provenance["reproduction_source"]["file_count"]:
-        raise ValueError("reproduction source file count differs from provenance")
+    active_test_bytes = read_exact_archive(
+        active_test_archive,
+        provenance["campaign_source"]["active_historical_test_archive_sha256"],
+    )
+    active_test = args.active_project / "tests/test_k96tail_reproduction_contract.py"
+    if active_test.read_bytes() != active_test_bytes:
+        raise ValueError("archived active historical campaign test differs")
+    contract_normalization = verify_finalized_contract_normalization(
+        args.active_project / "reproduction/k96tail-distributed-campaign.json",
+        provenance,
+    )
 
     orchestration_count = compare_subtree(
         ROOT / "orchestration" / "vast_supervisor",
@@ -546,6 +865,26 @@ def compare_active(args: argparse.Namespace, provenance: dict[str, Any]) -> dict
         runtime_count += 1
     if runtime_count != provenance["runtime_source"]["file_count"]:
         raise ValueError("runtime source file count differs from provenance")
+    exact_runtime_count = 0
+    for relative in (
+        "deploy/accelerate-hf-routed-upload.sh",
+        "deploy/wait-and-upload-final-model.sh",
+    ):
+        compare_file(
+            ROOT / "runtime/exact-ii-r11" / relative,
+            args.active_exact_runtime / relative,
+            f"exact runtime/{relative}",
+        )
+        exact_runtime_count += 1
+    benchmark = load_json(
+        ROOT / "runtime/exact-ii-r11/PROVENANCE.json"
+    )["quality_runner"]["benchmark"]
+    benchmark_bytes = read_exact_archive(
+        ROOT / "runtime/exact-ii-r11" / benchmark["exact_source_archive"],
+        benchmark["exact_source_archive_sha256"],
+    )
+    if benchmark_bytes != args.active_benchmark.read_bytes():
+        raise ValueError("exact measured benchmark archive differs from active source")
     qsrt_source_count = compare_complete_source(
         ROOT / provenance["qsrt"]["complete_working_source_root"],
         args.active_qsrt,
@@ -572,14 +911,17 @@ def compare_active(args: argparse.Namespace, provenance: dict[str, Any]) -> dict
     )
     return {
         "campaign_files_equal": campaign_count,
-        "campaign_publication_normalizations": 1,
+        "campaign_historical_test_archive_equal": 1,
+        "campaign_publication_normalization": contract_normalization,
         "compact_evidence": compare_compact_evidence_active(args),
+        "final_mechanical_evidence": compare_final_mechanical_active(args),
+        "exact_runtime_active_files_equal": exact_runtime_count,
+        "exact_measured_benchmark_equal": 1,
         "kquant": kquant,
         "kquant_working_source_files_equal": kquant_source_count,
         "qsrt": qsrt,
         "qsrt_working_source_files_equal": qsrt_source_count,
         "orchestration_files_equal": orchestration_count,
-        "reproduction_files_equal": reproduction_count,
         "runtime_files_equal": runtime_count,
     }
 
@@ -601,6 +943,19 @@ def parser() -> argparse.ArgumentParser:
         ),
     )
     result.add_argument(
+        "--active-exact-runtime",
+        type=Path,
+        default=Path("/home/brandonmusic/KLC_SANDBOXES/ii-r11-k96-runtime"),
+    )
+    result.add_argument(
+        "--active-benchmark",
+        type=Path,
+        default=Path(
+            "/home/brandonmusic/KLC_SANDBOXES/"
+            "llm-inference-bench-v0.4.29/llm_decode_bench.py"
+        ),
+    )
+    result.add_argument(
         "--active-qsrt",
         type=Path,
         default=Path("/home/brandonmusic/KLC_SANDBOXES/qsrt-glm52-port"),
@@ -619,6 +974,23 @@ def parser() -> argparse.ArgumentParser:
         default=Path(
             "/home/brandonmusic/models/"
             "GLM-5.2-SQG-Coupled-H512-H128-K96Tail-layers"
+        ),
+    )
+    result.add_argument(
+        "--active-model-root",
+        type=Path,
+        default=Path(
+            "/home/brandonmusic/models/"
+            "GLM-5.2-SQG-Coupled-H512-H128-K96Tail"
+        ),
+    )
+    result.add_argument(
+        "--active-codec-receipt",
+        type=Path,
+        default=Path(
+            "/home/brandonmusic/KLC_SANDBOXES/"
+            "glm52_sqg_w4a8_sm120_local_acceptance_20260812/RESULTS/"
+            "full_coupled_k96tail_no_shortcut_model_codec_quick.json"
         ),
     )
     result.add_argument(
@@ -675,6 +1047,8 @@ def main() -> None:
     result: dict[str, Any] = {
         "compact_evidence": verify_compact_evidence(),
         "complete": True,
+        "exact_runtime_archives": verify_exact_runtime_archives(),
+        "final_mechanical_evidence": verify_final_mechanical(),
         "internal_manifest_files": verify_manifest(),
         "runtime_overlay_files": verify_overlay_manifest(),
         "schema": "glm52-coupled-k96tail-source-sync-verification-v1",

@@ -2,34 +2,42 @@
 
 ## Coupled-Hadamard K96-tail source publication, frozen 2026-08-15
 
-The K96-tail publication adds an exact measured-host source snapshot and
-compact evidence without claiming full-model completion or lower KLD.
+The K96-tail publication adds the exact measured-host source closure, the
+complete local mechanical seal, and compact full-model quality evidence. The
+candidate KLD is measured and worse than the source baseline, so the model is
+research-only. Public tensor availability is still unsupported until the Hub
+payload is verified.
 
 | Check | Result |
 |---|---:|
-| Snapshot SHA-256 manifest | 1,579 files passed |
-| Campaign source equivalence | 101 exact active files passed; one documented publication-only test-path normalization |
+| Snapshot SHA-256 manifest | 1,660 files passed |
+| Campaign source equivalence | 96 exact active files passed; the historical active test is preserved as an exact gzip archive; one documented finalized-ledger normalization |
 | Complete KQuant working source equivalence | 144 files passed |
 | Complete QSRT working source equivalence | 185 files passed |
-| Runtime source equivalence | 262 active files passed |
+| Runtime source equivalence | 262 active files passed, plus 2 exact active uploader files and the exact measured benchmark archive |
 | Filtered runtime overlay manifest | 248 source files passed |
 | QSRT revision, diff, and exact patch application | 3 changed files passed |
 | KQuant revision, diff, and exact patch application | 11 changed files passed |
 | Updated QSRT coupled tests | 5 passed |
 | Updated KQuant focused tests | 108 passed |
 | Current coupled campaign focused tests | 23 passed directly from this repository |
-| Compact execution evidence | 44 passing layer oracles, 43 exact parity receipts, 43 production-eligible guarded allocations, and 510 compact recipe/profile files passed |
+| Frozen pre-finalization evidence | 44 passing layer oracles, 43 exact parity receipts, 43 production-eligible guarded allocations, and 510 compact recipe/profile files passed |
+| Final mechanical evidence | 75 target-layer manifests, 75 quality receipts, 75 passing native runtime oracles, 74 exact K96 parity receipts, the sealed layer-3 K48 exception, the assembly manifest, and the codec receipt passed |
+| Full-model quality evidence | candidate mean KLD 0.1401771516114036 versus source 0.07583317451217256; +84.849%; quality gate failed |
 | Complete atomic score ledger | layers 4--50; 12,032 JSON/row-SSE pairs; 24,064 SHA-256 bindings; all embedded row-SSE hashes passed |
 | Active compact-evidence byte equivalence | 24,064 score receipts, 132 layer/quality/oracle files, 86 allocations, 43 parity receipts, 510 recipe files, and 11 wave archives passed |
-| Python syntax and published JSON parsing | 73 Python files and 843 JSON files passed |
-| Shell syntax | 25 shell files passed |
-| Local links in the six edited entry-point documents | 57 checked, zero missing |
+| Python syntax and published JSON parsing | 631 Python files and 875 JSON files passed |
+| Shell syntax | 40 shell files passed |
+| Local links in the 17 edited publication Markdown files | 15 repository-relative links checked, zero missing |
 | Secret-pattern scan | passed |
 | Generated cache, compiled object, model tensor, and file-size scan | zero included; no file over 100 MB |
 
-The final Hub model commit and end-to-end candidate KLD remain **PENDING
-FINAL**. Layer-local oracles and score aggregates are not substituted for that
-measurement.
+The end-to-end candidate KLD is sealed locally and is the quality authority.
+Layer-local oracles and score aggregates are not substituted for that
+measurement. The reproduction closure is published at Hub revision
+`50f4c166b2061171117008a6704b62dccdd999a4`, and the exact reviewed model card
+is published at `7b936cad625f1e0ec58038d48d90775c83e9b9bf`. The remaining open publication
+fields are the final Hub model commit and tensor revision.
 
 The active runtime overlay checksum file included five Ruff cache entries. The
 publication excludes those generated files, preserves the exact active

@@ -37,20 +37,30 @@ def test_rate_and_preservation_contract_is_explicit() -> None:
     assert campaign["model"]["original_bf16_model_downloaded_for_reencode"] is False
 
 
-def test_live_contract_has_explicit_final_placeholders() -> None:
+def test_publication_contract_seals_local_results_and_only_hub_is_open() -> None:
     campaign = json.loads(MANIFEST.read_text(encoding="utf-8"))
     assert campaign["complete"] is False
-    required = {
+    results = campaign["final_results"]
+    pending = {key for key, value in results.items() if value is None}
+    assert pending == {
         "hub_model_commit",
-        "assembly_manifest_id",
-        "candidate_kld_sha256",
-        "candidate_mean_kld",
-        "candidate_p99_kld",
-        "candidate_cvar_worst_1pct",
-        "full_acceptance_sha256",
+        "tensor_hub_revision",
     }
-    assert required <= campaign["final_results"].keys()
-    assert all(campaign["final_results"][key] is None for key in required)
+    assert results["model_card_hub_revision"] == (
+        "7b936cad625f1e0ec58038d48d90775c83e9b9bf"
+    )
+    assert "mtp3_smoke_sha256" not in results
+    assert "full_acceptance_sha256" not in results
+    assert results["assembly_manifest_sha256"] == (
+        "5b4309289c69dc618da03d34e10f826b8a6e7ba3fc67969582cf5b81b825a123"
+    )
+    assert results["model_codec_receipt_sha256"] == (
+        "a2d0648abc05e883e90d1c0ba0bbbb4464bbe8658fcd77ea5400849a8582bf14"
+    )
+    assert results["mechanical_runtime_oracle_count"] == 75
+    assert results["exact_k96_parity_receipt_count"] == 74
+    assert results["candidate_mean_kld"] == 0.1401771516114036
+    assert results["full_model_quality_gate_pass"] is False
 
 
 def test_audit_entrypoint_parses() -> None:
@@ -81,7 +91,7 @@ def test_method_document_is_linked_from_project_and_hub_cards() -> None:
         "H512",
         "H128",
         "No-shortcut",
-        "PENDING FINAL",
+        "research-only",
         "Unsafe remote score run-ahead overlap",
     ):
         assert required in text
@@ -90,4 +100,4 @@ def test_method_document_is_linked_from_project_and_hub_cards() -> None:
         encoding="utf-8"
     )
     assert document.name in project_readme
-    assert "PENDING FINAL" in hub_readme
+    assert "0.1401771516114036" in hub_readme

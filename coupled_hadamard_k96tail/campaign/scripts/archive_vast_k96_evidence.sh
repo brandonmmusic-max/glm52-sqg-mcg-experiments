@@ -73,5 +73,6 @@ cp "$campaign_log" "$destination/campaign.log"
   sha256sum -c SHA256SUMS
 )
 
-hf upload-large-folder "$repo" "$stage" --num-workers 4 --no-bars
+hf upload "$repo" "$stage" . --repo-type model \
+  --commit-message "Publish sealed reproduction evidence for layers $start-$end"
 printf 'wave reproduction evidence persisted to Hub: %s repo=%s\n' "$wave" "$repo"

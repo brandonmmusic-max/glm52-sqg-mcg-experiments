@@ -30,8 +30,8 @@
   "exl3_py": {
     "pr11_era_sm120_overlay_sha256": "80f99335c0ad014cc949ad5bd83b2daa6be5284e75662dd5f0dfdeacafe0e919",
     "b300_patched_sha256": "d4f95f22b26d585a42427244f35afa678e8cba041523331bcfc0e6178db6f5d8",
-    "local_sm120_sha256": "b1996bbcd52075ea45e04d899232ad7a3c6ca43ff86eaf6e7ad49b7084774165",
-    "note": "Local file extends the published r7/K6 runtime with fail-closed coupled-layer maps, exact per-layer 720/48 censuses, updated-QSRT transform validation, expert draw loading, and TP1 pipeline-parallel admission."
+    "local_sm120_sha256": "ad70b66a46d0c9649030006e22cbc9b59da9386c030b7ab852f61c52ea2d2818",
+    "note": "Local file extends the published r7/K6 runtime with fail-closed coupled-layer maps, exact per-layer censuses, updated-QSRT transform validation that permits additional attested provenance fields, expert draw loading, and TP1 pipeline-parallel admission."
   },
   "selected_sources": {
     "overlay/vllm/model_executor/layers/quantization/exl3.py": "Published r7/K6 loader plus coupled H512/H128 contract, draw-map, census, and TP1 pipeline-parallel integration",
